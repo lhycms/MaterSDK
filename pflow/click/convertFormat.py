@@ -3,7 +3,7 @@
 Author       : Liu Hanyu
 Email        : hyliu2016@buaa.edu.cn
 Date         : 2022-11-03 10:38:43
-LastEditTime : 2022-11-03 15:24:36
+LastEditTime : 2022-11-04 13:19:36
 FilePath     : /pflow/pflow/click/convertFormat.py
 Description  : 
 '''
@@ -11,27 +11,26 @@ import click
 from pflow.io.publicLayer.structure import DStructure
 
 
-
 @click.command()
 @click.option('--input_file',
             #default=1,
             type=str,
-            prompt='The path of input file: ',
+            prompt='The path of input file',
             help="The path of input file.",
             )
-@click.option('--input_format', 
+@click.option('--input_format',
             type=str,
-            prompt='The format of input file: ',
+            prompt='The format of input file',
             help='The format of input file.',
             )
 @click.option("--output_file",
             type=str,
-            prompt="The path of output file: ",
-            help="The path of output file."
+            prompt="The path of output file",
+            help="The path of output file.",
             )
 @click.option('--output_format',
             type=str,
-            prompt='The format of output file: ',
+            prompt='The format of output file',
             help='The format of output file.',
             )
 def convert_format(input_file, input_format, output_file, output_format):
