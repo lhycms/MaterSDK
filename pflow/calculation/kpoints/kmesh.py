@@ -2,7 +2,7 @@
 Author       : Liu Hanyu
 Email        : hyliu2016@buaa.edu.cn
 Date         : 2022-11-16 15:28:57
-LastEditTime : 2022-11-17 12:04:05
+LastEditTime : 2022-11-17 21:29:38
 FilePath     : /pflow/pflow/calculation/kpoints/kmesh.py
 Description  : 
 '''
@@ -72,9 +72,16 @@ class KMesh(object):
         kmesh = reciprocal_basis_lengths_in_2pi / (density * 2 * np.pi)
         kmesh = np.round(kmesh)
 
-        ### Note: 如果有真空，真空方向 kmesh 为 1 
-        if self.structure.judge_vacuum_exist():
-            kmesh[-1] = 1
+        ### Note: 如果有真空，真空方向 kmesh 为 1
+        for idx_direction in range(3):
+            if self.structure.judge_vacuum_exist()[idx_direction]:
+                kmesh[idx_direction] = 1
+        
+
+        ### Note: 如果某方向kmesh为0，那么将这个方向kmesh设置为1
+        for idx_direction in range(3):
+            if kmesh[idx_direction] == 0:
+                kmesh[idx_direction] = 1
 
         return kmesh
 

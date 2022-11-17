@@ -2,7 +2,7 @@
 Author       : Liu Hanyu
 Email        : hyliu2016@buaa.edu.cn
 Date         : 2022-10-31 16:24:03
-LastEditTime : 2022-11-17 16:35:24
+LastEditTime : 2022-11-17 21:22:21
 FilePath     : /pflow/pflow/io/publicLayer/structure.py
 Description  : 
 '''
@@ -147,16 +147,26 @@ class DStructure(Structure):
         Description
         -----------
             1. structure.lattice.abc[-1] - (`原子最大z坐标 - 原子最小z坐标`) > 10
+        
+        Return
+        ------
+            1. vacuum_lst: list of bool
+                - e.g. [True, True, False]: x方向有真空层，y方向有真空层，z方向没有真空层
         '''
-        lattice_z_length = self.lattice.abc[-1]
-        
-        coordination_z_lst = self.cart_coords[:, -1]
-        max_coordination_z = np.max(coordination_z_lst)
-        min_coordination_z = np.min(coordination_z_lst)
-        z_length = max_coordination_z - min_coordination_z
+        vacuum_lst = []
 
-        if ( (lattice_z_length - z_length) > 10):
-            return True
+        for idx_direction in range(3):
+            lattice_z_length = self.lattice.abc[idx_direction]
+            
+            coordination_z_lst = self.cart_coords[:, idx_direction]
+            max_coordination_z = np.max(coordination_z_lst)
+            min_coordination_z = np.min(coordination_z_lst)
+            z_length = max_coordination_z - min_coordination_z
+            
+            if ( (lattice_z_length - z_length) > 10):
+                vacuum_lst.append(True)
+            
+            else:
+                vacuum_lst.append(False)
         
-        else:
-            return False
+        return vacuum_lst
