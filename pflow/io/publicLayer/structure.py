@@ -2,7 +2,7 @@
 Author       : Liu Hanyu
 Email        : hyliu2016@buaa.edu.cn
 Date         : 2022-10-31 16:24:03
-LastEditTime : 2022-11-17 12:05:33
+LastEditTime : 2022-11-17 16:35:24
 FilePath     : /pflow/pflow/io/publicLayer/structure.py
 Description  : 
 '''
@@ -122,9 +122,9 @@ class DStructure(Structure):
                                             )
                         )
                 f.write("   {0:<14E}    {1:<14E}    {2:<14E}\n".format(
-                                            self.lattice.matrix[1, 0],
-                                            self.lattice.matrix[1, 1],
-                                            self.lattice.matrix[1, 2],
+                                            self.lattice.matrix[2, 0],
+                                            self.lattice.matrix[2, 1],
+                                            self.lattice.matrix[2, 2],
                                             )
                         )
 
