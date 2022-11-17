@@ -2,10 +2,11 @@
 Author       : Liu Hanyu
 Email        : hyliu2016@buaa.edu.cn
 Date         : 2022-10-31 16:24:03
-LastEditTime : 2022-11-16 14:29:43
+LastEditTime : 2022-11-17 12:05:33
 FilePath     : /pflow/pflow/io/publicLayer/structure.py
 Description  : 
 '''
+import numpy as np
 from pymatgen.core import Structure
 
 from ..pwmat.atomConfigExtractor import AtomConfigExtractor
@@ -138,4 +139,24 @@ class DStructure(Structure):
                                     self.frac_coords[idx_site, 1],
                                     self.frac_coords[idx_site, 2]
                                     )
-                        )                
+                        )
+
+
+    def judge_vacuum_exist(self):
+        '''
+        Description
+        -----------
+            1. structure.lattice.abc[-1] - (`原子最大z坐标 - 原子最小z坐标`) > 10
+        '''
+        lattice_z_length = self.lattice.abc[-1]
+        
+        coordination_z_lst = self.cart_coords[:, -1]
+        max_coordination_z = np.max(coordination_z_lst)
+        min_coordination_z = np.min(coordination_z_lst)
+        z_length = max_coordination_z - min_coordination_z
+
+        if ( (lattice_z_length - z_length) > 10):
+            return True
+        
+        else:
+            return False

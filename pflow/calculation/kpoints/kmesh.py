@@ -2,7 +2,7 @@
 Author       : Liu Hanyu
 Email        : hyliu2016@buaa.edu.cn
 Date         : 2022-11-16 15:28:57
-LastEditTime : 2022-11-17 09:53:35
+LastEditTime : 2022-11-17 12:04:05
 FilePath     : /pflow/pflow/calculation/kpoints/kmesh.py
 Description  : 
 '''
@@ -57,6 +57,9 @@ class KMesh(object):
         ----
             1. density 的单位: 2pi/Angstrom
         '''
+        if density == 0:
+            return np.array([1, 1, 1])
+
         # reciprocal_basis_vectors: 倒易格子的基矢 (unit: 2pi/Angstrom)
         reciprocal_basis_vectors_in_2pi = self.structure.lattice.reciprocal_lattice.matrix
 
@@ -68,6 +71,10 @@ class KMesh(object):
         # 计算 k-mesh
         kmesh = reciprocal_basis_lengths_in_2pi / (density * 2 * np.pi)
         kmesh = np.round(kmesh)
+
+        ### Note: 如果有真空，真空方向 kmesh 为 1 
+        if self.structure.judge_vacuum_exist():
+            kmesh[-1] = 1
 
         return kmesh
 
