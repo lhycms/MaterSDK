@@ -2,7 +2,7 @@
 Author       : Liu Hanyu
 Email        : hyliu2016@buaa.edu.cn
 Date         : 2022-10-31 15:14:30
-LastEditTime : 2022-11-03 16:41:28
+LastEditTime : 2022-11-25 12:10:08
 FilePath     : /pflow/pflow/io/pwmat/atomConfigExtractor.py
 Description  : 
 '''
