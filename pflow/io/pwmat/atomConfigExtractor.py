@@ -2,7 +2,7 @@
 Author       : Liu Hanyu
 Email        : hyliu2016@buaa.edu.cn
 Date         : 2022-10-31 15:14:30
-LastEditTime : 2022-12-07 16:24:59
+LastEditTime : 2022-12-07 16:34:56
 FilePath     : /pflow/pflow/io/pwmat/atomConfigExtractor.py
 Description  : 
 '''
@@ -162,7 +162,7 @@ class AtomConfigExtractor(object):
             # ...
             magnetic_moments_lst = [float(tmp_magnetic_moment.split()[-1]) for tmp_magnetic_moment in magnetic_moments_content]
         except Exception as e:
-            print(e)
+            #print(e)
             magnetic_moments_lst = [0 for _ in range(self.num_atoms)]
         
         return magnetic_moments_lst

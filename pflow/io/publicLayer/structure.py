@@ -2,7 +2,7 @@
 Author       : Liu Hanyu
 Email        : hyliu2016@buaa.edu.cn
 Date         : 2022-10-31 16:24:03
-LastEditTime : 2022-11-17 21:22:21
+LastEditTime : 2022-12-07 16:51:18
 FilePath     : /pflow/pflow/io/publicLayer/structure.py
 Description  : 
 '''
@@ -63,20 +63,24 @@ class DStructure(Structure):
                                             )
 
             structure = Structure(
-                                lattice=atom_config_extractor.basis_vectors_array,
-                                species=atom_config_extractor.species_array,
-                                coords=atom_config_extractor.coords_array,
-                                coords_are_cartesian=coords_are_cartesian,
-                                )
-        
-            structure.atoms_lst = atom_config_extractor.get_atoms_lst()
-            structure.atomic_numbers_lst = [specie2atomic_number[str(tmp_specie)] for tmp_specie in structure.species]
+                        lattice=atom_config_extractor.basis_vectors_array,
+                        species=atom_config_extractor.species_array,
+                        coords=atom_config_extractor.coords_array,
+                        coords_are_cartesian=coords_are_cartesian,
+                        site_properties={
+                            "magnetic_moments": atom_config_extractor.magnetic_moments,
+                            }
+                        )
 
         structure.__class__ = cls
         return structure
         
 
-    def to(self, output_file_path:str, output_file_format:str):
+    def to(self,
+            output_file_path:str,
+            output_file_format:str,
+            include_magnetic_moments:bool=False,
+            ):
         '''
         Desription
         ----------
@@ -107,7 +111,7 @@ class DStructure(Structure):
                 # 1. 
                 f.write("  {0} atoms\n".format(self.num_sites))
 
-                # 2.
+                # 2. Lattice vector 信息
                 f.write(" Lattice vector (Angstrom)\n")
                 f.write("   {0:<14E}    {1:<14E}    {2:<14E}\n".format(
                                             self.lattice.matrix[0, 0],
@@ -131,7 +135,7 @@ class DStructure(Structure):
                 # 3. 
                 f.write(" Position (normalized), move_x, move_y, move_z\n")
 
-                # 4.
+                # 4. sites 的坐标信息
                 for idx_site in range(self.num_sites):
                     f.write("  {0:>2d}         {1:<10f}         {2:<10f}         {3:<10f}     1  1  1\n".format(
                                     specie2atomic_number[self.species[idx_site].symbol],
@@ -141,12 +145,23 @@ class DStructure(Structure):
                                     )
                         )
 
+                # 5. 向 atom.config 写入磁性信息
+                if include_magnetic_moments:
+                    f.write(" Magnetic\n")
+                    for idx_site in range(self.num_sites):
+                        f.write("{0:<3d} {1:<.2f}\n".format(
+                                    specie2atomic_number[self.species[idx_site].symbol],
+                                    self.site_properties["magnetic_moments"][idx_site],
+                                    )
+                        )
+
 
     def judge_vacuum_exist(self):
         '''
         Description
         -----------
-            1. structure.lattice.abc[-1] - (`原子最大z坐标 - 原子最小z坐标`) > 10
+            1. 判断结构中是否存在 `真空层`
+            2. structure.lattice.abc[-1] - (`原子最大z坐标 - 原子最小z坐标`) > 10
         
         Return
         ------
