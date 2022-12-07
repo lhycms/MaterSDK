@@ -2,7 +2,7 @@
 Author       : Liu Hanyu
 Email        : hyliu2016@buaa.edu.cn
 Date         : 2022-10-31 15:14:30
-LastEditTime : 2022-11-25 12:10:08
+LastEditTime : 2022-12-07 16:24:59
 FilePath     : /pflow/pflow/io/pwmat/atomConfigExtractor.py
 Description  : 
 '''
@@ -42,6 +42,7 @@ class AtomConfigExtractor(object):
         self.basis_vectors_array = self.get_basis_vectors_lst()
         self.species_array = [atomic_number2specie[atomic_number] for atomic_number in self.get_atomic_numbers_lst() ]
         self.coords_array = self.get_coords_lst()
+        self.magnetic_moments = self.get_magnetic_moments()
 
 
     def get_num_atoms(self) -> int:
@@ -134,6 +135,38 @@ class AtomConfigExtractor(object):
             coords_lst.append(np.array(coord_tmp))
         
         return np.array(coords_lst)
+
+    
+
+    def get_magnetic_moments(self):
+        '''
+        Description
+        -----------
+            1. 得到所有原子的磁矩，顺序与 `坐标` 的顺序一致
+        '''
+        content = "MAGNETIC"
+
+        magnetic_moments_lst = []
+        
+        try:    # 处理异常：若 atom.config 中不包含原子的磁矩信息
+            idx_row = LineLocator.locate_all_lines(
+                                    file_path=self.atom_config_path,
+                                    content=content)[-1]
+            print(idx_row)
+            with open(self.atom_config_path, "r") as f:
+                atom_config_content = f.readlines()
+            
+            magnetic_moments_content = atom_config_content[idx_row: idx_row+self.num_atoms]
+            # MAGNETIC  
+            # 3 0.0 # 原子序数 磁矩
+            # ...
+            magnetic_moments_lst = [float(tmp_magnetic_moment.split()[-1]) for tmp_magnetic_moment in magnetic_moments_content]
+        except Exception as e:
+            print(e)
+            magnetic_moments_lst = [0 for _ in range(self.num_atoms)]
+        
+        return magnetic_moments_lst
+
 
     
     def get_atoms_lst(self) -> list:
