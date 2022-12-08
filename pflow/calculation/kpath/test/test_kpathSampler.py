@@ -2,7 +2,7 @@
 Author       : Liu Hanyu
 Email        : hyliu2016@buaa.edu.cn
 Date         : 2022-12-08 17:58:14
-LastEditTime : 2022-12-08 20:42:46
+LastEditTime : 2022-12-08 21:40:11
 FilePath     : /pflow/pflow/calculation/kpath/test/test_kpathSampler.py
 Description  : 
 '''
@@ -39,6 +39,8 @@ class KpathSamplerTest(unittest.TestCase):
         angle_tolerance = 5
         atol = 1e-5
 
+        density = 0.01
+
 
         ### Part III. file path config
 
@@ -54,7 +56,8 @@ class KpathSamplerTest(unittest.TestCase):
         
         #print(kpath_sampler.get_kpath())
         #print(kpath_sampler.get_kpoints())
-        kpath_sampler.output_HIGHK_file()
+        #kpath_sampler.output_HIGHK_file()
+        kpath_sampler.output_gen_kpt(density=density)
 
 
 
