@@ -2,7 +2,7 @@
 Author       : Liu Hanyu
 Email        : hyliu2016@buaa.edu.cn
 Date         : 2022-10-31 16:45:10
-LastEditTime : 2022-12-07 16:48:21
+LastEditTime : 2022-12-09 11:54:28
 FilePath     : /pflow/pflow/io/publicLayer/test/test_Structure.py
 Description  : 
 '''
@@ -53,7 +53,7 @@ class StructureTest(unittest.TestCase):
                         coords_are_cartesian=coords_are_cartesian
                         )
         
-        print(structure.site_properties["magnetic_moments"])
+        #print(structure.site_properties["magnetic_moments"])
 
         # 1.
         #structure.to(output_file_path=output_file_path,

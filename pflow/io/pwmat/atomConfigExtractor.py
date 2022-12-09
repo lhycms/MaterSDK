@@ -2,7 +2,7 @@
 Author       : Liu Hanyu
 Email        : hyliu2016@buaa.edu.cn
 Date         : 2022-10-31 15:14:30
-LastEditTime : 2022-12-07 16:34:56
+LastEditTime : 2022-12-09 11:57:02
 FilePath     : /pflow/pflow/io/pwmat/atomConfigExtractor.py
 Description  : 
 '''
@@ -152,7 +152,7 @@ class AtomConfigExtractor(object):
             idx_row = LineLocator.locate_all_lines(
                                     file_path=self.atom_config_path,
                                     content=content)[-1]
-            print(idx_row)
+            #print(idx_row)
             with open(self.atom_config_path, "r") as f:
                 atom_config_content = f.readlines()
             

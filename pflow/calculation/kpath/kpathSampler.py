@@ -2,12 +2,11 @@
 Author       : Liu Hanyu
 Email        : hyliu2016@buaa.edu.cn
 Date         : 2022-12-08 17:50:52
-LastEditTime : 2022-12-09 10:44:53
+LastEditTime : 2022-12-09 11:40:09
 FilePath     : /pflow/pflow/calculation/kpath/kpathSampler.py
 Description  : 
 '''
 import os
-import warnings
 import numpy as np 
 from pymatgen.symmetry.kpath import KPathSetyawanCurtarolo
 

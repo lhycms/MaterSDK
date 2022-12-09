@@ -2,16 +2,19 @@
 Author       : Liu Hanyu
 Email        : hyliu2016@buaa.edu.cn
 Date         : 2022-12-08 17:58:14
-LastEditTime : 2022-12-08 21:40:11
+LastEditTime : 2022-12-09 11:53:36
 FilePath     : /pflow/pflow/calculation/kpath/test/test_kpathSampler.py
 Description  : 
 '''
 import unittest
+import warnings
 
 # python3 -m pflow.calculation.kpath.test.test_kpathSampler
 from ....io.publicLayer.structure import DStructure
 from ..kpathSampler import KpathSampler
 
+
+warnings.filterwarnings("ignore")
 
 
 class KpathSamplerTest(unittest.TestCase):
@@ -57,7 +60,7 @@ class KpathSamplerTest(unittest.TestCase):
         #print(kpath_sampler.get_kpath())
         #print(kpath_sampler.get_kpoints())
         #kpath_sampler.output_HIGHK_file()
-        kpath_sampler.output_gen_kpt(density=density)
+        #kpath_sampler.output_gen_kpt(density=density)
 
 
 
