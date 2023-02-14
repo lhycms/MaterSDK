@@ -8,6 +8,7 @@ Description  :
 '''
 import os
 import numpy as np 
+from typing import Dict, List
 from pymatgen.symmetry.kpath import KPathSetyawanCurtarolo
 
 from ...io.publicLayer.structure import DStructure
@@ -15,8 +16,8 @@ from ...io.publicLayer.structure import DStructure
 
 
 class KpathSampler(KPathSetyawanCurtarolo):
-    HIGHK_file_path = "./HIGHK"
-    gen_kpt_path = "./gen.kpt"
+    HIGHK_file_path = "./HIGHK" # 输出的 HIGHK 路径
+    gen_kpt_path = "./gen.kpt"  # 输出的 gen.kpt 路径，用于 split_kp.x
 
     def __init__(self,
                 structure:DStructure,
@@ -29,8 +30,11 @@ class KpathSampler(KPathSetyawanCurtarolo):
         ----------
             1. structure: DStructure
             2. symprec: float
+                - 对称性误差
             3. angle_tolerance: float
+                - 角度误差
             4. atol: float
+                - 总误差
         '''
         super(KpathSampler, self).__init__(
                     structure=structure,
@@ -39,11 +43,29 @@ class KpathSampler(KPathSetyawanCurtarolo):
                     atol=atol,
                     )
         
+        ### Note: 必须先得到 self.kpoints，再得到 self.kpaths (利用 self.points 的坐标处理二维材料)
         # 字典：{"高对称点": "坐标", ...}
-        self.kpoints = self.get_kpoints()
+        self.kpoints = self._get_kpoints()
         # e.g. [['G', 'M', 'K', 'G', 'A', 'L', 'H', 'A'], ['L', 'M'], ['K', 'H']]
-        self.kpaths = self.get_kpath()
+        self.kpaths = self._get_kpath()
 
+    
+    @property
+    def kpoints(self) -> Dict[str, np.ndarray]:
+        return self._kpoints
+    
+    @kpoints.setter
+    def kpoints(self, kpoints:Dict[str, np.ndarray]):
+        self._kpoints = kpoints
+        
+    @property
+    def kpaths(self) -> List[List[str]]:
+        return self._kpath
+    
+    @kpaths.setter
+    def kpaths(self, kpath:List[List[str]]):
+        self._kpath = kpath
+    
     
     def output_HIGHK_file(self):
         '''
@@ -86,8 +108,14 @@ class KpathSampler(KPathSetyawanCurtarolo):
         if os.path.exists(self.gen_kpt_path):
             os.remove(self.gen_kpt_path)
 
+        '''
+        Note
+        ----
+            1. No `pymatgen.cores.Lattice.reciprocal_lattic_crystalloggraphic`: no factor of 2*pi
+            2. The `density` user input has 2*pi, but doesn't deal with in code, 因为和 1. 约分了 (同除以 2*pi)
+        '''
         reciprocal_lattice_crystalloggraphic = \
-                self.structure.lattice.reciprocal_lattice_crystallographic.matrix
+                self.structure.lattice.reciprocal_lattice_crystallographic.matrix   # no factor of 2*pi
 
 
         with open(self.gen_kpt_path, "a") as f:
@@ -106,10 +134,10 @@ class KpathSampler(KPathSetyawanCurtarolo):
                         point_dest = tmp_point
                         position_dest = self.kpoints[tmp_point]
                         
-                        position_start_matrix = np.matrix(position_start)
-                        position_dest_matrix = np.matrix(position_dest)
+                        position_start_array = np.array(position_start)
+                        position_dest_array = np.array(position_dest)
                         path_length = np.linalg.norm(
-                                (position_dest_matrix - position_start_matrix) * \
+                                (position_dest_array - position_start_array) * \
                                         reciprocal_lattice_crystalloggraphic
                                 )
                         num_bandpoint = np.ceil(path_length/density)
@@ -133,11 +161,11 @@ class KpathSampler(KPathSetyawanCurtarolo):
                     
                     
 
-    def get_kpoints(self):
+    def _get_kpoints(self):
         '''
         Description
         ------------
-            1. 
+            1. 获取 `Structure` 所有高对称点的名字和坐标
         
         Return 
         ------
@@ -159,11 +187,11 @@ class KpathSampler(KPathSetyawanCurtarolo):
         return kpoint2coord
 
 
-    def get_kpath(self):
+    def _get_kpath(self):
         '''
         Description
         ------------
-            1. 
+            1. 获取 `Structure` 所有对称路径
 
         Return 
         ------

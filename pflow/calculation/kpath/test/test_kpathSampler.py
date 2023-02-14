@@ -22,45 +22,37 @@ class KpathSamplerTest(unittest.TestCase):
         pass
 
 
-
     def test_get_kpath(self):
-        ### Part I. Structure Config
+        ### Part I. Get DStructure from atom.config
         file_format = "pwmat"
-        #file_path = "/Users/mac/我的文件/Mycode/new/new2/pflow/test_data/demo/atom.config"
-        file_path = "/Users/mac/我的文件/Mycode/new/new2/pflow/test_data/atom_config/高对称点/MoS2_pri/atom.pwmat"
+        file_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/kpath/atom.config"
         coords_are_cartesian = False
-
         structure = DStructure.from_file(
                         file_path=file_path,
                         file_format=file_format,
                         coords_are_cartesian=coords_are_cartesian
                         )
         
-
-        ### Part II. Symmetry Config
+        ### Part II. Setting torlenrance
         symprec = 0.1
         angle_tolerance = 5
         atol = 1e-5
-
         density = 0.01
 
-
-        ### Part III. file path config
-
-
-        ### Part IV. test
+        ### Part III. test
         kpath_sampler = KpathSampler(
                             structure=structure,
                             symprec=symprec,
                             angle_tolerance=angle_tolerance,
                             atol=atol,
                             )
+        kpath_sampler.HIGHK_file_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/kpath/HIGHK"
+        kpath_sampler.gen_kpt_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/kpath/gen.kpt"
         
-        
-        #print(kpath_sampler.get_kpath())
-        #print(kpath_sampler.get_kpoints())
-        #kpath_sampler.output_HIGHK_file()
-        #kpath_sampler.output_gen_kpt(density=density)
+        print(kpath_sampler.kpoints)
+        #print(kpath_sampler.kpaths)
+        kpath_sampler.output_HIGHK_file()
+        kpath_sampler.output_gen_kpt(density=density)
 
 
 
