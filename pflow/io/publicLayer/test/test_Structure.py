@@ -16,7 +16,7 @@ from ..structure import DStructure
 
 class StructureTest(unittest.TestCase):
     def test_structure_init(self):
-        file_path = "/Users/mac/我的文件/Mycode/new/new2/pflow/test_data/atom_config/atom.config"
+        file_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/atom.config"
         file_format = "pwmat"
         coords_are_cartesian = False
         
@@ -37,14 +37,14 @@ class StructureTest(unittest.TestCase):
         # 1. 普通的测试
         file_path = "/Users/mac/我的文件/Mycode/new/new2/pflow/test_data/atom_config/atom.config"
         # 2. 测试 DStructure.site_properties["magnetic_properties"]
-        file_path = "/Users/mac/我的文件/Mycode/new/new2/pflow/test_data/atom_config/addMag/output/atom.config"
+        file_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/atom.config"
         
         # 1. 
         output_file_path = \
-                "/Users/mac/我的文件/Mycode/new/new2/pflow/test_data/atom_config/rnstr.in"
+                "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/test.config"
         # 2. 
         output_file_path = \
-                "./atom.config"
+                "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/test.config"
         coords_are_cartesian = False
 
         structure = DStructure.from_file(
@@ -60,16 +60,16 @@ class StructureTest(unittest.TestCase):
         #            output_file_format="rndstr.in")
         
         # 2. 
-        structure.to(output_file_path=output_file_path,
-                    output_file_format="pwmat",
-                    include_magnetic_moments=True,
-                    )
+        #structure.to(output_file_path=output_file_path,
+        #            output_file_format="pwmat",
+        #            include_magnetic_moments=True,
+         #           )
 
 
 
     def test_judge_vacuum_exist(self):
-        file_format = "vasp"
-        file_path = "/Users/mac/Desktop/ReNbSSe/mc_2/0/POSCAR"
+        file_format = "pwmat"
+        file_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/atom.config"
         coords_are_cartesian = False
 
         structure = DStructure.from_file(
@@ -78,7 +78,7 @@ class StructureTest(unittest.TestCase):
                         coords_are_cartesian=coords_are_cartesian
                         )
 
-        #print(structure.judge_vacuum_exist())
+        print(structure.judge_vacuum_exist())
         
 
 
