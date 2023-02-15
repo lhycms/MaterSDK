@@ -50,7 +50,7 @@ class KpathSamplerTest(unittest.TestCase):
         kpath_sampler.gen_kpt_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/kpath/gen.kpt"
         
         print(kpath_sampler.kpoints)
-        print(kpath_sampler.kpaths)
+        #print(kpath_sampler.kpaths)
         kpath_sampler.output_HIGHK_file()
         kpath_sampler.output_gen_kpt(density=density)
 
