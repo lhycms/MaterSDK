@@ -9,8 +9,8 @@ Description  :
 import numpy as np
 from pymatgen.core import Structure
 
-from ..pwmat_.atomConfigExtractor import AtomConfigExtractor
-from ..utilitys.parameters import specie2atomic_number
+from ..pwmat.utils.atomConfigExtractor import AtomConfigExtractor
+from ..pwmat.utils.parameters import specie2atomic_number
 
 
 
