@@ -83,7 +83,7 @@ class Inkpt(object):
         '''
         Description
         -----------
-            1. 得到 IN.KPT 中所有 KPOINTS 的坐标
+            1. 得到 IN.KPT 中所有 KPOINTS 的分数坐标
             
         Return
         ------
@@ -109,19 +109,45 @@ class Inkpt(object):
     def get_kpt_coords_A(
                     self, 
                     atom_config_path:str):
+        '''
+        Description
+        -----------
+            1. 得到所有 kpoints 的坐标 (单位：埃)，与 IN.KPT/OUT.KPT 对应
+        '''
+        ### Step 1. 得到倒易晶格（unit: 埃）
         structure = DStructure.from_file(
                             file_path=atom_config_path,
                             file_format="pwmat",
                             )
-        reciprocal_lattice_array = np.array( structure.lattice.reciprocal_lattice_crystallographic.matrix )
-        return reciprocal_lattice_array
+        reciprocal_lattice_array = np.array( structure.lattice.reciprocal_lattice.matrix )
+
+        ### Step 2. 得到kpoints的分数坐标
+        kpt_coords_frac = self.get_kpt_coords_frac()
         
+        ### Step 3. kpoints的分数坐标 * 倒易晶格
+        return np.dot(kpt_coords_frac, reciprocal_lattice_array)        
     
     
     def get_kpt_coords_Bohr(
                     self, 
                     atom_config_path:str):
-        pass
+        '''
+        Description
+        -----------
+            1. 得到所有 kpoints 的坐标 (单位：Bohr)，与 REPORT 对应
+        '''
+        ### Step 1. 得到倒易晶格（unit: 埃）
+        structure = DStructure.from_file(
+                            file_path=atom_config_path,
+                            file_format="pwmat",
+                            )
+        reciprocal_lattice_array = np.array( structure.lattice.reciprocal_lattice.matrix )
+
+        ### Step 2. 得到kpoints的分数坐标
+        kpt_coords_frac = self.get_kpt_coords_frac()
+        
+        ### Step 3. kpoints的分数坐标 * 倒易晶格
+        return np.dot(kpt_coords_frac, reciprocal_lattice_array) * 0.529177249
     
     
     def get_kpt_weights(self):

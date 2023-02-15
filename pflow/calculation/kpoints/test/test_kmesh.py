@@ -15,7 +15,7 @@ from ..kmesh import KMesh
 class KMeshTest(unittest.TestCase):
     def test_get_lattice_info(self):
         file_format = "pwmat"
-        file_path = "/Users/mac/我的文件/Mycode/new/new2/pflow/test_data/atom_config/atom.config"
+        file_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/kpath/atom.config"
 
         kmesh = KMesh(
             file_format=file_format,
@@ -24,9 +24,10 @@ class KMeshTest(unittest.TestCase):
         kmesh.get_lattice_info()
 
 
+
     def test_get_kmesh(self):
-        file_format = "vasp"
-        file_path = "/Users/mac/Desktop/ReNbSSe/mc_2/0/POSCAR"
+        file_format = "pwmat"
+        file_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/kpath/atom.config"
         #file_format = "pwmat"
         #file_path = "/Users/mac/我的文件/Mycode/new/new2/pflow/test_data/atom_config/atom.config"
         density = 1
@@ -38,7 +39,6 @@ class KMeshTest(unittest.TestCase):
         )
         print("KMesh when density = {0} (unit: 2pi/Angstrom)".format(density))
         print(kmesh.get_kmesh(density))
-
 
 if __name__ == "__main__":
     unittest.main()

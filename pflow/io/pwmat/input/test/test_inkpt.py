@@ -22,9 +22,11 @@ class InkptTest(unittest.TestCase):
         print("\n4. The fractional coordinations of all kpoints:", end="\n")
         print(in_kpt.get_kpt_coords_frac())
 
-        print("\n")
+        print("\n5. The coordinations of all kpoints (unit: 埃):")
         print(in_kpt.get_kpt_coords_A(atom_config_path=atom_config_path))
-
+        
+        print("\n5. The coordinations of all kpoints (unit: Bohr):")
+        print(in_kpt.get_kpt_coords_Bohr(atom_config_path=atom_config_path))
 
 if __name__ == "__main__":
     unittest.main()
