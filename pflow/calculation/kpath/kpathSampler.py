@@ -149,7 +149,7 @@ class KpathSampler(KPathSetyawanCurtarolo):
                         position_start_array = np.array(position_start)
                         position_dest_array = np.array(position_dest)
                         path_length = np.linalg.norm(
-                                (position_dest_array - position_start_array) * \
+                                (position_dest_array - position_start_array).reshape(-1, 3) * \
                                         reciprocal_lattice_crystalloggraphic
                                 )
                         num_bandpoint = np.ceil(path_length/density)

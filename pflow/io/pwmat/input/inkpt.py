@@ -161,20 +161,38 @@ class Inkpt(object):
             1. weights_lst: List[float]
                 - kpoints 的权重
         '''
-        pass
+        with open(self.in_kpt_path, "r") as f:
+            lines_lst = f.readlines()[2:]
+        
+        weights_lst = [float(tmp_line.split()[3]) for tmp_line in lines_lst]
+        
+        return weights_lst
     
     
     def get_hsp(self):
         '''
         Description
         -----------
-            1. 得到 IN.KPT 中的高对称点和坐标
+            1. 得到 IN.KPT 中的高对称点和分数坐标
         
         Return
         ------
-            1. hsp2coord_frac: Dict[str, list]
+            1. hsp2coord_frac: Dict[str, List[float]]
         '''
-        pass
+        hsp_coords_dict = {"hsp":[], "coords_frac":[]}
+        with open(self.in_kpt_path, "r") as f:
+            lines_lst = f.readlines()[2:]
+        
+        for tmp_line in lines_lst:
+            if ( len(tmp_line.split()) == 5):
+                tmp_line_lst = tmp_line.split()
+                hsp_coords_dict["hsp"].append(tmp_line_lst[-1])
+                hsp_coords_dict["coords_frac"].append(
+                        [float(tmp_line_lst[0]), float(tmp_line_lst[1]), float(tmp_line_lst[2])]
+                        )
+                
+        
+        return hsp_coords_dict
     
     
     def get_distance_from_gamma_A(self):
@@ -182,6 +200,10 @@ class Inkpt(object):
         Description
         -----------
             1. 
+            
+        Note
+        ----
+            1. 注意三维体系，具有不同的KPATH，此时存在`跳点问题`
         '''
         pass
     

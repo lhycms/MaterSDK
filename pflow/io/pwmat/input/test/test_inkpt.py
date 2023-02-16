@@ -28,5 +28,11 @@ class InkptTest(unittest.TestCase):
         print("\n5. The coordinations of all kpoints (unit: Bohr):")
         print(in_kpt.get_kpt_coords_Bohr(atom_config_path=atom_config_path))
 
+        print("\n6. The weights of kpoints:")
+        print(in_kpt.get_kpt_weights())
+        
+        print("\n7. The High symmetry points for ")
+        print(in_kpt.get_hsp())
+
 if __name__ == "__main__":
     unittest.main()
