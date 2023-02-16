@@ -26,6 +26,8 @@ class KpathSamplerTest(unittest.TestCase):
         ### Part I. Get DStructure from atom.config
         file_format = "pwmat"
         file_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/kpath/atom.config"
+        file_path = "/data/home/liuhanyu/hyliu/pwmat_demo/scf_3d/atom.config"
+        
         coords_are_cartesian = False
         structure = DStructure.from_file(
                         file_path=file_path,
@@ -34,6 +36,7 @@ class KpathSamplerTest(unittest.TestCase):
                         )
         
         ### Part II. Setting torlenrance
+        dimension = 3
         symprec = 0.1
         angle_tolerance = 5
         atol = 1e-5
@@ -42,13 +45,17 @@ class KpathSamplerTest(unittest.TestCase):
         ### Part III. test
         kpath_sampler = KpathSampler(
                             structure=structure,
+                            dimension=dimension,
                             symprec=symprec,
                             angle_tolerance=angle_tolerance,
                             atol=atol,
                             )
         kpath_sampler.HIGHK_file_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/kpath/HIGHK"
         kpath_sampler.gen_kpt_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/kpath/gen.kpt"
-        
+
+        kpath_sampler.HIGHK_file_path = "/data/home/liuhanyu/hyliu/pwmat_demo/scf_3d/HIGHK"
+        kpath_sampler.gen_kpt_path = "/data/home/liuhanyu/hyliu/pwmat_demo/scf_3d/gen.kpt"
+               
         print(kpath_sampler.kpoints)
         print(kpath_sampler.kpaths)
         kpath_sampler.output_HIGHK_file()

@@ -21,6 +21,7 @@ class KpathSampler(KPathSetyawanCurtarolo):
 
     def __init__(self,
                 structure:DStructure,
+                dimension:int,
                 symprec:float=0.1,
                 angle_tolerance:float=5,
                 atol:float=1e-5,
@@ -29,11 +30,13 @@ class KpathSampler(KPathSetyawanCurtarolo):
         Parameters
         ----------
             1. structure: DStructure
-            2. symprec: float
+            2. dimension: Optionnal[2|3]
+                - 二维材料 / 三维材料
+            3. symprec: float
                 - 对称性误差
-            3. angle_tolerance: float
+            4. angle_tolerance: float
                 - 角度误差
-            4. atol: float
+            5. atol: float
                 - 总误差
         '''
         super(KpathSampler, self).__init__(
@@ -42,8 +45,8 @@ class KpathSampler(KPathSetyawanCurtarolo):
                     angle_tolerance=angle_tolerance,
                     atol=atol,
                     )
-        
-        self.mark_vacuum_z = self.structure.judge_vacuum_exist()
+        self.dimension = dimension
+
         ### Note: 必须先得到 self.kpoints，再得到 self.kpaths (利用 self.points 的坐标处理二维材料)
         # 字典：{"高对称点": "坐标", ...}
         self.kpoints = self._get_kpoints()
@@ -196,16 +199,19 @@ class KpathSampler(KPathSetyawanCurtarolo):
         except:
             pass
         
-        ### Step 2. 判断是否有真空层
-        ###     Case 1. True: 比如有 z 轴上的真空层，我们需要把 z 坐标不为0的 Kpoint 删去
-        ###     Case 2. False: do nothing
+        ### Step 2. 如果是二维材料，需要把 `z 坐标不为0的 Kpoint 删去`
         return_kpoint2coord = {}
-        if self.mark_vacuum_z:   # 把 z 坐标不为0的 Kpoint 删去
+        if (self.dimension == 2):   # 把 z 坐标不为0的 Kpoint 删去
             for tmp_kpt_name, tmp_kpt_coord in kpoint2coord.items():
                 if tmp_kpt_coord[-1] == 0:
                     return_kpoint2coord.update({tmp_kpt_name: tmp_kpt_coord})
+            return return_kpoint2coord
         
-        return return_kpoint2coord
+        elif (self.dimension == 3):
+            return kpoint2coord
+        
+        else:
+            raise Exception("The dimension of material must be 2 or 3!")
 
 
     def _get_kpaths(self):
@@ -235,18 +241,22 @@ class KpathSampler(KPathSetyawanCurtarolo):
             else:
                 new_kpaths_lst.append(tmp_kpath)
 
-        ### Step 2. 判断是否有真空层
-        ###     Case 1. True: 比如有 z 轴上的真空层，我们需要把 z 坐标不为0的 Kpoint 删去
-        ###     Case 2. False: do nothing
-        return_kpaths_lst = []
-        ### Step 2.1. 删除 self.kpoints 中不存在的点
-        for tmp_kpath in new_kpaths_lst:
+        ### Step 2. 如果是二维材料，需要把 `z 坐标不为0的 Kpoint 删去`
+        if (self.dimension == 2):
+            return_kpaths_lst = []
+            ### Step 2.1. 删除 self.kpoints 中不存在的点
+            for tmp_kpath in new_kpaths_lst:
+                tmp_new_kpath = [tmp_kpt for tmp_kpt in tmp_kpath if tmp_kpt in self.kpoints.keys()]
+                return_kpaths_lst.append(tmp_new_kpath)
             tmp_new_kpath = [tmp_kpt for tmp_kpt in tmp_kpath if tmp_kpt in self.kpoints.keys()]
-            return_kpaths_lst.append(tmp_new_kpath)
-        tmp_new_kpath = [tmp_kpt for tmp_kpt in tmp_kpath if tmp_kpt in self.kpoints.keys()]
-                    
-        ### Step 2.2. 删除`长度<=1`的 kpath: List(str)
-        return_kpaths_lst_ = [tmp_kpath for tmp_kpath in return_kpaths_lst if (len(tmp_kpath)>1)] 
-        
+                        
+            ### Step 2.2. 删除`长度<=1`的 kpath: List(str)
+            return_kpaths_lst_ = [tmp_kpath for tmp_kpath in return_kpaths_lst if (len(tmp_kpath)>1)] 
+            
+            return return_kpaths_lst_
 
-        return return_kpaths_lst_
+        elif (self.dimension == 3):
+            return new_kpaths_lst
+        
+        else:
+            raise Exception("The dimension of material must be 2 or 3!")

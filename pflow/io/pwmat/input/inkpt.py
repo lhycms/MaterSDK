@@ -190,7 +190,6 @@ class Inkpt(object):
                 hsp_coords_dict["coords_frac"].append(
                         [float(tmp_line_lst[0]), float(tmp_line_lst[1]), float(tmp_line_lst[2])]
                         )
-                
         
         return hsp_coords_dict
     

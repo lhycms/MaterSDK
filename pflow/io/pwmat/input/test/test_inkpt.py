@@ -8,7 +8,12 @@ class InkptTest(unittest.TestCase):
     def test_get_iflag(self):
         in_kpt_path = "/data/home/liuhanyu/hyliu/pwmat_demo/band/IN.KPT"
         atom_config_path = "/data/home/liuhanyu/hyliu/pwmat_demo/band/atom.config"
+      
+    
+        in_kpt_path = "/data/home/liuhanyu/hyliu/pwmat_demo/band/IN.KPT"
+        atom_config_path = "/data/home/liuhanyu/hyliu/pwmat_demo/band/atom.config"
         
+          
         in_kpt = Inkpt(in_kpt_path=in_kpt_path)
         print("\n1. The `iflag` of IN.KPT:", end="\t")
         print(in_kpt._get_iflag())
@@ -33,6 +38,9 @@ class InkptTest(unittest.TestCase):
         
         print("\n7. The High symmetry points for ")
         print(in_kpt.get_hsp())
+        
+        print("\n8. The distance from gamma (unit: 埃)")
+        print(in_kpt.get_distance_from_gamma_A())
 
 if __name__ == "__main__":
     unittest.main()
