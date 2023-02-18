@@ -10,8 +10,8 @@ class InkptTest(unittest.TestCase):
         atom_config_path = "/data/home/liuhanyu/hyliu/pwmat_demo/band/atom.config"
       
     
-        in_kpt_path = "/data/home/liuhanyu/hyliu/pwmat_demo/scf_3d/IN.KPT"
-        atom_config_path = "/data/home/liuhanyu/hyliu/pwmat_demo/scf_3d/atom.config"
+        #in_kpt_path = "/data/home/liuhanyu/hyliu/pwmat_demo/scf_3d/IN.KPT"
+        #atom_config_path = "/data/home/liuhanyu/hyliu/pwmat_demo/scf_3d/atom.config"
         
           
         in_kpt = Inkpt(in_kpt_path=in_kpt_path)
@@ -50,7 +50,11 @@ class InkptTest(unittest.TestCase):
         
         print("\n12. The distance from gamma (unit: 埃)")
         print(in_kpt.get_distance_from_gamma_A(atom_config_path=atom_config_path))
-
+        
+        print("\n13. The distance from gamma (unit: bohr)")
+        print(in_kpt.get_distance_from_gamma_bohr(atom_config_path=atom_config_path))
+        
+              
 
 if __name__ == "__main__":
     unittest.main()

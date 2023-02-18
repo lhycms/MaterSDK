@@ -305,7 +305,7 @@ class Inkpt(object):
         '''
         Description
         -----------
-            1. 
+            1. 得到二维能带图的横坐标 (unit: 埃)
         
         Return 
         ------
@@ -326,7 +326,7 @@ class Inkpt(object):
         ### Step 2. 处理不同kpath的跳点问题
         for tmp_idx, tmp_distances_from_gamma in enumerate(distances_from_gamma_lst_): # 有多少 kpath，次循环就进行多少次！
             if (tmp_idx != 0):  # 如果是第一条 kpath
-                cum_distance = distances_from_gamma_lst_[tmp_idx-1][-1]
+                cum_distance = distances_from_gamma_lst[-1]
                 minus_distance = tmp_distances_from_gamma[0] 
                 #print(cum_distance, minus_distance)
                 new_tmp_distances_from_gamma = \
@@ -340,10 +340,30 @@ class Inkpt(object):
         return distances_from_gamma_lst
                     
     
-    def get_distance_from_gamma_Bohr(self):
+    def get_distance_from_gamma_bohr(
+                            self,
+                            atom_config_path:str,    
+                            ):
         '''
         Description
         -----------
-            1. 
+            1. 得到二维能带图的横坐标 (unit: Bohr)
+        
+        Return 
+        ------
+            1. distances_from_gamma_lst: List[float] -- 单位：埃 
+                - 所有 kpoints 距 gamma点的距离
+        
+        Note
+        ----
+            1. 注意三维体系，具有不同的KPATH，此时存在`跳点问题`
         '''
-        pass
+        BOHR = 0.529177249  # 埃
+        distances_from_gamma_A_lst = \
+                self.get_distance_from_gamma_A(
+                        atom_config_path=atom_config_path)
+        
+        distances_from_gamma_bohr_lst = \
+                [(value * BOHR) for value in distances_from_gamma_A_lst]
+        
+        return distances_from_gamma_bohr_lst
