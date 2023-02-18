@@ -177,7 +177,12 @@ class Inkpt(object):
         
         Return
         ------
-            1. hsp2coord_frac: Dict[str, List[float]]
+            1. {
+                'hsp': ['G', 'M', 'K', 'G', 'A', 'L', 'H', 'A', 'L', 'M', 'K', 'H'], 
+                'coords_frac': [
+                        [0.0, 0.0, 0.0], [0.5, 0.0, 0.0], [0.333333, 0.333333, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.5], [0.5, 0.0, 0.5], [0.333333, 0.333333, 0.5], [0.0, 0.0, 0.5], [0.5, 0.0, 0.5], [0.5, 0.0, 0.0], [0.333333, 0.333333, 0.0], [0.333333, 0.333333, 0.5]
+                        ]
+                }
         '''
         hsp_coords_dict = {"hsp":[], "coords_frac":[]}
         with open(self.in_kpt_path, "r") as f:
@@ -194,18 +199,122 @@ class Inkpt(object):
         return hsp_coords_dict
     
     
-    def get_distance_from_gamma_A(self):
+    def _get_idx2hsp(self):
+        '''
+        Description
+        -----------
+            1. 得到所有高对称点的 index (从 0 开始)
+        
+        Return
+        ------
+            1. idx2hsp: Dict[int, str]:
+                - Dict[高对称点的index, 高对称点]
+        '''
+        idx2hsp = {}
+        with open(self.in_kpt_path) as f:
+            lines_lst = f.readlines()[2:]
+        
+        for idx_line, tmp_line in enumerate(lines_lst):
+            if ( len(tmp_line.split()) == 5 ):
+                tmp_line_lst = tmp_line.split()
+                idx2hsp.update(
+                        {idx_line:tmp_line_lst[-1]}
+                        )
+        
+        return idx2hsp
+
+    
+    def _get_distance_from_nbr(
+                            self,
+                            atom_config_path:str):
+        '''
+        Description
+        -----------
+            1. 得到 index近邻(在IN.KPT中) 的两个 kpoints 的距离 -- 单位：埃
+        
+        Return
+        ------
+            1. distances_from_nbr_lst: List[float]
+                - index近邻(在IN.KPT中) 的两个 kpoints 的距离 -- 单位：埃
+        '''
+        kpt_coords_A = self.get_kpt_coords_A(
+                        atom_config_path=atom_config_path)
+        distances_from_nbr_lst = \
+                list( 
+                    np.linalg.norm( 
+                    np.diff(kpt_coords_A, axis=0),
+                    axis=1)
+                    )
+        distances_from_nbr_lst.insert(0, 0)
+        
+        assert (kpt_coords_A.shape[0] == len(distances_from_nbr_lst))
+        
+        return distances_from_nbr_lst
+    
+    
+    def _split_distances_nbr_lst(
+                            self,
+                            atom_config_path:str,
+                            ):
+        '''
+        Description
+        -----------
+            1. 将不同kpath上kpoints之间的距离分成不同的列表
+            
+        Return
+        ------
+            1. distance_from_nbr_in_kpaths_lst: List[List[float]]:
+                - 
+        '''
+        ### distance_from_nbr_in_kpath_lst: 二维列表
+        ###     1d: 不同的kpath 
+        ###     2d: 某一kpath上所有kpoints之间距离
+        distance_from_nbr_in_kpaths_lst = []
+        
+        ### Step 1. 
+        idx2hsp = self._get_idx2hsp()
+        distances_from_nbr_lst = self._get_distance_from_nbr(atom_config_path=atom_config_path)
+        
+        ### Step 2. 得到每条 kpath 的第一个kpoint的索引 -- kpt_idx_starts_lst
+        kpt_idx_starts_lst = [0]
+        for tmp_idx in range( 1, len(idx2hsp.keys()) ):
+            if ( (list(idx2hsp.keys())[tmp_idx] - list(idx2hsp.keys())[tmp_idx-1]) == 1):
+                kpt_idx_starts_lst.append(list(idx2hsp.keys())[tmp_idx])
+        kpt_idx_starts_lst.append( len(distances_from_nbr_lst) )
+        #print(kpt_idx_starts_lst)
+        
+        ### Step 3. 将不同kpath上kpoint之间的距离，分成不同的list
+        for tmp_idx in range(1, len(kpt_idx_starts_lst)):
+            tmp_distances = distances_from_nbr_lst[kpt_idx_starts_lst[tmp_idx-1]:kpt_idx_starts_lst[tmp_idx]]
+            distance_from_nbr_in_kpaths_lst.append(tmp_distances)
+        
+        #for tmp_lst in distance_from_nbr_in_kpaths_lst:
+        #    print(len(tmp_lst))
+        
+        return distance_from_nbr_in_kpaths_lst
+            
+    
+    
+    def get_distance_from_gamma_A(
+                            self,
+                            atom_config_path:str):
         '''
         Description
         -----------
             1. 
-            
+        
+        Return 
+        ------
+            1. 
+        
         Note
         ----
             1. 注意三维体系，具有不同的KPATH，此时存在`跳点问题`
         '''
-        pass
-    
+        distance_from_nbr_in_kpaths_lst = self._split_distances_nbr_lst(atom_config_path=atom_config_path)
+        
+        
+                    
     
     def get_distance_from_gamma_Bohr(self):
         '''

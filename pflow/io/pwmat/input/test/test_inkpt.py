@@ -30,17 +30,26 @@ class InkptTest(unittest.TestCase):
         print("\n5. The coordinations of all kpoints (unit: 埃):")
         print(in_kpt.get_kpt_coords_A(atom_config_path=atom_config_path))
         
-        print("\n5. The coordinations of all kpoints (unit: Bohr):")
+        print("\n6. The coordinations of all kpoints (unit: Bohr):")
         print(in_kpt.get_kpt_coords_Bohr(atom_config_path=atom_config_path))
 
-        print("\n6. The weights of kpoints:")
+        print("\n7. The weights of kpoints:")
         print(in_kpt.get_kpt_weights())
         
-        print("\n7. The High symmetry points for ")
+        print("\n8. The High symmetry points for ")
         print(in_kpt.get_hsp())
         
-        print("\n8. The distance from gamma (unit: 埃)")
-        print(in_kpt.get_distance_from_gamma_A())
+        print("\n9. The Index for all high symmetry points:")
+        print(in_kpt._get_idx2hsp())
+        
+        print("\n10. The distance from nbr (unit: 埃)")
+        print(in_kpt._get_distance_from_nbr(atom_config_path=atom_config_path))
+        
+        print("\n11. _split_distances_nbr_lst:")
+        print(in_kpt._split_distances_nbr_lst(atom_config_path=atom_config_path))
+        
+        print("\n12. The distance from gamma (unit: 埃)")
+        print(in_kpt.get_distance_from_gamma_A(atom_config_path=atom_config_path))
 
 
 if __name__ == "__main__":
