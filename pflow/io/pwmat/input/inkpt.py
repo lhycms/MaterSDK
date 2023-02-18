@@ -1,6 +1,6 @@
 import linecache
 import numpy as np
-
+from typing import List
 
 from ...publicLayer.structure import DStructure
 
@@ -252,28 +252,31 @@ class Inkpt(object):
         return distances_from_nbr_lst
     
     
-    def _split_distances_nbr_lst(
+    def _split_distances_from_gamma_lst(
                             self,
                             atom_config_path:str,
                             ):
         '''
         Description
         -----------
-            1. 将不同kpath上kpoints之间的距离分成不同的列表
+            1. 将不同kpath上kpoints距gamma点的距离分成不同的列表 -- 单位：埃
             
         Return
         ------
-            1. distance_from_nbr_in_kpaths_lst: List[List[float]]:
+            1. distance_from_gamma_in_kpaths_lst: List[ List[float] ]:
                 - 
         '''
-        ### distance_from_nbr_in_kpath_lst: 二维列表
+        ### distance_from_gamma_in_kpath_lst: 二维列表
         ###     1d: 不同的kpath 
-        ###     2d: 某一kpath上所有kpoints之间距离
-        distance_from_nbr_in_kpaths_lst = []
+        ###     2d: 某一kpath上所有kpoints距离gamma点的距离
+        distance_from_gamma_in_kpaths_lst = []
         
         ### Step 1. 
         idx2hsp = self._get_idx2hsp()
         distances_from_nbr_lst = self._get_distance_from_nbr(atom_config_path=atom_config_path)
+        distances_from_gamma_lst = list(
+                np.cumsum(np.array(distances_from_nbr_lst))
+        )
         
         ### Step 2. 得到每条 kpath 的第一个kpoint的索引 -- kpt_idx_starts_lst
         kpt_idx_starts_lst = [0]
@@ -285,13 +288,14 @@ class Inkpt(object):
         
         ### Step 3. 将不同kpath上kpoint之间的距离，分成不同的list
         for tmp_idx in range(1, len(kpt_idx_starts_lst)):
-            tmp_distances = distances_from_nbr_lst[kpt_idx_starts_lst[tmp_idx-1]:kpt_idx_starts_lst[tmp_idx]]
-            distance_from_nbr_in_kpaths_lst.append(tmp_distances)
+            tmp_distances = distances_from_gamma_lst[kpt_idx_starts_lst[tmp_idx-1]:kpt_idx_starts_lst[tmp_idx]]
+            distance_from_gamma_in_kpaths_lst.append(tmp_distances)
         
+        ### Step 4. Test
         #for tmp_lst in distance_from_nbr_in_kpaths_lst:
         #    print(len(tmp_lst))
         
-        return distance_from_nbr_in_kpaths_lst
+        return distance_from_gamma_in_kpaths_lst
             
     
     
@@ -305,15 +309,35 @@ class Inkpt(object):
         
         Return 
         ------
-            1. 
+            1. distances_from_gamma_lst: List[float] -- 单位：埃 
+                - 所有 kpoints 距 gamma点的距离
         
         Note
         ----
             1. 注意三维体系，具有不同的KPATH，此时存在`跳点问题`
         '''
-        distance_from_nbr_in_kpaths_lst = self._split_distances_nbr_lst(atom_config_path=atom_config_path)
+        distances_from_gamma_lst:List[float] = []
         
+        ### Step 1. 未处理跳点问题的 distances_from_gamma_lst_: List[ List[float] ]
+        distances_from_gamma_lst_:List[float] = \
+                            self._split_distances_from_gamma_lst(atom_config_path=atom_config_path)
+        #print(distances_from_gamma_lst_)
         
+        ### Step 2. 处理不同kpath的跳点问题
+        for tmp_idx, tmp_distances_from_gamma in enumerate(distances_from_gamma_lst_): # 有多少 kpath，次循环就进行多少次！
+            if (tmp_idx != 0):  # 如果是第一条 kpath
+                cum_distance = distances_from_gamma_lst_[tmp_idx-1][-1]
+                minus_distance = tmp_distances_from_gamma[0] 
+                #print(cum_distance, minus_distance)
+                new_tmp_distances_from_gamma = \
+                        [distance+cum_distance-minus_distance for distance in tmp_distances_from_gamma]
+            else:   # 如果不是第一条 kpath
+                new_tmp_distances_from_gamma = tmp_distances_from_gamma
+            
+            for tmp_distance in new_tmp_distances_from_gamma:
+                distances_from_gamma_lst.append(tmp_distance)
+        
+        return distances_from_gamma_lst
                     
     
     def get_distance_from_gamma_Bohr(self):
