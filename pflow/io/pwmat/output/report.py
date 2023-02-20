@@ -108,10 +108,28 @@ class Report(object):
             lines_lst = f.readlines()
         
         ### Step 3. 得到每个kpoint的本征能量
-        num_lines_for_band = np.ceil(num_bands / self.COLUMN_PER_LINE)
+        num_lines_for_band = int( np.ceil(num_bands / self.COLUMN_PER_LINE) )
         for tmp_idx, tmp_idx_eigen_start in enumerate(idxs_eigen_start_lst):
             tmp_eigen_energies_ = lines_lst[tmp_idx_eigen_start : tmp_idx_eigen_start+num_lines_for_band]
             tmp_eigen_energies = [float(eigen) for tmp_5_eigen in tmp_eigen_energies_ for eigen in tmp_5_eigen.split()]
+            tmp_eigen_energies_array = np.array( tmp_eigen_energies )
             
+            if tmp_idx < num_kpts:
+                spin2eigen_energies["up"].append(tmp_eigen_energies_array)
+            else:
+                spin2eigen_energies["down"].append(tmp_eigen_energies_array)
         
-            
+        ### Step 4. 将 spin2igen_energies 的 values 变为 np.ndarray 形式
+        spin2eigen_energies.update(
+                        {"up": np.array( spin2eigen_energies["up"] )}
+                        )
+        spin2eigen_energies.update(
+                        {"down": np.array( spin2eigen_energies["down"] )}
+                        )
+        
+        ### Step 5. 当 ispin 打开时，自旋向上和向下的(kpoints, eigen_states)应该相等
+        if spin2eigen_energies["down"].size != 0:
+            assert (spin2eigen_energies["up"].shape != spin2eigen_energies["down"])
+        
+        
+        return spin2eigen_energies

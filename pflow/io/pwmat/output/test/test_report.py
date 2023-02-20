@@ -15,7 +15,8 @@ class ReportTest(unittest.TestCase):
         print("\n2. kpoints的数目:", end="\t")
         print(report.get_num_kpts())
         
-        print("\n3. ")
+        print("\n3. 得到所有kpoints的本征能量:")
+        print(report.get_eigen_energies())
         
         
         
