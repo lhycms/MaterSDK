@@ -207,7 +207,7 @@ class Report(object):
         '''
         Description
         -----------
-            1. 得到导带顶的 idx_kpt, idx_band, idx_spin
+            1. 得到导带顶的 idx_kpt, idx_band, idx_spin, energy
         
         Return
         ------
@@ -217,6 +217,7 @@ class Report(object):
                 - "kpts": 
                 - "bands": 
                 - 是列表形式，因为有时候会共享 cbm
+                - e.g.  {'energies': [-0.3426], 'kpts': [19], 'bands': [53], 'spins': ['up']}
             
         Note
         ----
@@ -269,6 +270,62 @@ class Report(object):
         return cbm_dict
         
         
+    def get_vbm(self, out_fermi_path:str):
+        '''
+        Description
+        -----------
+            1. 得到半导体的vbm
+        
+        Return
+        ------
+            1. vbm_dict: Dict
+                - e.g. {'energies': [-1.9866], 'kpts': [29], 'bands': [52], 'spins': ['up']}
+        '''
+        ### Step 1. 判断体系是否是半导体
+        if self._is_metal(out_fermi_path=out_fermi_path):
+            print("本材料体系是金属")
+            raise SystemExit
+
+        ### Step 2. 得到体系的费米能级
+        out_fermi_object = OutFermi(out_fermi_path=out_fermi_path)
+        efermi_ev = out_fermi_object.get_efermi()
+        
+        ### Step 3. 得到本征能量
+        spin2eigen_energies:Dict[str, np.ndarray] = self.get_eigen_energies()
+        
+        ### Step 4. 得到 vbm 的能量、自旋、kpoint、能带
+        vbm_energy = -float("inf")
+        vbm_kpt = 0
+        vbm_band = 0
+        vbm_spin = None
+        for tmp_spin in list( spin2eigen_energies.keys() ):
+            for idx_row, idx_col in zip( *np.where(spin2eigen_energies[tmp_spin] <= efermi_ev) ):
+                # idx_row:indx of kpoints ; idx_col: index of band
+                if spin2eigen_energies[tmp_spin][idx_row][idx_col] > vbm_energy:
+                    vbm_energy = round( float(spin2eigen_energies[tmp_spin][idx_row][idx_col]), 4 )
+                    vbm_kpt = idx_row + 1
+                    vbm_band = idx_col + 1
+                    vbm_spin = tmp_spin
+        
+        ### Step 5. Get all othr band sharing the vbm
+        vbm_dict = {
+            "energies": [vbm_energy],
+            "kpts": [vbm_kpt],
+            "bands": [vbm_band],
+            "spins": [vbm_spin],
+        }
+        for tmp_spin in list( spin2eigen_energies.keys() ):
+            for idx_band in range(spin2eigen_energies["up"].shape[1]):
+                try:
+                    if math.fabs( spin2eigen_energies[tmp_spin][vbm_kpt][idx_band] - vbm_energy) < 0.001:
+                        vbm_dict["energies"].append(vbm_energy)
+                        vbm_dict["spins"].append(tmp_spin)
+                        vbm_dict["bands"].append(idx_band)
+                        vbm_dict["kpts"].append(vbm_kpt)
+                except: # spin2eigen_energies["down"] 为空时，会触发 `IndexError`
+                    pass
+        
+        return vbm_dict
     
     
     def get_bandgap(self, out_fermi_path:str):

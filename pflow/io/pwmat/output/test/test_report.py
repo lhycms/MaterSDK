@@ -28,6 +28,9 @@ class ReportTest(unittest.TestCase):
         print("\n6. 材料体系的 cbm 为:", end="\t")
         print(report.get_cbm(out_fermi_path=out_fermi_path))
         
+        print("\n7. 材料体系的 vbm 为:", end="\t")
+        print(report.get_vbm(out_fermi_path=out_fermi_path))
+        
         
 if __name__ == "__main__":
     unittest.main()
