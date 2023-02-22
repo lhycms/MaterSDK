@@ -211,7 +211,12 @@ class Report(object):
         
         Return
         ------
-            1. cbm_dict
+            1. cbm_dict: { "energies": List[float], "spins": List[str], "kpts": List[int], bands: List[int] }
+                - "energies": 
+                - "spins": 
+                - "kpts": 
+                - "bands": 
+                - 是列表形式，因为有时候会共享 cbm
             
         Note
         ----
