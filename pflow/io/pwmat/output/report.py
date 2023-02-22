@@ -1,4 +1,5 @@
 import os
+import math
 import linecache
 import numpy as np
 from typing import Dict
@@ -200,7 +201,70 @@ class Report(object):
                     np.any(eigen_energis_T[idx_band, :] - efermi_ev > efermi_tol):
                     return True
         return False
+    
+    
+    def get_cbm(self, out_fermi_path:str):
+        '''
+        Description
+        -----------
+            1. 得到导带顶的 idx_kpt, idx_band, idx_spin
         
+        Return
+        ------
+            1. cbm_dict
+            
+        Note
+        ----
+            1. idx_kpt 与 idx_band 均是从 1 开始的 (REPORT的输出信息就是从 1 开始的)
+        '''
+        ### Step 1. 判断体系是否是半导体
+        if self._is_metal(out_fermi_path=out_fermi_path):
+            print("本材料体系是金属")
+            raise SystemExit
+        
+        ### Step 2. 得到体系的费米能级
+        out_fermi_object = OutFermi(out_fermi_path=out_fermi_path)
+        efermi_ev = out_fermi_object.get_efermi()
+        
+        ### Step 3. 得到本征能量
+        spin2eigen_energies:Dict[str, np.ndarray] = self.get_eigen_energies()
+        
+        ### Step 4. 找到 cbm 的能量、自旋、kpoint、能带
+        cbm_energy = float("inf")   # energy
+        cbm_kpt = 0     # kpoints 的索引 
+        cbm_band = 0    # band 的索引
+        cbm_spin = None # 自旋: Optional["up"|"down"]
+        for tmp_spin in list( spin2eigen_energies.keys() ): # ["up", "down"]
+            for idx_row, idx_col in zip( *np.where(spin2eigen_energies[tmp_spin] >= efermi_ev) ):
+                # idx_row:index for kpoints ; idx_col: index for band
+                if spin2eigen_energies[tmp_spin][idx_row][idx_col] < cbm_energy:
+                    cbm_energy = round( float(spin2eigen_energies[tmp_spin][idx_row][idx_col]), 4)
+                    cbm_kpt = idx_row + 1
+                    cbm_band = idx_col + 1
+                    cbm_spin = tmp_spin
+                    
+        ### Step 5. Get all other band sharing the cbm
+        cbm_dict = {
+                "energies": [cbm_energy],
+                "kpts": [cbm_kpt],
+                "bands": [cbm_band],
+                "spins": [cbm_spin],
+        }
+        for tmp_spin in list( spin2eigen_energies.keys() ):
+            for idx_band in range(spin2eigen_energies["up"].shape[1]):
+                try:
+                    if math.fabs( spin2eigen_energies[tmp_spin][cbm_kpt][idx_band] - cbm_energy) < 0.001:
+                        cbm_dict["energies"].append(cbm_energy)
+                        cbm_dict["kpts"].append(cbm_kpt)
+                        cbm_dict["bands"].append(idx_band + 1)
+                        cbm_dict["spins"].append(tmp_spin)
+                except: # spin2eigen_energies["down"] 为空时，会触发 `IndexError`
+                    pass
+        
+        return cbm_dict
+        
+        
+    
     
     def get_bandgap(self, out_fermi_path:str):
         '''
@@ -227,4 +291,3 @@ class Report(object):
         efermi_ev = out_fermi_object.get_efermi()
         
         ### Step 2. 
-        

@@ -6,8 +6,8 @@ from ..report import Report
 
 class ReportTest(unittest.TestCase):
     def test_report_all(self):
-        report_path = "/data/home/liuhanyu/hyliu/pwmat_demo/band_ispin/REPORT"
-        out_fermi_path = "/data/home/liuhanyu/hyliu/pwmat_demo/band_ispin/OUT.FERMI"
+        report_path = "/data/home/liuhanyu/hyliu/pwmat_demo/band/REPORT"
+        out_fermi_path = "/data/home/liuhanyu/hyliu/pwmat_demo/band/OUT.FERMI"
         report = Report(report_path=report_path)
         
         print("\n1. 能带数:", end="\t")
@@ -22,8 +22,12 @@ class ReportTest(unittest.TestCase):
         print("\n4. IN.ATOM: ", end="\t")
         print(report.get_in_atom())
         
-        print("\n5. self._is_metal: ", end="\t")
+        print("\n5. self._is_metal:", end="\t")
         print(report._is_metal(out_fermi_path=out_fermi_path))
+        
+        print("\n6. 材料体系的 cbm 为:", end="\t")
+        print(report.get_cbm(out_fermi_path=out_fermi_path))
+        
         
 if __name__ == "__main__":
     unittest.main()
