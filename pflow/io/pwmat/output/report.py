@@ -211,13 +211,15 @@ class Report(object):
         
         Return
         ------
-            1. cbm_dict: { "energies": List[float], "spins": List[str], "kpts": List[int], bands: List[int] }
+            1. Union[Dict, None]
+            2. cbm_dict: { "energies": List[float], "spins": List[str], "kpts": List[int], bands: List[int] }
                 - "energies": 
                 - "spins": 
                 - "kpts": 
                 - "bands": 
                 - 是列表形式，因为有时候会共享 cbm
                 - e.g.  {'energies': [-0.3426], 'kpts': [19], 'bands': [53], 'spins': ['up']}
+            3. 当体系是金属的时候返回 None
             
         Note
         ----
@@ -225,8 +227,9 @@ class Report(object):
         '''
         ### Step 1. 判断体系是否是半导体
         if self._is_metal(out_fermi_path=out_fermi_path):
-            print("本材料体系是金属")
-            raise SystemExit
+            #print("本材料体系是金属")
+            #raise SystemExit
+            return None
         
         ### Step 2. 得到体系的费米能级
         out_fermi_object = OutFermi(out_fermi_path=out_fermi_path)
@@ -278,13 +281,16 @@ class Report(object):
         
         Return
         ------
-            1. vbm_dict: Dict
+            1. Union[Dict, None]
+            2. vbm_dict: Dict
                 - e.g. {'energies': [-1.9866], 'kpts': [29], 'bands': [52], 'spins': ['up']}
+            3. 当体系是金属的时候返回 None
         '''
         ### Step 1. 判断体系是否是半导体
         if self._is_metal(out_fermi_path=out_fermi_path):
-            print("本材料体系是金属")
-            raise SystemExit
+            #print("本材料体系是金属")
+            #raise SystemExit
+            return None
 
         ### Step 2. 得到体系的费米能级
         out_fermi_object = OutFermi(out_fermi_path=out_fermi_path)
