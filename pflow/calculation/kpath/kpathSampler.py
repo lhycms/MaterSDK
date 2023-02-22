@@ -14,7 +14,6 @@ from pymatgen.symmetry.kpath import KPathSetyawanCurtarolo
 from ...io.publicLayer.structure import DStructure
 
 
-
 class KpathSampler(KPathSetyawanCurtarolo):
     HIGHK_file_path = "./HIGHK" # 输出的 HIGHK 路径
     gen_kpt_path = "./gen.kpt"  # 输出的 gen.kpt 路径，用于 split_kp.x
@@ -174,8 +173,6 @@ class KpathSampler(KPathSetyawanCurtarolo):
                         )
 
                     
-                    
-
     def _get_kpoints(self):
         '''
         Description

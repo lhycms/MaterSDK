@@ -1,5 +1,9 @@
+import os
 import linecache
 import numpy as np
+from typing import Dict
+
+from .outfermi import OutFermi
 
 
 class Report(object):
@@ -83,7 +87,7 @@ class Report(object):
         '''
         Description
         -----------
-            1. 
+            1. 得到的本征值未减去费米能级
         
         Return
         ------
@@ -131,5 +135,96 @@ class Report(object):
         if spin2eigen_energies["down"].size != 0:
             assert (spin2eigen_energies["up"].shape != spin2eigen_energies["down"])
         
-        
         return spin2eigen_energies
+    
+    
+    def get_in_atom(self):
+        '''
+        Description
+        -----------
+            1. 得到输入的结构
+        
+        Return
+        ------
+            1. in_atom_name: str
+                - basename
+                - e.g. "atom.config"
+        '''        
+        aim_conetent_inatom = "IN.ATOM"
+        idx_inatom = self._search_aim(aim_content=aim_conetent_inatom)[0]
+        in_atom_name = linecache.getline(self.report_path, idx_inatom).split()[-1]
+    
+        return in_atom_name
+    
+    
+    def _is_metal(self, 
+                out_fermi_path:str,
+                efermi_tol:float=1e-4,
+                ):
+        '''
+        Description
+        -----------
+            1. Check if the bandstructure indicates a metal by looking if the fermi 
+            level crosses a band.
+        
+        Parameters
+        ----------
+            1. out_fermi_path: str
+                - OUT.FERMI 的路径
+            2. efermi_tol: float
+                - The tolerance of fermi level
+        
+        Return
+        ------
+            1. mark: bool
+                - True: 是金属
+                - False: 不是金属
+        '''
+        ### Step 1. 得到费米能级
+        ### Step 1.1. 判断是否存在 OUT.FERMI 文件
+        if not os.path.exists(out_fermi_path):
+            raise("当前目录下不存在 OUT.FERMI 文件，无法读取费米能级！")
+        ### Step 1.2. 从 OUT.FERMI 中读取费米能级
+        out_fermi_object = OutFermi(out_fermi_path=out_fermi_path)
+        efermi_ev = out_fermi_object.get_efermi()
+        
+        ### Step 2. 判断是否有能带穿过费米能级 (check if the fermi level crosses a band)
+        spin2eigen_energies:Dict[str, np.ndarray] = self.get_eigen_energies()
+        for tmp_spin in list( spin2eigen_energies.keys() ): # ["up", "down"]
+            ### engen_energies_T
+            ###     - 一维：
+            ###     - 二维：
+            eigen_energis_T = spin2eigen_energies[tmp_spin].T
+            for idx_band in range(eigen_energis_T.shape[0]):
+                if np.any(eigen_energis_T[idx_band, :] - efermi_ev < -efermi_tol) and \
+                    np.any(eigen_energis_T[idx_band, :] - efermi_ev > efermi_tol):
+                    return True
+        return False
+        
+    
+    def get_bandgap(self, out_fermi_path:str):
+        '''
+        Description
+        -----------
+            1. 得到 bandgap
+        
+        Paramter
+        --------
+            1. out_fermi_path: str
+                - OUT.FERMI 的绝对路径
+        
+        Return
+        ------
+            1. bandgap: float
+                - unit: eV
+        '''
+        ### Step 1. 得到费米能级
+        ### Step 1.1. 判断当前目录下是否存在 OUT.FERMI
+        if not os.path.exists(out_fermi_path):
+            raise Exception("当前目录下不存在 OUT.FERMI 文件，无法读取费米能级！")
+        ### Step 1.2. 从 OUT.FERMI 中读取费米能级
+        out_fermi_object = OutFermi(out_fermi_path=out_fermi_object)
+        efermi_ev = out_fermi_object.get_efermi()
+        
+        ### Step 2. 
+        
