@@ -4,6 +4,7 @@ pflow/__init__.py
 pflow.egg-info/PKG-INFO
 pflow.egg-info/SOURCES.txt
 pflow.egg-info/dependency_links.txt
+pflow.egg-info/requires.txt
 pflow.egg-info/top_level.txt
 pflow/calculation/__init__.py
 pflow/calculation/kpath/__init__.py

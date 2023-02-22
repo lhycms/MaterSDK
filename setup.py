@@ -11,7 +11,16 @@ from setuptools import setup, find_packages
 
 setup(
     name="pflow",
-    version="v1.0.1",
+    version="v1.0",
+    author="Liu Hanyu  &&  LONXUN QUANTUM",
+    author_email="domainofbuaa@gmail.com",
+    url="https://github.com/lhycms/pflow",
     packages=find_packages(),
-    include_package_data=True
+    include_package_data=True,
+    install_requires=[
+            "pymatgen>=2022.11.7",
+            "numpy>=1.23.5",
+            "prettytable>=3.5.0",
+            #"dpdata>=0.2.13",
+    ]
 )
