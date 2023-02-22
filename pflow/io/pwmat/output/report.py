@@ -344,12 +344,42 @@ class Report(object):
             1. bandgap: float
                 - unit: eV
         '''
-        ### Step 1. 得到费米能级
-        ### Step 1.1. 判断当前目录下是否存在 OUT.FERMI
-        if not os.path.exists(out_fermi_path):
-            raise Exception("当前目录下不存在 OUT.FERMI 文件，无法读取费米能级！")
-        ### Step 1.2. 从 OUT.FERMI 中读取费米能级
-        out_fermi_object = OutFermi(out_fermi_path=out_fermi_object)
-        efermi_ev = out_fermi_object.get_efermi()
+        ### Step 1. 得到 CBM 和 VBM
+        ### (在 `self.get_cbm()`` 和 `self.get_vbm()` 中判断是金属 or 半导体)
+        vbm_dict = self.get_vbm(out_fermi_path=out_fermi_path)
+        cbm_dict = self.get_cbm(out_fermi_path=out_fermi_path)
         
-        ### Step 2. 
+        ### Step 2. 得到带隙的大小
+        bandgap = cbm_dict["energies"][0] - vbm_dict["energies"][0]
+        
+        return bandgap
+    
+    
+    def get_bandgap_type(self, out_fermi_path:str):
+        '''
+        Description
+        -----------
+            1. 得到带隙类型
+        
+        Return
+        ------
+            1. int:
+                - 0: 间接带隙
+                - 1: 直接带隙
+        '''
+        ### Step 1. 得到 CBM 和 VBM
+        ### (在 `self.get_cbm()`` 和 `self.get_vbm()` 中判断是金属 or 半导体)
+        vbm_dict = self.get_vbm(out_fermi_path=out_fermi_path)
+        cbm_dict = self.get_cbm(out_fermi_path=out_fermi_path)
+        
+        ### Step 2. 得到带的类型
+        intersection, idx_1_lst, idx_2_lst = np.intersect1d(
+                                                vbm_dict["kpts"],
+                                                cbm_dict["kpts"],
+                                                return_indices=True,
+                                                )
+        
+        if intersection.size == 0:
+            return 0    # 间接带隙
+        else:
+            return 1    # 直接带隙

@@ -31,6 +31,12 @@ class ReportTest(unittest.TestCase):
         print("\n7. 材料体系的 vbm 为:", end="\t")
         print(report.get_vbm(out_fermi_path=out_fermi_path))
         
+        print("\n8. 带隙:", end="\t")
+        print(report.get_bandgap(out_fermi_path=out_fermi_path))
+        
+        print("\n9. 带隙类型:", end="\t")
+        print(report.get_bandgap_type(out_fermi_path=out_fermi_path))
+        
         
 if __name__ == "__main__":
     unittest.main()
