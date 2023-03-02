@@ -5,6 +5,10 @@ import copy
 
 class GenVext(object):
     '''
+    Description
+    -----------
+        1. 使用 `add_field.x` 外加电场计算时，同时需要 `gen.vext`
+    
     Attributes
     ----------
         1. `self.vr_center`: List[float]

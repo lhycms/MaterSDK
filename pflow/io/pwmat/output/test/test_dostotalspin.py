@@ -5,7 +5,7 @@ from ..dostotalspin import Dostotalspin
 
 class DostotalspinTest(unittest.TestCase):
     def test_dostotalspin(self):
-        dos_totalspin_path = "/data/home/liuhanyu/hyliu/pwmat_demo/MoS2/scf/dos/DOS.totalspin"
+        dos_totalspin_path = "/data/home/liuhanyu/hyliu/pwmat_demo/MoS2/scf/dos/DOS.totalspin_projected_ShiftFermi"
         dos_totalspin = Dostotalspin(dos_totalspin_path=dos_totalspin_path)
         
         print("\n1. tdos:")

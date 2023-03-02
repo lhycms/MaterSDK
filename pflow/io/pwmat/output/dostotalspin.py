@@ -69,7 +69,12 @@ class Dostotalspin(object):
                     self.bak_dosfile_path,
                     delimiter='\s+',
                     )
-        return df_dos.loc[:, ["Energy", "Total"]]
+        try: 
+            df_tdos = df_dos.loc[:, ["Energy", "Total"]]
+        except KeyError:
+            df_tdos = df_dos.loc[:, ["Energy", "total"]]
+        
+        return df_tdos
 
     
     def get_pdos_elements(self):
@@ -120,18 +125,30 @@ class Dostotalspin(object):
         df_pdos_elements.columns = new_columns_lst
         
         return df_pdos_elements
-    
+
     
     def get_pdos_orbitals(self):
         '''
         Description
         -----------
             1. 投影态密度到各个轨道
+        
+        Note
+        ----
+            1. 需要使用 `plot_DOS_interp.x` 得到 `DOS.totalspin_projected`
+                - `plot_DOS_interp.x` 需要 输入文件 `DOS.input`
+0/1    # All atoms or Partial atoms
+0/1    # Whether carry out interpolation (0: no;  1: yes)
+0.05    4000    # 0.05:     ; 4000: 能量点
         '''
         ### Step 1. 读取 DOS.totalspin 文件
         df_dos = pd.read_csv(
                     self.bak_dosfile_path,
                     delimiter='\s+',
                     )
+        try:
+            df_pdos_orbitals = df_dos.drop(labels=["Total"], axis=1)
+        except KeyError:
+            df_pdos_orbitals = df_dos.drop(labels=["total"], axis=1)
         
-        return df_dos
+        return df_pdos_orbitals
