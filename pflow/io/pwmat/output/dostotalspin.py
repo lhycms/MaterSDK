@@ -63,3 +63,21 @@ class Dostotalspin(object):
         os.remove(bak_dos_totalspin_path)
         
         return tdos_array
+
+    
+    def get_pdos_elements(self):
+        '''
+        Description
+        -----------
+            1. 投影态密度到各个元素
+        '''
+        pass
+    
+    
+    def get_pdos_orbitals(self):
+        '''
+        Description
+        -----------
+            1. 投影态密度到各个轨道
+        '''
+        pass

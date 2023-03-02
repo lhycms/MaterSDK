@@ -11,6 +11,7 @@ A toolkits for computational materials science
    4. ...
 2. Process Input/Output files for PWmat
    1. REPORT
-   2. DOSTOTAL
-   3. IN.KPT
-   4. ...
+   2. DOSTOTALSPIN
+   3. OUT.FERMI
+   4. IN.KPT
+   5. ...
