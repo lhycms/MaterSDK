@@ -1,3 +1,4 @@
+LICENSE
 README.md
 setup.py
 pflow/__init__.py
@@ -30,8 +31,11 @@ pflow/io/publicLayer/test/__init__.py
 pflow/io/publicLayer/test/test_Structure.py
 pflow/io/pwmat/__init__.py
 pflow/io/pwmat/input/__init__.py
+pflow/io/pwmat/input/dos_input.py
+pflow/io/pwmat/input/gen_vext.py
 pflow/io/pwmat/input/inkpt.py
 pflow/io/pwmat/input/test/__init__.py
+pflow/io/pwmat/input/test/test_gen_vext.py
 pflow/io/pwmat/input/test/test_inkpt.py
 pflow/io/pwmat/output/__init__.py
 pflow/io/pwmat/output/dostotalspin.py
