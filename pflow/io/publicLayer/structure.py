@@ -195,3 +195,19 @@ class DStructure(Structure):
                 - 按照原子序数，从小到大排列
         '''
         self.sites.sort(key=lambda periodic_sites: specie2atomic_number[str(periodic_sites.specie)])
+    
+    
+    def remove_vacanies(self):
+        '''
+        Description
+        -----------
+            1. 删除结构中的空位
+                - 空位的元素用 "X0+" 表示
+        '''
+        remove_indexes_lst = []
+        for tmp_idx, site in enumerate(self.sites):
+            if str(site.specie) == "X0+":
+                remove_indexes_lst.append(tmp_idx)
+    
+        for tmp_idx in remove_indexes_lst:
+            self.remove_sites(indices=remove_indexes_lst)

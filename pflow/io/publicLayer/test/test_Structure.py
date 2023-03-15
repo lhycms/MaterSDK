@@ -94,6 +94,21 @@ class StructureTest(unittest.TestCase):
         #print(structure)
         #structure.reformat_elements()
         #print(structure)  
+    
+    
+    def test_remove_vacanies(self):
+        file_format = "pwmat"
+        file_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/atom.config"
+        coords_are_cartesian = False
+        
+        structure = DStructure.from_file(
+                        file_path=file_path,
+                        file_format=file_format,
+                        coords_are_cartesian=coords_are_cartesian
+                        )
+        
+        structure.remove_vacanies()
+        print(structure)
 
 
 if __name__ == "__main__":
