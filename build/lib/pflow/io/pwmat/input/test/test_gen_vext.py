@@ -12,7 +12,7 @@ class GenVextTest(unittest.TestCase):
         a4 = 0.4
         a5 = 0.5
         a6 = 0.6
-        a7 = 0.7
+        a7 = 0.77
         a8 = 0.8
         a9 = 0.9
         gen_vext = GenVext(

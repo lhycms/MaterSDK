@@ -15,7 +15,6 @@ class GenVext(object):
         2. `self.vr_type`: int[1|2|3]
         3. `self.add_vr`: bool
         4. `self.as_param_lst`: List[float]
-        5. `self.as_lst`: List[float]
     '''
     def __init__(
                 self,
@@ -59,13 +58,6 @@ class GenVext(object):
         self.add_vr = add_vr
         args = list(args)
         self.as_param_lst = args
-        
-        args_copy = copy.deepcopy(args)
-        args_copy.insert(0, self.vr_center[-1])
-        args_copy.insert(0, self.vr_center[-2])
-        args_copy.insert(0, self.vr_center[-3])
-        self.as_lst = args_copy
-    
     
     
     def to(self, output_path:str):

@@ -68,7 +68,7 @@ class DStructure(Structure):
                         coords=atom_config_extractor.coords_array,
                         coords_are_cartesian=coords_are_cartesian,
                         site_properties={
-                            "magnetic_moments": atom_config_extractor.magnetic_moments,
+                            "magmom": atom_config_extractor.magnetic_moments,
                             }
                         )
 
@@ -112,7 +112,7 @@ class DStructure(Structure):
                 f.write("  {0} atoms\n".format(self.num_sites))
 
                 # 2. Lattice vector 信息
-                f.write(" Lattice vector (Angstrom)\n")
+                f.write("Lattice vector (Angstrom)\n")
                 f.write("   {0:<14E}    {1:<14E}    {2:<14E}\n".format(
                                             self.lattice.matrix[0, 0],
                                             self.lattice.matrix[0, 1],
@@ -133,11 +133,11 @@ class DStructure(Structure):
                         )
 
                 # 3. 
-                f.write(" Position (normalized), move_x, move_y, move_z\n")
+                f.write("Position (normalized), move_x, move_y, move_z\n")
 
                 # 4. sites 的坐标信息
                 for idx_site in range(self.num_sites):
-                    f.write("  {0:>2d}         {1:<10f}         {2:<10f}         {3:<10f}     1  1  1\n".format(
+                    f.write("  {0:<2d}         {1:<10f}         {2:<10f}         {3:<10f}     1  1  1\n".format(
                                     specie2atomic_number[self.species[idx_site].symbol],
                                     self.frac_coords[idx_site, 0],
                                     self.frac_coords[idx_site, 1],
@@ -147,11 +147,11 @@ class DStructure(Structure):
 
                 # 5. 向 atom.config 写入磁性信息
                 if include_magnetic_moments:
-                    f.write(" Magnetic\n")
+                    f.write("Magnetic\n")
                     for idx_site in range(self.num_sites):
-                        f.write("{0:<3d} {1:<.2f}\n".format(
+                        f.write("  {0:<3d} {1:<.2f}\n".format(
                                     specie2atomic_number[self.species[idx_site].symbol],
-                                    self.site_properties["magnetic_moments"][idx_site],
+                                    self.site_properties["magmom"][idx_site],
                                     )
                         )
 
@@ -185,3 +185,13 @@ class DStructure(Structure):
                 vacuum_lst.append(False)
         
         return vacuum_lst
+    
+    
+    def reformat_elements(self):
+        '''
+        Description
+        -----------
+            1. Reformat `DStructure` object in specified order of elements
+                - 按照原子序数，从小到大排列
+        '''
+        self.sites.sort(key=lambda periodic_sites: specie2atomic_number[str(periodic_sites.specie)])
