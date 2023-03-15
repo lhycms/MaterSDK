@@ -68,7 +68,7 @@ class DStructure(Structure):
                         coords=atom_config_extractor.coords_array,
                         coords_are_cartesian=coords_are_cartesian,
                         site_properties={
-                            "magnetic_moments": atom_config_extractor.magnetic_moments,
+                            "magmom": atom_config_extractor.magnetic_moments,
                             }
                         )
 
@@ -185,3 +185,13 @@ class DStructure(Structure):
                 vacuum_lst.append(False)
         
         return vacuum_lst
+    
+    
+    def reformat_elements(self):
+        '''
+        Description
+        -----------
+            1. Reformat `DStructure` object in specified order of elements
+                - 按照原子序数，从小到大排列
+        '''
+        self.sites.sort(key=lambda periodic_sites: specie2atomic_number[str(periodic_sites.specie)])
