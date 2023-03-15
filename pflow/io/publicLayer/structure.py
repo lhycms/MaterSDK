@@ -138,7 +138,7 @@ class DStructure(Structure):
                 # 4. sites 的坐标信息
                 for idx_site in range(self.num_sites):
                     f.write("  {0:<2d}         {1:<10f}         {2:<10f}         {3:<10f}     1  1  1\n".format(
-                                    specie2atomic_number[self.species[idx_site].symbol],
+                                    specie2atomic_number[str(self.species[idx_site])],
                                     self.frac_coords[idx_site, 0],
                                     self.frac_coords[idx_site, 1],
                                     self.frac_coords[idx_site, 2]
@@ -150,7 +150,7 @@ class DStructure(Structure):
                     f.write("Magnetic\n")
                     for idx_site in range(self.num_sites):
                         f.write("  {0:<3d} {1:<.2f}\n".format(
-                                    specie2atomic_number[self.species[idx_site].symbol],
+                                    specie2atomic_number[str(self.species[idx_site])],
                                     self.site_properties["magmom"][idx_site],
                                     )
                         )
