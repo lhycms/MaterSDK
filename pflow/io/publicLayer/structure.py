@@ -13,7 +13,6 @@ from ..pwmat.utils.atomConfigExtractor import AtomConfigExtractor
 from ..pwmat.utils.parameters import specie2atomic_number
 
 
-
 class DStructure(Structure):
     '''
     Description
@@ -155,7 +154,7 @@ class DStructure(Structure):
                                     )
                         )
 
-
+    
     def judge_vacuum_exist(self):
         '''
         Description
