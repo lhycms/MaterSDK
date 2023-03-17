@@ -22,6 +22,11 @@ class FatbandStructureTest(unittest.TestCase):
         ### Step 3. 得到 `BAND` 所在行的索引
         print("\n3. BAND 所在行的索引:")
         print(fatbandstructure._get_BAND_mark_idxs())
+
+        ### Step 4. preproceee 读取 pd.DataFrame，注意不包括空行的`BAND行`
+        print("\n4. 预处理后的 DataFrame:")
+        print(fatbandstructure._preprocess())
+        
         
         #df_data = fatbandstructure.get_weights_orbitals()
         #print(df_data)

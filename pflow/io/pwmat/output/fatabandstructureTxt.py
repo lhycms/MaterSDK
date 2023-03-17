@@ -1,4 +1,6 @@
 import pandas as pd
+import numpy as np
+from io import StringIO
 from ..utils.lineLocator import LineLocator
 
 
@@ -20,6 +22,7 @@ class FatbandStructure(object):
                 ):
         self.fatbandstructure_txt_path = fatbandstructure_txt_path
         self.num_bands = self._get_num_bands()
+        self.num_kpoints = self._get_num_kpoints()
     
     
     def _get_num_bands(self):
@@ -64,17 +67,50 @@ class FatbandStructure(object):
             content="BAND"
             )
         return idx_lines_lst
-    
+
+
+    def _preprocess(self):
+        '''
+        Description
+        -----------
+            1. 预处理，将 `fatbandstructure_1.txt` 读取成 pd.DataFrame，
+            2. 例如有64条能带、29个kpoint的能带结构，会产生 64*29=1856 columns
+        
+        Note
+        ----
+            1. 跳过 `BAND 行` 和 `空行`
+        '''
+        ### Step 1. 跳过 `BAND 行` 和 `空行`
+        ss = StringIO()
+        with open(self.fatbandstructure_txt_path, 'r') as f:
+            for line in f:
+                if (line=='' or "BAND" in line):
+                    continue
+                else:
+                    ss.write(line)
+        ss.seek(0)   # "rewind" to the beginning of the StringIO object
+        
+        df = pd.read_csv(
+                        ss,
+                        delimiter='\s+'
+        )
+        
+        ### Step 2. 每条能带组成新的 DataFrame
+        ### type(dfs) = List[pd.DataFrame]
+        dfs_lst = np.array_split(df, self.num_kpoints, axis=0)
+        
+        return dfs_lst
     
     def get_weights_orbitals(self):
         '''
         Description
         -----------
-            1. 得到
+            1. 
+            
+        Return
+        ------
+            1. dfs_lst: List[pd.DataFrame]
+                - 每个 DataFrame 代表一条能带
         '''
-        df_data = pd.read_csv(
-                    self.fatbandstructure_txt_path,
-                    delimiter='\s+',
-        )
-        
-        print(df_data)
+        dfs_lst = self._preprocess()
+        return dfs_lst
