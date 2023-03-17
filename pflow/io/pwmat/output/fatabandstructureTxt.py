@@ -15,7 +15,10 @@ class FatbandStructure(object):
     ----------
         1. fatbandstructure_txt_path: str
             - `fatbandstructure_1.txt` 文件的路径
+        2. KPOINT 的距离单位转换为`埃`
     '''
+    BOHR = 0.529177249
+    
     def __init__(
                 self,
                 fatbandstructure_txt_path:str
@@ -94,14 +97,15 @@ class FatbandStructure(object):
                         ss,
                         delimiter='\s+'
         )
-        
+        df.loc[:, "KPOINT"] = df.loc[:, "KPOINT"] / self.BOHR
         ### Step 2. 每条能带组成新的 DataFrame
         ### type(dfs) = List[pd.DataFrame]
-        dfs_lst = np.array_split(df, self.num_kpoints, axis=0)
-        
+        dfs_lst = np.array_split(df, self.num_bands)
+        assert ( len(dfs_lst) == self.num_bands )
         return dfs_lst
     
-    def get_weights_orbitals(self):
+    
+    def get_dfs(self):
         '''
         Description
         -----------

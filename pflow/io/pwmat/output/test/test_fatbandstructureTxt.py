@@ -25,11 +25,12 @@ class FatbandStructureTest(unittest.TestCase):
 
         ### Step 4. preproceee 读取 pd.DataFrame，注意不包括空行的`BAND行`
         print("\n4. 预处理后的 DataFrame:")
-        print(fatbandstructure._preprocess())
+        #print(fatbandstructure._preprocess())
         
         
-        #df_data = fatbandstructure.get_weights_orbitals()
-        #print(df_data)
+        ### Step 5. preproceee 读取 pd.DataFrame，注意不包括空行的`BAND行`
+        print("\n5. dfs_lst:")
+        print(fatbandstructure.get_dfs()[0])
 
 
 if __name__ == "__main__":
