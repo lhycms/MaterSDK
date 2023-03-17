@@ -52,7 +52,7 @@ class StructureTest(unittest.TestCase):
                         file_format=file_format,
                         coords_are_cartesian=coords_are_cartesian
                         )
-        
+
         #print(structure.site_properties["magmom"])
 
         # 1.
@@ -60,12 +60,10 @@ class StructureTest(unittest.TestCase):
         #            output_file_format="rndstr.in")
         
         # 2. 
-        #structure.to(output_file_path=output_file_path,
-        #            output_file_format="pwmat",
-        #            include_magnetic_moments=True,
-        #           )
-        #print(structure)
-
+        structure.to(output_file_path=output_file_path,
+                    output_file_format="pwmat",
+                    include_magnetic_moments=True,
+                   )
 
 
     def test_judge_vacuum_exist(self):
@@ -93,9 +91,24 @@ class StructureTest(unittest.TestCase):
                         coords_are_cartesian=coords_are_cartesian
                         )
         
+        #print(structure)
+        #structure.reformat_elements()
+        #print(structure)  
+    
+    
+    def test_remove_vacanies(self):
+        file_format = "pwmat"
+        file_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/atom.config"
+        coords_are_cartesian = False
+        
+        structure = DStructure.from_file(
+                        file_path=file_path,
+                        file_format=file_format,
+                        coords_are_cartesian=coords_are_cartesian
+                        )
+        
+        structure.remove_vacanies()
         print(structure)
-        structure.reformat_elements()
-        print(structure)  
 
 
 if __name__ == "__main__":

@@ -8,6 +8,7 @@ Description  :
 '''
 atomic_number2specie = \
                 {
+                    0: 'X0+',
                     1: "H",
                     2: "He",
                     3: "Li",
@@ -131,6 +132,7 @@ atomic_number2specie = \
 
 specie2atomic_number = \
                 {
+                    "X0+": 0,
                     "H": 1,
                     "He": 2,
                     "Li": 3,

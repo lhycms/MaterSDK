@@ -6,8 +6,8 @@ from ..inkpt import Inkpt
 
 class InkptTest(unittest.TestCase):
     def test_get_iflag(self):
-        in_kpt_path = "/data/home/liuhanyu/hyliu/pwmat_demo/band/IN.KPT"
-        atom_config_path = "/data/home/liuhanyu/hyliu/pwmat_demo/band/atom.config"
+        in_kpt_path = "/data/home/liuhanyu/hyliu/pwmat_demo/MoS2/scf/band/IN.KPT"
+        atom_config_path = "/data/home/liuhanyu/hyliu/pwmat_demo/MoS2/scf/band/atom.config"
       
     
         #in_kpt_path = "/data/home/liuhanyu/hyliu/pwmat_demo/scf_3d/IN.KPT"

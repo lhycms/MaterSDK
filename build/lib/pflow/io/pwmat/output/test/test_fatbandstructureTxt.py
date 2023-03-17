@@ -37,12 +37,12 @@ class FatbandStructureTest(unittest.TestCase):
         
         ### Step 7. 求元素各轨道的权重之和
         print("\n7. 求元素各轨道的权重之和:")
-        print(fatbandstructure.get_element_dfs_lst()[0])
+        print(fatbandstructure.get_df_elements_lst())
         
         ### Step 8. 求某个轨道的权重
         orbital_name = "mo-4dxy"
         print("\n8. 某个轨道的权重:")
-        print(fatbandstructure.get_orbital_dfs_lst(orbital_name=orbital_name)[0])
+        print(fatbandstructure.get_df_orbital_lst(orbital_name=orbital_name))
 
 
 if __name__ == "__main__":

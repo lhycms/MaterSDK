@@ -13,7 +13,6 @@ from ..pwmat.utils.atomConfigExtractor import AtomConfigExtractor
 from ..pwmat.utils.parameters import specie2atomic_number
 
 
-
 class DStructure(Structure):
     '''
     Description
@@ -138,7 +137,7 @@ class DStructure(Structure):
                 # 4. sites 的坐标信息
                 for idx_site in range(self.num_sites):
                     f.write("  {0:<2d}         {1:<10f}         {2:<10f}         {3:<10f}     1  1  1\n".format(
-                                    specie2atomic_number[self.species[idx_site].symbol],
+                                    specie2atomic_number[str(self.species[idx_site])],
                                     self.frac_coords[idx_site, 0],
                                     self.frac_coords[idx_site, 1],
                                     self.frac_coords[idx_site, 2]
@@ -150,12 +149,12 @@ class DStructure(Structure):
                     f.write("Magnetic\n")
                     for idx_site in range(self.num_sites):
                         f.write("  {0:<3d} {1:<.2f}\n".format(
-                                    specie2atomic_number[self.species[idx_site].symbol],
+                                    specie2atomic_number[str(self.species[idx_site])],
                                     self.site_properties["magmom"][idx_site],
                                     )
                         )
 
-
+    
     def judge_vacuum_exist(self):
         '''
         Description
@@ -195,3 +194,19 @@ class DStructure(Structure):
                 - 按照原子序数，从小到大排列
         '''
         self.sites.sort(key=lambda periodic_sites: specie2atomic_number[str(periodic_sites.specie)])
+    
+    
+    def remove_vacanies(self):
+        '''
+        Description
+        -----------
+            1. 删除结构中的空位
+                - 空位的元素用 "X0+" 表示
+        '''
+        remove_indexes_lst = []
+        for tmp_idx, site in enumerate(self.sites):
+            if str(site.specie) == "X0+":
+                remove_indexes_lst.append(tmp_idx)
+    
+        for tmp_idx in remove_indexes_lst:
+            self.remove_sites(indices=remove_indexes_lst)

@@ -23,6 +23,10 @@ pflow/click/addMag.py
 pflow/click/convertFormat.py
 pflow/featurizer/__init__.py
 pflow/featurizer/gridPoint/__init__.py
+pflow/hpc/__init__.py
+pflow/hpc/pbs/__init__.py
+pflow/hpc/slurm/__init__.py
+pflow/hpc/slurm/job.py
 pflow/io/__init__.py
 pflow/io/publicLayer/__init__.py
 pflow/io/publicLayer/atom.py
@@ -39,10 +43,12 @@ pflow/io/pwmat/input/test/test_gen_vext.py
 pflow/io/pwmat/input/test/test_inkpt.py
 pflow/io/pwmat/output/__init__.py
 pflow/io/pwmat/output/dostotalspin.py
+pflow/io/pwmat/output/fatabandstructureTxt.py
 pflow/io/pwmat/output/outfermi.py
 pflow/io/pwmat/output/report.py
 pflow/io/pwmat/output/test/__init__.py
 pflow/io/pwmat/output/test/test_dostotalspin.py
+pflow/io/pwmat/output/test/test_fatbandstructureTxt.py
 pflow/io/pwmat/output/test/test_outfermi.py
 pflow/io/pwmat/output/test/test_report.py
 pflow/io/pwmat/utils/__init__.py
