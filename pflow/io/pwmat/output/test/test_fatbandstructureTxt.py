@@ -22,15 +22,27 @@ class FatbandStructureTest(unittest.TestCase):
         ### Step 3. 得到 `BAND` 所在行的索引
         print("\n3. BAND 所在行的索引:")
         print(fatbandstructure._get_BAND_mark_idxs())
+        
+        ### Step 4. 得到体系内的所有元素种类
+        print("\n4. 体系内的所有元素种类:")
+        print(fatbandstructure._get_elements_lst())
 
-        ### Step 4. preproceee 读取 pd.DataFrame，注意不包括空行的`BAND行`
-        print("\n4. 预处理后的 DataFrame:")
-        #print(fatbandstructure._preprocess())
-        
-        
         ### Step 5. preproceee 读取 pd.DataFrame，注意不包括空行的`BAND行`
-        print("\n5. dfs_lst:")
-        print(fatbandstructure.get_dfs()[0])
+        print("\n5. 预处理后的 DataFrame:")
+        print(fatbandstructure._preprocess())
+        
+        ### Step 6. 将预处理后的 DataFrame 按照能带分为新的 DataFrames
+        print("\n6. 将预处理后的 DataFrame 按照能带分为新的 DataFrames:")
+        print(fatbandstructure.get_total_dfs_lst()[0])
+        
+        ### Step 7. 求元素各轨道的权重之和
+        print("\n7. 求元素各轨道的权重之和:")
+        print(fatbandstructure.get_df_elements_lst())
+        
+        ### Step 8. 求某个轨道的权重
+        orbital_name = "mo-4dxy"
+        print("\n8. 某个轨道的权重:")
+        print(fatbandstructure.get_df_orbital_lst(orbital_name=orbital_name))
 
 
 if __name__ == "__main__":
