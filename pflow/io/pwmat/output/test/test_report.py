@@ -8,6 +8,9 @@ class ReportTest(unittest.TestCase):
     def test_report_all(self):
         report_path = "/data/home/liuhanyu/hyliu/pwmat_demo/MoS2/scf/band/REPORT"
         out_fermi_path = "/data/home/liuhanyu/hyliu/pwmat_demo/MoS2/scf/band/OUT.FERMI"
+        
+        #report_path = "/data/home/liuhanyu/hyliu/pwmat_demo/MoS2/scf/nonscf/dos/REPORT"
+        #out_fermi_path = "/data/home/liuhanyu/hyliu/pwmat_demo/MoS2/scf/nonscf/dos/OUT.FERMI"
         report = Report(report_path=report_path)
         
         print("\n1. 能带数:", end="\t")

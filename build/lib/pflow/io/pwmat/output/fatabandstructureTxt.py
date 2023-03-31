@@ -141,7 +141,7 @@ class FatbandStructure(object):
         return dfs_lst
     
     
-    def get_df_elements_lst(self):
+    def get_element_dfs_lst(self):
         '''
         Description
         -----------
@@ -170,10 +170,13 @@ class FatbandStructure(object):
         new_df = pd.concat(series_element_lst, axis=1)
         ### 赋予新的 columns
         new_df.columns =  new_cols_lst
-        return new_df
+        
+        ### Step 3. 将不同能带的能带分成不同的 pd.DataFrame
+        element_dfs_lst = np.array_split(new_df, self.num_bands)
+        return element_dfs_lst
         
         
-    def get_df_orbital_lst(self, orbital_name:str):
+    def get_orbital_dfs_lst(self, orbital_name:str):
         '''
         Description
         -----------
@@ -187,4 +190,8 @@ class FatbandStructure(object):
         df = self._preprocess()
         re_pattern = re.compile("{0}|KPOINT|ENERGY|weight_tot".format(orbital_name), re.IGNORECASE)
         df_return = df.filter(regex=re_pattern)
-        return df_return
+        
+        ### Step 2. 将不同band，分成不同的 pd.DataFrame
+        orbital_dfs_lst = np.array_split(df_return, self.num_bands)
+        
+        return orbital_dfs_lst
