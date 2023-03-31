@@ -29,3 +29,15 @@ You can:
 2. Generate DEEPMD features conviently. Don't worry about the choice of cutoff radius.
 3. You can attach any feature to sites in primitive cell.
 4. ...
+
+
+# 2. Installation
+## 2.1. Online
+```shell
+$ git clone git@github.com:LonxunQuantum/pwkit.git
+$ cd pflow
+$ pip install .
+```
+
+## 2.1. Offline
+1. You can download a python interpreter containing `pflow` from https://www.jianguoyun.com/p/DfhQFx8Q_qS-CxifgfwEIAA.
