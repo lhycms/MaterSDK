@@ -7,7 +7,8 @@ FilePath     : /pflow/pflow/io/publicLayer/structure.py
 Description  : 
 '''
 import numpy as np
-from pymatgen.core import Structure
+from pymatgen.core import Structure, Lattice
+
 
 from ..pwmat.utils.atomConfigExtractor import AtomConfigExtractor
 from ..pwmat.utils.parameters import specie2atomic_number
@@ -210,3 +211,125 @@ class DStructure(Structure):
     
         for tmp_idx in remove_indexes_lst:
             self.remove_sites(indices=remove_indexes_lst)
+    
+    
+    def make_supercell_(self,
+                    scaling_matrix: np.ndarray):
+        '''
+        Description
+        -----------
+            1. 将自身扩包
+        
+        Note
+        ----
+            1. 扩胞倍数一定要是奇数，保证原胞在中心位置（便于构造特征等用途）
+        
+        Difference from pymatgen.core.Structure.make_supercell()
+        --------------------------------------------------------
+            1. 
+        '''
+        ### Step 1. 获取扩包后的晶格矢量(type=np.ndarray, shape=3*3)
+        new_lattice_array = np.dot(
+                                np.eye(3)*scaling_matrix, 
+                                self.lattice.matrix)
+        
+        ### Step 2. 获取扩包后所有位点的坐标 (
+        #               type=np.ndarray, 
+        #               shape=(num_atoms * scaling_matrix[0]*scaling_matrix[1]*scaling_matrix[2], 3)
+        #               )
+        ### Step 2.1. 获取 `shift_matrix_frac`
+        grid = np.meshgrid(
+                        np.arange(scaling_matrix[0]),
+                        np.arange(scaling_matrix[1]), 
+                        np.arange(scaling_matrix[2]),
+                        indexing="ij",
+                        )
+        ### grid[0]: shift_matrix_frac 所有点的 x 坐标
+        ### grid[1]: shift_matrix_frac 所有点的 y 坐标
+        ### grid[2]: shift_matrix_frac 所有点的 z 坐标
+        '''
+        shift_matrix_coeffs: np.ndarray
+        -----------------
+            [
+                [-1. -1. -1.]
+                [-1. -1.  0.]
+                [-1. -1.  1.]
+                [-1.  0. -1.]
+                ...
+            ]
+        
+        Note
+        ----
+            1. 需要让原胞仍处于supercell的中心（坐标系原点处）
+        '''
+        # Note: 需要让原胞仍处于supercell的中心（坐标系原点处）
+        shift_matrix_coeffs = (
+            np.vstack(
+                    [grid[0].ravel() - (scaling_matrix[0]-1)/2,
+                     grid[1].ravel() - (scaling_matrix[1]-1)/2,
+                     grid[2].ravel() - (scaling_matrix[2]-1)/2])
+            ).T
+        # Note: 需要删除 np.array([0, 0, 0])
+        # `np.any(a!=[0,0,0], axis=1)`: 全为 True，才返回 `True`
+        mask = np.any(
+                    shift_matrix_coeffs != np.array([0, 0, 0]),
+                    axis=1
+                    )
+        shift_matrix_coeffs = shift_matrix_coeffs[mask] # (26, 3)
+        # Note: 将 np.array([0, 0, 0]) 添加到第一个
+        shift_matrix_coeffs = np.insert(shift_matrix_coeffs, 0, np.array([0,0,0]), axis=0) # (27, 3)
+        
+        ### Step 2.2. 获取平移后所有原胞的坐标信息
+        '''
+        tmp_shift_matrix_coeff
+        ----------------------
+            [1, 1, 0]
+        
+        tmp_shift_matrix_frac
+        ---------------------
+            [
+                [1, 0, 0],
+                [0, 1, 0],
+                [0, 0, 0]
+            ]
+            
+        tmp_shift_matrix_cart = tmp_shift_matrix_frac * basis_vectors
+        ---------------------
+        
+        tmp_shift_vector_cart = np.sum(tmp_shift_matrix_cart, axis=0)
+        ---------------------
+            1. 直接加到每个 site 的坐标上，就完成了 site 的平移
+            2. 每个 tmp_shift_vector_cart 对应一个平移后的原胞
+        
+        tmp_pcell_coords_cart
+        ---------------------
+            1. 每个 tmp_shift_vector_cart 对应一个平移后的原胞
+        '''
+        pcell_coords_cart = []
+        for tmp_shift_matrix_coeff in shift_matrix_coeffs:
+            tmp_shift_matrix_frac = tmp_shift_matrix_coeff * np.eye(3)
+            tmp_shift_matrix_cart = tmp_shift_matrix_frac * self.lattice.matrix
+            tmp_shift_vector_cart = np.sum(tmp_shift_matrix_cart, axis=0)      
+            tmp_pcell_coords_cart = self.cart_coords + tmp_shift_vector_cart
+            pcell_coords_cart.append(tmp_pcell_coords_cart)  # (27, num_atoms, 3)
+        
+        ### Step 2.3. `new_coords_cart`: supercell 所有位点的坐标 
+        ### new_coords_cart.shape = (
+        #           scaling_matrix[0]*scaling_matrix[1]*scaling_matrix[2] * \
+        #           num_atoms,
+        #           3)
+        new_coords_cart = np.array(pcell_coords_cart).reshape(-1, 3)
+        #print(new_coords_cart.shape)    # (324, 3)
+    
+        ### Step 3. 获取扩包后所有位点的元素种类
+        new_species = self.species * scaling_matrix[0] * scaling_matrix[1] * scaling_matrix[2]
+        assert len(new_species) == new_coords_cart.shape[0]
+    
+        ### Step 4. 用前三步得到的信息，初始化一个 DStructure 类
+        super_cell = DStructure(
+                        lattice=new_lattice_array, # cartesian coordinates
+                        species=new_species,
+                        coords=new_coords_cart  # cartesian coordinations
+                        )
+
+        return super_cell

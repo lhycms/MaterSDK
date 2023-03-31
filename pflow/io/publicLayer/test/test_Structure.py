@@ -7,6 +7,7 @@ FilePath     : /pflow/pflow/io/publicLayer/test/test_Structure.py
 Description  : 
 '''
 import unittest
+import numpy as np
 
 # python3 -m pflow.io.publicLayer.test.test_Structure
 from ..structure import DStructure
@@ -106,18 +107,39 @@ class StructureTest(unittest.TestCase):
                         coords_are_cartesian=coords_are_cartesian
                         )
         
-        print("删除体系内所有空位前，体系内的原子数：{0}".format(
-                                        len(structure.atomic_numbers)
-                                        )
-              )
-        structure.remove_vacanies()
-        print("删除体系内所有空位前，体系内的原子数：{0}".format(
-                                        len(structure.atomic_numbers)
-                                        )
-              )
-        print("第 3 个 site 处的magmom: {0}".format(structure.sites[2].magmom)
-              )
-        print(structure.sites)
+        #print("删除体系内所有空位前，体系内的原子数：{0}".format(
+        #                                len(structure.atomic_numbers)
+        #                                )
+        #      )
+        #structure.remove_vacanies()
+        #print("删除体系内所有空位前，体系内的原子数：{0}".format(
+        #                                len(structure.atomic_numbers)
+        #                                )
+        #      )
+        #print("第 3 个 site 处的magmom: {0}".format(structure.sites[2].magmom)
+        #      )
+        #print(structure)
+        #structure.make_supercell([2,2,2])
+        #print(structure)
+    
+    
+    def test_make_supercell(self):
+        file_format = "pwmat"
+        # 1. 普通的测试
+        file_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/atom.config"
+        coords_are_cartesian = False
+        
+        structure = DStructure.from_file(
+                        file_path=file_path,
+                        file_format=file_format,
+                        coords_are_cartesian=coords_are_cartesian
+                        )
+        scaling_matrix = np.array([3,3,3])
+        
+        supercell = structure.make_supercell_(
+                                scaling_matrix=scaling_matrix)
+        print(supercell)
+
 
 if __name__ == "__main__":
     unittest.main()
