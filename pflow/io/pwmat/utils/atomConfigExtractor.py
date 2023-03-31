@@ -45,7 +45,7 @@ class AtomConfigExtractor(object):
         self.magnetic_moments = self.get_magnetic_moments()
 
 
-    def get_num_atoms(self) -> int:
+    def get_num_atoms(self):
         '''
         Description
         -----------
@@ -57,7 +57,7 @@ class AtomConfigExtractor(object):
         return num_atoms
 
 
-    def get_basis_vectors_lst(self) -> list:
+    def get_basis_vectors_lst(self):
         '''
         Description
         -----------
@@ -82,7 +82,7 @@ class AtomConfigExtractor(object):
         return np.array(basis_vectors_lst)
 
     
-    def get_atomic_numbers_lst(self) -> list:
+    def get_atomic_numbers_lst(self):
         '''
         Description
         -----------
@@ -109,7 +109,7 @@ class AtomConfigExtractor(object):
         return np.array(atomic_numbers_lst)
 
 
-    def get_coords_lst(self) -> list:
+    def get_coords_lst(self):
         '''
         Description
         -----------
@@ -169,7 +169,7 @@ class AtomConfigExtractor(object):
 
 
     
-    def get_atoms_lst(self) -> list:
+    def get_atoms_lst(self):
         '''
         Description
         -----------

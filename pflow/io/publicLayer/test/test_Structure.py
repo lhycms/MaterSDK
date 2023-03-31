@@ -7,7 +7,6 @@ FilePath     : /pflow/pflow/io/publicLayer/test/test_Structure.py
 Description  : 
 '''
 import unittest
-import numpy as np
 
 # python3 -m pflow.io.publicLayer.test.test_Structure
 from ..structure import DStructure
@@ -107,9 +106,18 @@ class StructureTest(unittest.TestCase):
                         coords_are_cartesian=coords_are_cartesian
                         )
         
+        print("删除体系内所有空位前，体系内的原子数：{0}".format(
+                                        len(structure.atomic_numbers)
+                                        )
+              )
         structure.remove_vacanies()
-        print(structure)
-
+        print("删除体系内所有空位前，体系内的原子数：{0}".format(
+                                        len(structure.atomic_numbers)
+                                        )
+              )
+        print("第 3 个 site 处的magmom: {0}".format(structure.sites[2].magmom)
+              )
+        print(structure.sites)
 
 if __name__ == "__main__":
     unittest.main()

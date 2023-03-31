@@ -193,7 +193,7 @@ class DStructure(Structure):
             1. Reformat `DStructure` object in specified order of elements
                 - 按照原子序数，从小到大排列
         '''
-        self.sites.sort(key=lambda periodic_sites: specie2atomic_number[str(periodic_sites.specie)])
+        self.sites.sort(key=lambda tmp_site: specie2atomic_number[str(tmp_site.specie)])
     
     
     def remove_vacanies(self):
