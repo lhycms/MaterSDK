@@ -196,7 +196,7 @@ class DStructure(Structure):
         self.sites.sort(key=lambda tmp_site: specie2atomic_number[str(tmp_site.specie)])
 
     
-    def get_bidx2aidx_supercell(self,):
+    def get_bidx2aidx_supercell(self):
         sorted_indexes = [
                         idx for idx, _ in \
                                 sorted(
