@@ -13,14 +13,14 @@ You can:
 3. Choose KMesh
 4. ...
 
-<img src="../pflow/demo/pics/pic_1.png" width = "500" height = "300"  />
+<img src="./demo/pics/pic_1.png" width = "500" height = "300"  />
 
 ## 1.2. Process Kohn-Sham state
 1. Support several types of ab initio software, particularlly PWmat.
 2. Plot bandstructure, density of state directly.
 3. Process something in reciprocal space.
 4. ...
-<img src="../pflow/demo/pics/图片1.png" width = "300" height = "240"  />       <img src="../pflow/demo/pics/图片2.png" width = "300" height = "240"  />
+<img src="./demo/pics/图片1.png" width = "300" height = "240"  />       <img src="./demo/pics/图片2.png" width = "300" height = "240"  />
 
 
 ## 1.3. Process perioidic boundary condination
