@@ -196,15 +196,41 @@ class DStructure(Structure):
         self.sites.sort(key=lambda tmp_site: specie2atomic_number[str(tmp_site.specie)])
 
     
-    def get_bidx2aidx_supercell(self):
+    def get_bidx2aidx_supercell(
+                            self,
+                            scaling_matrix:np.ndarray
+                            ):
+        '''
+        Description
+        -----------
+            1. 
+        
+        Return
+        ------
+            1. bidx2aidx: Dict[int, int]
+                - key: 扩胞前，primitive_cell 中原子对应的 index
+                - value: 扩包后，primitive_cell 中原子对应的 index
+                - e.g. 
+                
+        sorted_indexes    
+        --------------
+            [1, 2, 4, 5, 7, 8, 10, 11, 13, 14, 16, 17, 19, 20, 22, 23, 25, 26, 28, 29, 31, 32, 34, 35, 37, 38, 40, 41, 43, 44, 46, 47, 49, 50, 52, 53, 55, 56, 58, 59, 61, 62, 64, 65, 67, 68, 70, 71, 73, 74, 76, 77, 79, 80, 82, 83, 85, 86, 88, 89, 91, 92, 94, 95, 97, 98, 100, 101, 103, 104, 106, 107, 0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48, 51, 54, 57, 60, 63, 66, 69, 72, 75, 78, 81, 84, 87, 90, 93, 96, 99, 102, 105]\
+        bidx2aidx
+        ---------
+            {1: 0, 2: 1, 4: 2, 5: 3, 7: 4, 8: 5, 10: 6, 11: 7, 13: 8, 14: 9, 16: 10, 17: 11, 19: 12, 20: 13, 22: 14, 23: 15, 25: 16, 26: 17, 28: 18, 29: 19, 31: 20, 32: 21, 34: 22, 35: 23, 37: 24, 38: 25, 40: 26, 41: 27, 43: 28, 44: 29, 46: 30, 47: 31, 49: 32, 50: 33, 52: 34, 53: 35, 55: 36, 56: 37, 58: 38, 59: 39, 61: 40, 62: 41, 64: 42, 65: 43, 67: 44, 68: 45, 70: 46, 71: 47, 73: 48, 74: 49, 76: 50, 77: 51, 79: 52, 80: 53, 82: 54, 83: 55, 85: 56, 86: 57, 88: 58, 89: 59, 91: 60, 92: 61, 94: 62, 95: 63, 97: 64, 98: 65, 100: 66, 101: 67, 103: 68, 104: 69, 106: 70, 107: 71, 0: 72, 3: 73, 6: 74, 9: 75, 12: 76, 15: 77, 18: 78, 21: 79, 24: 80, 27: 81, 30: 82, 33: 83, 36: 84, 39: 85, 42: 86, 45: 87, 48: 88, 51: 89, 54: 90, 57: 91, 60: 92, 63: 93, 66: 94, 69: 95, 72: 96, 75: 97, 78: 98, 81: 99, 84: 100, 87: 101, 90: 102, 93: 103, 96: 104, 99: 105, 102: 106, 105: 107}
+        '''
+        supercell = self.make_supercell_(
+                            scaling_matrix=scaling_matrix,
+                            reformat_mark=False)
         sorted_indexes = [
                         idx for idx, _ in \
                                 sorted(
-                                    enumerate(self.sites), 
+                                    enumerate(supercell.sites), 
                                     key=lambda tmp_entry: specie2atomic_number[str(tmp_entry[1].specie)]
                                     )
                         ]
-        bidx2aidx = {i: sorted_indexes[i] for i in range(len(sorted_indexes))}
+        bidx2aidx = {sorted_indexes[i]: sorted_indexes.index(sorted_indexes[i]) \
+                                        for i in range(len(sorted_indexes))}
         return bidx2aidx
     
     
@@ -225,11 +251,18 @@ class DStructure(Structure):
     
     
     def make_supercell_(self,
-                    scaling_matrix: np.ndarray):
+                    scaling_matrix: np.ndarray,
+                    reformat_mark:bool=True):
         '''
         Description
         -----------
             1. 将自身扩包
+        
+        Parameters
+        ----------
+            1. scaling_matrix: np.array
+            2. reformat_mark: bool
+                - 是否按照原子顺序排序
         
         Note
         ----
@@ -347,5 +380,7 @@ class DStructure(Structure):
                         )
 
         ### Step 5. 是否按照原子序数，从小到大排序
-        supercell.reformat_elements()
+        if reformat_mark:
+            supercell.reformat_elements()
+            
         return supercell

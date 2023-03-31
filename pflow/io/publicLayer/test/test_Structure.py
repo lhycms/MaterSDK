@@ -152,13 +152,13 @@ class StructureTest(unittest.TestCase):
         # 1. 普通的测试
         file_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/atom.config"
         coords_are_cartesian = False
-        
+        scaling_matrix=np.array([3, 3, 1])
         structure = DStructure.from_file(
                         file_path=file_path,
                         file_format=file_format,
                         coords_are_cartesian=coords_are_cartesian
                         )
-        bidx2aidx = structure.get_bidx2aidx_supercell()
+        bidx2aidx = structure.get_bidx2aidx_supercell(scaling_matrix=scaling_matrix)
         print(bidx2aidx)
         
         
