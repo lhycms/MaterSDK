@@ -137,12 +137,31 @@ class StructureTest(unittest.TestCase):
         scaling_matrix = np.array([3,3,3])
         
         supercell = structure.make_supercell_(
-                                scaling_matrix=scaling_matrix)
+                                scaling_matrix=scaling_matrix,
+                                )
         #print(supercell)
-        supercell.to(output_file_path="./POSCAR",
-                    output_file_format="vasp",
-                    include_magnetic_moments=True,
-                   )
+        #print(supercell)
+        #supercell.to(output_file_path="./POSCAR",
+        #            output_file_format="vasp",
+        #            include_magnetic_moments=True,
+        #           )
+        
+        
+    def test_get_bidx2aidx_supercell(self):
+        file_format = "pwmat"
+        # 1. 普通的测试
+        file_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/atom.config"
+        coords_are_cartesian = False
+        
+        structure = DStructure.from_file(
+                        file_path=file_path,
+                        file_format=file_format,
+                        coords_are_cartesian=coords_are_cartesian
+                        )
+        bidx2aidx = structure.get_bidx2aidx_supercell()
+        print(bidx2aidx)
+        
+        
 
 
 if __name__ == "__main__":

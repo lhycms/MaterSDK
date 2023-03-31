@@ -194,6 +194,18 @@ class DStructure(Structure):
                 - 按照原子序数，从小到大排列
         '''
         self.sites.sort(key=lambda tmp_site: specie2atomic_number[str(tmp_site.specie)])
+
+    
+    def get_bidx2aidx_supercell(self,):
+        sorted_indexes = [
+                        idx for idx, _ in \
+                                sorted(
+                                    enumerate(self.sites), 
+                                    key=lambda tmp_entry: specie2atomic_number[str(tmp_entry[1].specie)]
+                                    )
+                        ]
+        bidx2aidx = {i: sorted_indexes[i] for i in range(len(sorted_indexes))}
+        return bidx2aidx
     
     
     def remove_vacanies(self):
@@ -333,6 +345,7 @@ class DStructure(Structure):
                         coords=new_coords_cart,  # cartesian coordinations
                         coords_are_cartesian=True
                         )
+
+        ### Step 5. 是否按照原子序数，从小到大排序
         supercell.reformat_elements()
-        
         return supercell
