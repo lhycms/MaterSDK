@@ -7,8 +7,7 @@ FilePath     : /pflow/pflow/io/publicLayer/structure.py
 Description  : 
 '''
 import numpy as np
-from pymatgen.core import Structure, Lattice
-
+from pymatgen.core import Structure
 
 from ..pwmat.utils.atomConfigExtractor import AtomConfigExtractor
 from ..pwmat.utils.parameters import specie2atomic_number
@@ -275,6 +274,7 @@ class DStructure(Structure):
                     shift_matrix_coeffs != np.array([0, 0, 0]),
                     axis=1
                     )
+
         shift_matrix_coeffs = shift_matrix_coeffs[mask] # (26, 3)
         # Note: 将 np.array([0, 0, 0]) 添加到第一个
         shift_matrix_coeffs = np.insert(shift_matrix_coeffs, 0, np.array([0,0,0]), axis=0) # (27, 3)
@@ -307,13 +307,12 @@ class DStructure(Structure):
         '''
         pcell_coords_cart = []
         for tmp_shift_matrix_coeff in shift_matrix_coeffs:
-            tmp_shift_matrix_frac = tmp_shift_matrix_coeff * np.eye(3)
-            tmp_shift_matrix_cart = tmp_shift_matrix_frac * self.lattice.matrix
+            tmp_shift_matrix_frac = tmp_shift_matrix_coeff * np.eye(3)            
+            tmp_shift_matrix_cart = np.dot(tmp_shift_matrix_frac, self.lattice.matrix)
             tmp_shift_vector_cart = np.sum(tmp_shift_matrix_cart, axis=0)      
             tmp_pcell_coords_cart = self.cart_coords + tmp_shift_vector_cart
             pcell_coords_cart.append(tmp_pcell_coords_cart)  # (27, num_atoms, 3)
-        
-        ### Step 2.3. `new_coords_cart`: supercell 所有位点的坐标 
+        ### Step 2.3. `new_coords_cart`: supercell 所有位点的坐标
         ### new_coords_cart.shape = (
         #           scaling_matrix[0]*scaling_matrix[1]*scaling_matrix[2] * \
         #           num_atoms,
@@ -323,13 +322,17 @@ class DStructure(Structure):
     
         ### Step 3. 获取扩包后所有位点的元素种类
         new_species = self.species * scaling_matrix[0] * scaling_matrix[1] * scaling_matrix[2]
+        #print(len(new_species))
+        #print(new_coords_cart.shape[0])
         assert len(new_species) == new_coords_cart.shape[0]
     
         ### Step 4. 用前三步得到的信息，初始化一个 DStructure 类
-        super_cell = DStructure(
+        supercell = DStructure(
                         lattice=new_lattice_array, # cartesian coordinates
                         species=new_species,
-                        coords=new_coords_cart  # cartesian coordinations
+                        coords=new_coords_cart,  # cartesian coordinations
+                        coords_are_cartesian=True
                         )
-
-        return super_cell
+        supercell.reformat_elements()
+        
+        return supercell

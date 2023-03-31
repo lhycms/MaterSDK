@@ -138,7 +138,11 @@ class StructureTest(unittest.TestCase):
         
         supercell = structure.make_supercell_(
                                 scaling_matrix=scaling_matrix)
-        print(supercell)
+        #print(supercell)
+        supercell.to(output_file_path="./POSCAR",
+                    output_file_format="vasp",
+                    include_magnetic_moments=True,
+                   )
 
 
 if __name__ == "__main__":
