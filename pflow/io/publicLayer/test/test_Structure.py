@@ -84,6 +84,7 @@ class StructureTest(unittest.TestCase):
         file_format = "pwmat"
         file_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/atom.config"
         coords_are_cartesian = False
+        elements_lst = ["Mo", "S"]
         
         structure = DStructure.from_file(
                         file_path=file_path,
@@ -91,9 +92,9 @@ class StructureTest(unittest.TestCase):
                         coords_are_cartesian=coords_are_cartesian
                         )
         
-        #print(structure)
-        #structure.reformat_elements()
-        #print(structure)  
+        print(structure)
+        new_structure = structure.reformat_elements(elements_lst=elements_lst)
+        print(new_structure)  
     
     
     def test_remove_vacanies(self):
@@ -159,7 +160,7 @@ class StructureTest(unittest.TestCase):
                         coords_are_cartesian=coords_are_cartesian
                         )
         bidx2aidx = structure.get_bidx2aidx_supercell(scaling_matrix=scaling_matrix)
-        print(bidx2aidx)
+        #print(bidx2aidx)
         
         
 

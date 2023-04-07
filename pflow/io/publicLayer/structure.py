@@ -186,14 +186,72 @@ class DStructure(Structure):
         return vacuum_lst
     
     
-    def reformat_elements(self):
+    def reformat_elements_(self):
         '''
         Description
         -----------
             1. Reformat `DStructure` object in specified order of elements
                 - 按照原子序数，从小到大排列
+        
+        Return
+        ------
+            1. None:
+                - Modify self
         '''
         self.sites.sort(key=lambda tmp_site: specie2atomic_number[str(tmp_site.specie)])
+    
+    
+    def reformat_elements(self, elements_lst:str):
+        '''
+        Description
+        -----------
+            1. elements_lst: List[str]
+                - e.g. ["Re", "Nb", "S", "Se"]
+        
+        Return 
+        ------
+            1. strutcure: DStructure
+        '''
+        ### Step 1. 按照顺序 `elements_lst` 的顺序排列的 `new_sites_lst`
+        new_sites_lst = []
+        for tmp_specie in elements_lst:
+            for tmp_site in self.sites:
+                if str(tmp_site.specie) == tmp_specie:
+                    new_sites_lst.append(tmp_site)
+        #print(new_sites_lst)
+        
+        ### Step 2. 获取初始化 `DStructure` 需要的信息
+        ### Step 2.1. `lattice`: np.array
+        new_lattice = self.lattice.matrix
+        #print(new_lattice)
+        
+        ### Step 2.2. `species`: List[Element]
+        new_species_lst = [tmp_site.specie for tmp_site in new_sites_lst]
+        #print(new_species_lst)
+        
+        ### Step 2.3. `coords` and `coords_are_cartesian`
+        new_coords = self.frac_coords
+        new_coords_are_cartesian = False
+        #print(new_coords)
+        
+        ### Step 2.4. `site_properties`
+        new_site_properties = {}
+        ### Step 2.4.1. `magmom`
+        new_magmom = [tmp_site.magmom for tmp_site in new_sites_lst]
+        
+        new_site_properties.update({"magmom": new_magmom})
+        #print(new_site_properties)
+        
+        structure = DStructure(
+                        lattice=new_lattice,
+                        species=new_species_lst,
+                        coords=new_coords,
+                        coords_are_cartesian=new_coords_are_cartesian,
+                        site_properties=new_site_properties,
+                        )
+
+        return structure
+        
 
     
     def get_bidx2aidx_supercell(
@@ -381,6 +439,6 @@ class DStructure(Structure):
 
         ### Step 5. 是否按照原子序数，从小到大排序
         if reformat_mark:
-            supercell.reformat_elements()
+            supercell.reformat_elements_()
             
         return supercell
