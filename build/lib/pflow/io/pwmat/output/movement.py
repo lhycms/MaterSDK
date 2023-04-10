@@ -1,222 +1,11 @@
 import linecache
 import numpy as np
+import os 
 
 from ..utils.lineLocator import LineLocator
 from ...publicLayer.atom import Atom
 from ..utils.parameters import atomic_number2specie
-
-
-class FrameExtractor(object):
-    '''
-    Description
-    -----------
-        1. 提取 MOVMENT 文件中某一帧(frame)结构的信息：
-            1. num_atoms: int
-                体系内的原子总数
-            2. basis_vectors_array: list
-                体系的基矢 (二维list)
-            3. species_array: list of str
-                各个 site 的原子种类
-            4. coords_array: np.array
-                各个 site 的分数坐标
-
-    '''
-    def __init__(self,
-                atom_config_path: str):
-        '''
-        Parameters
-        ----------
-            1. atom_config_path: str
-                The absolute path of `atom.config` file
-        '''
-        self.atom_config_path = atom_config_path
-        self.num_atoms = self.get_num_atoms()
-        self.basis_vectors_array = self.get_basis_vectors_lst()
-        self.species_array = [atomic_number2specie[atomic_number] for atomic_number in self.get_atomic_numbers_lst() ]
-        self.coords_array = self.get_coords_lst()
-        self.magnetic_moments = self.get_magnetic_moments()
-
-
-    def get_num_atoms(self):
-        '''
-        Description
-        -----------
-            1. 得到体系的总原子数目
-        '''
-        # atom.config 文件第一行综合描述这个体系
-        first_row = linecache.getline(self.atom_config_path, 1)
-        num_atoms = int( first_row.split()[0] )
-        return num_atoms
-
-
-    def get_basis_vectors_lst(self):
-        '''
-        Description
-        -----------
-            1. 得到材料的基矢
-
-        Return
-        ------
-            1. basis_vectors_lst: list, 是一个二维列表
-            e.g. [ [14.376087, 0.0, 0.0],
-                    [0.0, 12.357182, 0.0], 
-                    [0.0, 0.0, 10.594184]
-                ]
-            
-        '''
-        basis_vectors_lst = []
-        # atom.config 文件3、4、5行是体系的基矢
-        for row_idx in [3, 4, 5]:
-            row_content = linecache.getline(self.atom_config_path, row_idx).split()[:3]
-            single_direction_vector = [float(value) for value in row_content]
-            basis_vectors_lst.append(single_direction_vector)
-
-        return np.array(basis_vectors_lst)
-
-    
-    def get_atomic_numbers_lst(self):
-        '''
-        Description
-        -----------
-            1. 得到体系内所有的原子序数 (各个原子的 atomic_numbers)
-
-        Note
-        ----
-            1. 重复
-        '''
-        ### Part I. 得到所有原子的原子序数、坐标
-        ###         所有原子的原子序数：atomic_numbers_lst
-        ###         所有原子的坐标：coordinations_lst
-        content = "POSITION"    # 此处需要大写
-        idx_row = LineLocator.locate_all_lines(
-                                    file_path=self.atom_config_path,
-                                    content=content)[0]
-        with open(self.atom_config_path, 'r') as f:
-            atom_config_content = f.readlines()
-        
-        # 1. 得到所有原子的原子序数（注意将读取的 str 转换为 int）
-        atomic_numbers_content = atom_config_content[idx_row:idx_row + self.num_atoms]
-        atomic_numbers_lst = [int(row.split()[0]) for row in atomic_numbers_content]
-
-        return np.array(atomic_numbers_lst)
-
-
-    def get_coords_lst(self):
-        '''
-        Description
-        -----------
-            1. 得到体系内所有的坐标
-        '''
-        coords_lst = []
-        content = "POSITION"    # 此处需要大写
-        idx_row = LineLocator.locate_all_lines(
-                                    file_path=self.atom_config_path,
-                                    content=content)[0]
-        with open(self.atom_config_path, 'r') as f:
-            atom_config_content = f.readlines()
-        
-        # 1. 得到所有原子的原子序数（注意将读取的 str 转换为 int）
-        """
-        row_content
-        -----------
-            '29         0.377262291145329         0.128590184800933         0.257759805813488     1  1  1'
-        """
-        for row_content in atom_config_content[idx_row:idx_row + self.num_atoms]:
-            row_content_lst = row_content.split()
-            coord_tmp = [float(value) for value in row_content_lst[1:4]]
-            coords_lst.append(np.array(coord_tmp))
-        
-        return np.array(coords_lst)
-
-    
-
-    def get_magnetic_moments(self):
-        '''
-        Description
-        -----------
-            1. 得到所有原子的磁矩，顺序与 `坐标` 的顺序一致
-        '''
-        content = "MAGNETIC"
-
-        magnetic_moments_lst = []
-        
-        try:    # 处理异常：若 atom.config 中不包含原子的磁矩信息
-            idx_row = LineLocator.locate_all_lines(
-                                    file_path=self.atom_config_path,
-                                    content=content)[-1]
-            #print(idx_row)
-            with open(self.atom_config_path, "r") as f:
-                atom_config_content = f.readlines()
-            
-            magnetic_moments_content = atom_config_content[idx_row: idx_row+self.num_atoms]
-            # MAGNETIC  
-            # 3 0.0 # 原子序数 磁矩
-            # ...
-            magnetic_moments_lst = [float(tmp_magnetic_moment.split()[-1]) for tmp_magnetic_moment in magnetic_moments_content]
-        except Exception as e:
-            #print(e)
-            magnetic_moments_lst = [0 for _ in range(self.num_atoms)]
-        
-        return magnetic_moments_lst
-
-
-    
-    def get_atoms_lst(self):
-        '''
-        Description
-        -----------
-            1. 得到材料体系内所有 `ht_battery.cores.Atom` 对象
-        '''
-        atoms_lst = []
-        
-        ### Part I. 得到所有原子的原子序数、坐标
-        ###         所有原子的原子序数：atomic_numbers_lst
-        ###         所有原子的坐标：coordinations_lst
-        content = "POSITION"
-        idx_row = LineLocator.locate_all_lines(
-                                    file_path=self.atom_config_path,
-                                    content=content)[-1]
-        with open(self.atom_config_path, 'r') as f:
-            atom_config_content = f.readlines()
-        
-        # 1. 得到所有原子的原子序数（注意将读取的 str 转换为 int）
-        atomic_numbers_content = atom_config_content[idx_row:idx_row + self.num_atoms]
-        atomic_numbers_lst = [int(row.split()[0]) for row in atomic_numbers_content]
-
-        # 2. 得到所有原子坐标的信息 (注意将读取的 str 转换为 int)
-        coordinations_content = atom_config_content[idx_row:idx_row + self.num_atoms]
-        coordinations_lst = [row.split()[1:4] for row in coordinations_content]
-        for i in range(len(coordinations_lst)): # 转换
-            for j in range(3):
-                coordinations_lst[i][j] = float(coordinations_lst[i][j])
-
-        ### Part II. 得到所有原子的磁矩 (注意将读取的 str 转换为 int)
-        ###         所有原子的磁矩：magnetic_moments_lst
-        try:
-            content = "MAGNETIC"
-            idx_row = LineLocator.locate_all_lines(
-                                        file_path=self.atom_config_path,
-                                        content=content)[-1]
-            with open(self.atom_config_path, 'r') as f:
-                atom_config_content = f.readlines()
-            magnetic_moments_content = atom_config_content[idx_row: idx_row+self.num_atoms]
-            magnetic_moments_lst = [float( row.split()[1] ) for row in magnetic_moments_content]
-            #print("Information of magnetic moment exist.")
-        except:
-            #print("The program will extract magnetic moment from template atom.config...")
-            magnetic_moments_lst = [0 for _ in range(self.num_atoms)]
-        
-
-        ### Part III
-        for idx_atom in range(self.num_atoms):
-            tmp_atom = Atom(
-                        atomic_number=atomic_numbers_lst[idx_atom],
-                        coordination=coordinations_lst[idx_atom],
-                        magnetic_moment=magnetic_moments_lst[idx_atom]
-                        )
-            atoms_lst.append(tmp_atom)
-
-        return atoms_lst
+from ...publicLayer.structure import DStructure
 
 
 class MovementExtractor(object):
@@ -231,6 +20,8 @@ class MovementExtractor(object):
             2. 
         '''
         self.movement_path = movement_path
+        self.chunksize = self.get_chunksize()
+        
         
     
     def get_chunksize(self,
@@ -240,10 +31,110 @@ class MovementExtractor(object):
         -----------
             1. 由于MOVEMENT 文件太大，因此将 MOVEMENT 的每一帧 (frame) 对应的内容，定义为一个chunk
             文件处理时 `一个chunk一个chunk处理`
+            
+        Return
+        ------
+            1. chunk_size: int 
+                - 每一帧的行数
+        
+        
+        Note
+        ----
+            1. chunksize 包括 `-------` 这一行
         '''
         content = "-------------------------------------------------"
         row_idxs = LineLocator.locate_all_lines(
                                     file_path=self.movement_path,
                                     content=content
                                     )
-        return row_idxs[0]
+        chunksize = row_idxs[0]
+        return chunksize
+    
+    
+    def _get_frame_str(self, idx_frame:int):
+        '''
+        Description
+        -----------
+            1. 得到某一帧的str
+            2. Note: 帧数从 1 开始
+        
+        Parameter
+        ---------
+            1. idx_frame: int
+                - 得到代表某一帧的 str
+            
+        Return
+        ------
+            1. str_frame: str
+                - 某一帧的 str
+        '''
+        assert (idx_frame > 0)
+        
+        
+        ### Step 1. 得到对应的行数并组成str形式
+        tmp_idx_frame = 0
+        with open(self.movement_path, 'r') as f_mvt:
+            while True: # 循环读取文件，直至文件末尾
+                ### Step 1.1. 帧数从 1 开始计数；每次开始新的一帧都要用空的str
+                tmp_idx_frame += 1
+                tmp_chunk = ""
+                
+                ### Step 1.2. 收集这个 frame 对应的行数，组成 tmp_chunk
+                for tmp_row_idx in range(self.chunksize):
+                    tmp_row = f_mvt.readline()  # Read the next row from the file
+                    if not tmp_row: 
+                        break   # End of file reached
+                    tmp_chunk += tmp_row
+                    
+                ### Step 1.3. 当处理到对应的帧数时，返回对应的 tmp_chunk
+                if (tmp_idx_frame == idx_frame):
+                    break
+                        
+        return tmp_chunk
+        
+    
+    def get_frame_structure(self, idx_frame:int):
+        '''
+        Descr
+        '''
+        str_frame = self._get_frame_str(idx_frame=idx_frame)
+        structure = None
+        
+        with CreateAndRemove() as context:
+            with open(context.tmp_struct_file, 'w') as f:
+                f.write(str_frame)
+                f.seek(0)   # restart
+                structure = DStructure.from_file(
+                            file_path=context.tmp_struct_file,
+                            file_format="pwmat",
+                            coords_are_cartesian=False
+                            )
+        
+        return structure
+
+
+
+class CreateAndRemove(object):
+    '''
+    Descripion
+    ----------
+        1. 上下文背景
+        2. Enter: 创建文件
+        3. Exit: 删除文件
+    '''
+    def __init__(self):
+        current_path = os.getcwd()
+        self.tmp_struct_file = os.path.join(current_path, "tmp_structure_file")
+    
+    
+    def __enter__(self):
+        # 创建 `tmp_structure_file` 文件
+        if os.path.isfile(self.tmp_struct_file):
+            os.remove(self.tmp_struct_file)
+        os.mknod(self.tmp_struct_file)
+        
+        return self
+        
+        
+    def __exit__(self, exc_type, exc_value, traceback):
+        os.remove(self.tmp_struct_file)

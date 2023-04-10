@@ -68,6 +68,7 @@ class DStructure(Structure):
                         coords_are_cartesian=coords_are_cartesian,
                         site_properties={
                             "magmom": atom_config_extractor.magnetic_moments,
+                            "atomic_forces": list(atom_config_extractor.get_atomic_forces_lst()),
                             }
                         )
 

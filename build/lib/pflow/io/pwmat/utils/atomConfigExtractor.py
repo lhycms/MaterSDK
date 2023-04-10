@@ -8,6 +8,7 @@ Description  :
 '''
 import linecache
 import numpy as np
+import os
 
 from .lineLocator import LineLocator
 from ...publicLayer.atom import Atom
@@ -27,7 +28,12 @@ class AtomConfigExtractor(object):
                 各个 site 的原子种类
             4. coords_array: np.array
                 各个 site 的分数坐标
-
+    
+        2. 当提取的是 MOVEMENT 中某一帧信息时，还可以提取到：
+            1. `Force (eV/Angstrom)`
+            2. `Velocity (bohr/fs)`
+            3. `Atomic-Energy`
+            4. ...
     '''
     def __init__(self,
                 atom_config_path: str):
@@ -74,11 +80,18 @@ class AtomConfigExtractor(object):
         '''
         basis_vectors_lst = []
         # atom.config 文件3、4、5行是体系的基矢
-        for row_idx in [3, 4, 5]:
-            row_content = linecache.getline(self.atom_config_path, row_idx).split()[:3]
-            single_direction_vector = [float(value) for value in row_content]
-            basis_vectors_lst.append(single_direction_vector)
-
+        if os.path.basename(self.atom_config_path) != "tmp_structure_file":
+            for row_idx in [3, 4, 5]:
+                row_content = linecache.getline(self.atom_config_path, row_idx).split()[:3]
+                single_direction_vector = [float(value) for value in row_content]
+                basis_vectors_lst.append(single_direction_vector)
+        # MOVEMENT 文件中每一帧的5、6、7行是体系的基矢
+        elif os.path.basename(self.atom_config_path) == "tmp_structure_file":
+            for row_idx in [5, 6, 7]:
+                row_content = linecache.getline(self.atom_config_path, row_idx).split()[:3]
+                single_direction_vector = [float(value) for value in row_content]
+                basis_vectors_lst.append(single_direction_vector)
+                
         return np.array(basis_vectors_lst)
 
     
@@ -135,6 +148,31 @@ class AtomConfigExtractor(object):
             coords_lst.append(np.array(coord_tmp))
         
         return np.array(coords_lst)
+    
+    
+    def get_atomic_forces_lst(self):
+        '''
+        Description
+        -----------
+            1. 得到体系内所有原子的受力
+        '''
+        ### Step 1. 得到 atom.config 文件中所有信息，以列表的形式组合
+        forces_lst = []
+        content = "Force"
+        idx_row = LineLocator.locate_all_lines(
+                                file_path=self.atom_config_path,
+                                content=content)[0]
+        with open(self.atom_config_path, 'r') as f:
+            atom_config_content = f.readlines()
+        
+        
+        ### Step 2. 将力的信息，组织成
+        for row_content in atom_config_content[idx_row:idx_row + self.num_atoms]:
+            row_content_lst = row_content.split()
+            force_tmp = [float(value) for value in row_content_lst[1:4]]
+            forces_lst.append(np.array(force_tmp))
+        
+        return np.array(forces_lst)
 
     
 

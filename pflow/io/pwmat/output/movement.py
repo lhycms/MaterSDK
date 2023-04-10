@@ -94,6 +94,21 @@ class MovementExtractor(object):
         
     
     def get_frame_structure(self, idx_frame:int):
+        '''
+        Description
+        -----------
+            1. 将某一帧的结构抽取出来，构建成 DStrucure 对象
+        
+        Parameter
+        ---------
+            1. idx_frame: int
+                - 第几帧（从 1 开始计数）
+        
+        Return
+        ------
+            1. structure: DStructure
+                - 
+        '''
         str_frame = self._get_frame_str(idx_frame=idx_frame)
         structure = None
         
@@ -134,4 +149,5 @@ class CreateAndRemove(object):
         
         
     def __exit__(self, exc_type, exc_value, traceback):
-        os.remove(self.tmp_struct_file)
+        #os.remove(self.tmp_struct_file)
+        pass

@@ -27,6 +27,10 @@ class MovementExtractorTest(unittest.TestCase):
         print("Step 3.")
         print(movement_extractor.get_frame_structure(idx_frame=idx_frame))
         
+        # 4. 
+        print()
+        print("Step 4.")    
+    
         
         
 if __name__ == "__main__":
