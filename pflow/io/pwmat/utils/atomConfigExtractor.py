@@ -160,7 +160,7 @@ class AtomConfigExtractor(object):
         try:    # atom.config 中有关于原子受力的信息
             ### Step 1. 得到 atom.config 文件中所有信息，以列表的形式组合
             forces_lst = []
-            content = "Force (eV/Angstrom)".upper()
+            content = "Force".upper()
             idx_row = LineLocator.locate_all_lines(
                                     file_path=self.atom_config_path,
                                     content=content)[0]

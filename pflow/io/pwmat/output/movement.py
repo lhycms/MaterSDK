@@ -8,7 +8,7 @@ from ..utils.parameters import atomic_number2specie
 from ...publicLayer.structure import DStructure
 
 
-class MovementExtractor(object):
+class Movement(object):
     def __init__(self,
                 movement_path:str
                 ):
