@@ -39,6 +39,8 @@ movement_path = "<your_path>/MOVEMENT"
 movement_extractor = MovementExtractor(
                        movement_path=movement_path)
 idx_frame = 400 # 帧数从 1 开始计数
+
+movement.get_frame_structure(idx_frame=idx_frame)
 ```
 Output:
 ```shell
