@@ -8,7 +8,6 @@ Description  :
 '''
 import linecache
 import numpy as np
-import os
 
 from .lineLocator import LineLocator
 from ...publicLayer.atom import Atom
@@ -79,18 +78,20 @@ class AtomConfigExtractor(object):
             
         '''
         basis_vectors_lst = []
-        # atom.config 文件3、4、5行是体系的基矢
-        if os.path.basename(self.atom_config_path) != "tmp_structure_file":
-            for row_idx in [3, 4, 5]:
-                row_content = linecache.getline(self.atom_config_path, row_idx).split()[:3]
-                single_direction_vector = [float(value) for value in row_content]
-                basis_vectors_lst.append(single_direction_vector)
-        # MOVEMENT 文件中每一帧的5、6、7行是体系的基矢
-        elif os.path.basename(self.atom_config_path) == "tmp_structure_file":
-            for row_idx in [5, 6, 7]:
-                row_content = linecache.getline(self.atom_config_path, row_idx).split()[:3]
-                single_direction_vector = [float(value) for value in row_content]
-                basis_vectors_lst.append(single_direction_vector)
+
+        ### Step 1. 得到所有原子的原子序数、坐标
+        content = "LATTICE"    # 此处需要大写
+        idx_row = LineLocator.locate_all_lines(
+                                    file_path=self.atom_config_path,
+                                    content=content)[0]
+        with open(self.atom_config_path, 'r') as f:
+            atom_config_content = f.readlines()
+
+        ### Step 2. 获取基矢向量
+        for row_idx in [idx_row+1, idx_row+2, idx_row+3]:
+            row_content = linecache.getline(self.atom_config_path, row_idx).split()[:3]
+            single_direction_vector = [float(value) for value in row_content]
+            basis_vectors_lst.append(single_direction_vector)
                 
         return np.array(basis_vectors_lst)
 
@@ -159,7 +160,7 @@ class AtomConfigExtractor(object):
         try:    # atom.config 中有关于原子受力的信息
             ### Step 1. 得到 atom.config 文件中所有信息，以列表的形式组合
             forces_lst = []
-            content = "FORCE"
+            content = "Force (eV/Angstrom)".upper()
             idx_row = LineLocator.locate_all_lines(
                                     file_path=self.atom_config_path,
                                     content=content)[0]
@@ -186,7 +187,7 @@ class AtomConfigExtractor(object):
         try:    # atom.config 中有关于原子速度的信息
             ### Step 1. 得到 atom.config 文件中所有信息，以列表的形式组合
             velocitys_lst = []
-            content = "VELOCITY"
+            content = "Velocity (bohr/fs)".upper()
             idx_row = LineLocator.locate_all_lines(
                                     file_path=self.atom_config_path,
                                     content=content)[0]
@@ -213,7 +214,7 @@ class AtomConfigExtractor(object):
         try:    # atom.config 中有关于原子能量的信息
             ### Step 1. 得到 atom.config 文件中所有信息，以列表的形式组合
             energys_lst = []
-            content = "ATOMIC-ENERGY"
+            content = "Atomic-Energy, ".upper()
             idx_row = LineLocator.locate_all_lines(
                                     file_path=self.atom_config_path,
                                     content=content)[0]

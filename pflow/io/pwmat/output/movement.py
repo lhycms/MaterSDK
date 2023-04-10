@@ -18,9 +18,14 @@ class MovementExtractor(object):
             1. movement_path: str
                 - MOVEMENT 文件的路径
             2. 
+            
+        
+        Note
+        ----
+            1. MOVEMENT 第一步与其他步的 chunksize 不同。
         '''
         self.movement_path = movement_path
-        self.chunksize = self.get_chunksize()
+        self.chunksizes_lst = self.get_chunksize()
         
         
     
@@ -42,13 +47,18 @@ class MovementExtractor(object):
         ----
             1. chunksize 包括 `-------` 这一行
         '''
-        content = "-------------------------------------------------"
+        chunksizes_lst = []
+        content = "--------------------------------------"
         row_idxs = LineLocator.locate_all_lines(
                                     file_path=self.movement_path,
                                     content=content
                                     )
-        chunksize = row_idxs[0]
-        return chunksize
+
+        chunksizes_lst.append(row_idxs[0])
+        for idx in range(1, len(row_idxs)):
+            chunksizes_lst.append(row_idxs[idx] - row_idxs[idx-1])
+        
+        return chunksizes_lst
     
     
     def _get_frame_str(self, idx_frame:int):
@@ -70,17 +80,17 @@ class MovementExtractor(object):
         '''
         assert (idx_frame > 0)
         
-        
         ### Step 1. 得到对应的行数并组成str形式
         tmp_idx_frame = 0
         with open(self.movement_path, 'r') as f_mvt:
             while True: # 循环读取文件，直至文件末尾
                 ### Step 1.1. 帧数从 1 开始计数；每次开始新的一帧都要用空的str
-                tmp_idx_frame += 1
+                tmp_idx_frame += 1 
                 tmp_chunk = ""
+                chunksize = self.chunksizes_lst[tmp_idx_frame-1]
                 
                 ### Step 1.2. 收集这个 frame 对应的行数，组成 tmp_chunk
-                for tmp_row_idx in range(self.chunksize):
+                for tmp_row_idx in range(chunksize):
                     tmp_row = f_mvt.readline()  # Read the next row from the file
                     if not tmp_row: 
                         break   # End of file reached
