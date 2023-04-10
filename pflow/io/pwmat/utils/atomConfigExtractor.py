@@ -175,6 +175,60 @@ class AtomConfigExtractor(object):
             return np.array(forces_lst)
         except: # atom.config 中没有关于原子受力的信息
             return np.zeros((self.num_atoms, 3))
+
+
+    def get_atomic_velocitys_lst(self):
+        '''
+        Description
+        -----------
+            1. 得到体系内所有原子的速度
+        '''
+        try:    # atom.config 中有关于原子速度的信息
+            ### Step 1. 得到 atom.config 文件中所有信息，以列表的形式组合
+            velocitys_lst = []
+            content = "VELOCITY"
+            idx_row = LineLocator.locate_all_lines(
+                                    file_path=self.atom_config_path,
+                                    content=content)[0]
+            with open(self.atom_config_path, 'r') as f:
+                atom_config_content = f.readlines()
+            
+            ### Step 2. 将速度的信息，组织成 np.ndarray 形式
+            for row_content in atom_config_content[idx_row:idx_row + self.num_atoms]:
+                row_content_lst = row_content.split()
+                force_tmp = [float(value) for value in row_content_lst[1:4]]
+                velocitys_lst.append(np.array(force_tmp))
+        
+            return np.array(velocitys_lst)
+        except: # atom.config 中没有关于原子速度的信息
+            return np.zeros((self.num_atoms, 3))
+
+
+    def get_atomic_energys_lst(self):
+        '''
+        Description
+        -----------
+            1. 得到体系内所有原子的能量
+        '''
+        try:    # atom.config 中有关于原子能量的信息
+            ### Step 1. 得到 atom.config 文件中所有信息，以列表的形式组合
+            energys_lst = []
+            content = "ATOMIC-ENERGY"
+            idx_row = LineLocator.locate_all_lines(
+                                    file_path=self.atom_config_path,
+                                    content=content)[0]
+            with open(self.atom_config_path, 'r') as f:
+                atom_config_content = f.readlines()
+            
+            ### Step 2. 将能量的信息，组织成 np.ndarray 形式
+            for row_content in atom_config_content[idx_row:idx_row + self.num_atoms]:
+                row_content_lst = row_content.split()
+                energy_tmp = [float(value) for value in row_content_lst[1:4]]
+                energys_lst.append(np.array(energy_tmp))
+        
+            return np.array(energys_lst)
+        except: # atom.config 中没有关于原子能量的信息
+            return np.zeros((self.num_atoms, 3))
     
 
     def get_magnetic_moments(self):
