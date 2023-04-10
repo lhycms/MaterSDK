@@ -25,12 +25,13 @@ class MovementTest(unittest.TestCase):
         
         # 3. 
         print()
-        print("Step 3.")
+        print("Step 3. Structure from {0}th frame".format(idx_frame))
         print(movement.get_frame_structure(idx_frame=idx_frame))
         
         # 4. 
         print()
-        print("Step 4.")    
+        print("Step 4. Virial tensor") 
+        print(movement.get_frame_structure(idx_frame=idx_frame).virial_tensor)   
     
         
         

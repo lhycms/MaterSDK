@@ -94,6 +94,36 @@ class AtomConfigExtractor(object):
             basis_vectors_lst.append(single_direction_vector)
                 
         return np.array(basis_vectors_lst)
+    
+    
+    def get_virial_tensor(self):
+        '''
+        Description
+        -----------
+            1. 得到材料的维里张量 (virial tensor)
+
+        Return
+        ------
+            1. virial_tensor: np.array, 是一个二维 np.ndarray            
+        '''
+        virial_tensor = []
+
+        ### Step 1. 得到所有原子的原子序数、坐标
+        content = "LATTICE"    # 此处需要大写
+        idx_row = LineLocator.locate_all_lines(
+                                    file_path=self.atom_config_path,
+                                    content=content)[0]
+        with open(self.atom_config_path, 'r') as f:
+            atom_config_content = f.readlines()
+
+        ### Step 2. 获取基矢向量
+        for row_idx in [idx_row+1, idx_row+2, idx_row+3]:
+            row_content = linecache.getline(self.atom_config_path, row_idx).split()[5:]
+            single_direction_vector = [float(value) for value in row_content]
+            virial_tensor.append(single_direction_vector)
+                
+        return np.array(virial_tensor)
+        
 
     
     def get_atomic_numbers_lst(self):

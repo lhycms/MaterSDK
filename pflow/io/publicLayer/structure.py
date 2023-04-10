@@ -70,9 +70,12 @@ class DStructure(Structure):
                             "magmom": atom_config_extractor.magnetic_moments,
                             "atomic_forces": list(atom_config_extractor.get_atomic_forces_lst()),
                             "atomic_velocitys": list(atom_config_extractor.get_atomic_velocitys_lst()),
-                            #"atomic_energys": list(atom_config_extractor.get_atomic_energys_lst())
+                            "atomic_energys": list(atom_config_extractor.get_atomic_energys_lst())
                             }
                         )
+            
+            ### 以下性质，只有在运行AIMD时才会输出
+            structure.virial_tensor = atom_config_extractor.get_virial_tensor()
 
         structure.__class__ = cls
         return structure
