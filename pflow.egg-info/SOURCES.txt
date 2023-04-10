@@ -44,11 +44,13 @@ pflow/io/pwmat/input/test/test_inkpt.py
 pflow/io/pwmat/output/__init__.py
 pflow/io/pwmat/output/dostotalspin.py
 pflow/io/pwmat/output/fatabandstructureTxt.py
+pflow/io/pwmat/output/movement.py
 pflow/io/pwmat/output/outfermi.py
 pflow/io/pwmat/output/report.py
 pflow/io/pwmat/output/test/__init__.py
 pflow/io/pwmat/output/test/test_dostotalspin.py
 pflow/io/pwmat/output/test/test_fatbandstructureTxt.py
+pflow/io/pwmat/output/test/test_movement.py
 pflow/io/pwmat/output/test/test_outfermi.py
 pflow/io/pwmat/output/test/test_report.py
 pflow/io/pwmat/utils/__init__.py

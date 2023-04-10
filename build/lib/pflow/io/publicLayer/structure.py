@@ -27,7 +27,7 @@ class DStructure(Structure):
         PWmat 的 atom.config 初始而成的 DStructure 多出以下两种 attributions
         1. self.atoms_lst
         2. self.atomic_numbers_lst
-    '''    
+    '''
     @classmethod
     def from_file(cls,
                 file_path:str,

@@ -1,25 +1,16 @@
-'''
-Author       : Liu Hanyu
-Email        : hyliu2016@buaa.edu.cn
-Date         : 2022-10-31 15:14:30
-LastEditTime : 2022-12-09 11:57:02
-FilePath     : /pflow/pflow/io/pwmat/atomConfigExtractor.py
-Description  : 
-'''
 import linecache
 import numpy as np
-import os
 
-from .lineLocator import LineLocator
+from ..utils.lineLocator import LineLocator
 from ...publicLayer.atom import Atom
-from .parameters import atomic_number2specie
+from ..utils.parameters import atomic_number2specie
 
 
-class AtomConfigExtractor(object):
+class FrameExtractor(object):
     '''
     Description
     -----------
-        1. 提取 atom.config 文件中的信息：
+        1. 提取 MOVMENT 文件中某一帧(frame)结构的信息：
             1. num_atoms: int
                 体系内的原子总数
             2. basis_vectors_array: list
@@ -75,18 +66,11 @@ class AtomConfigExtractor(object):
         '''
         basis_vectors_lst = []
         # atom.config 文件3、4、5行是体系的基矢
-        if os.path.basename(self.atom_config_path) != "tmp_structure_file":
-            for row_idx in [3, 4, 5]:
-                row_content = linecache.getline(self.atom_config_path, row_idx).split()[:3]
-                single_direction_vector = [float(value) for value in row_content]
-                basis_vectors_lst.append(single_direction_vector)
-        # MOVEMENT 文件中每一帧的5、6、7行是体系的基矢
-        elif os.path.basename(self.atom_config_path) == "tmp_structure_file":
-            for row_idx in [5, 6, 7]:
-                row_content = linecache.getline(self.atom_config_path, row_idx).split()[:3]
-                single_direction_vector = [float(value) for value in row_content]
-                basis_vectors_lst.append(single_direction_vector)
-                
+        for row_idx in [3, 4, 5]:
+            row_content = linecache.getline(self.atom_config_path, row_idx).split()[:3]
+            single_direction_vector = [float(value) for value in row_content]
+            basis_vectors_lst.append(single_direction_vector)
+
         return np.array(basis_vectors_lst)
 
     
@@ -233,3 +217,33 @@ class AtomConfigExtractor(object):
             atoms_lst.append(tmp_atom)
 
         return atoms_lst
+
+
+class MovementExtractor(object):
+    def __init__(self,
+                movement_path:str
+                ):
+        '''
+        Parameters
+        ----------
+            1. movement_path: str
+                - MOVEMENT 文件的路径
+            2. 
+        '''
+        self.movement_path = movement_path
+        
+    
+    def get_chunksize(self,
+                    ):
+        '''
+        Description
+        -----------
+            1. 由于MOVEMENT 文件太大，因此将 MOVEMENT 的每一帧 (frame) 对应的内容，定义为一个chunk
+            文件处理时 `一个chunk一个chunk处理`
+        '''
+        content = "-------------------------------------------------"
+        row_idxs = LineLocator.locate_all_lines(
+                                    file_path=self.movement_path,
+                                    content=content
+                                    )
+        return row_idxs[0]

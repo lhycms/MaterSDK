@@ -8,7 +8,6 @@ Description  :
 '''
 import linecache
 import numpy as np
-import os
 
 from .lineLocator import LineLocator
 from ...publicLayer.atom import Atom
@@ -75,18 +74,11 @@ class AtomConfigExtractor(object):
         '''
         basis_vectors_lst = []
         # atom.config 文件3、4、5行是体系的基矢
-        if os.path.basename(self.atom_config_path) != "tmp_structure_file":
-            for row_idx in [3, 4, 5]:
-                row_content = linecache.getline(self.atom_config_path, row_idx).split()[:3]
-                single_direction_vector = [float(value) for value in row_content]
-                basis_vectors_lst.append(single_direction_vector)
-        # MOVEMENT 文件中每一帧的5、6、7行是体系的基矢
-        elif os.path.basename(self.atom_config_path) == "tmp_structure_file":
-            for row_idx in [5, 6, 7]:
-                row_content = linecache.getline(self.atom_config_path, row_idx).split()[:3]
-                single_direction_vector = [float(value) for value in row_content]
-                basis_vectors_lst.append(single_direction_vector)
-                
+        for row_idx in [3, 4, 5]:
+            row_content = linecache.getline(self.atom_config_path, row_idx).split()[:3]
+            single_direction_vector = [float(value) for value in row_content]
+            basis_vectors_lst.append(single_direction_vector)
+
         return np.array(basis_vectors_lst)
 
     
