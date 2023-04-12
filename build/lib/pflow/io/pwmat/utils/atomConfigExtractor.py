@@ -8,7 +8,6 @@ Description  :
 '''
 import linecache
 import numpy as np
-import os
 
 from .lineLocator import LineLocator
 from ...publicLayer.atom import Atom
@@ -79,20 +78,52 @@ class AtomConfigExtractor(object):
             
         '''
         basis_vectors_lst = []
-        # atom.config 文件3、4、5行是体系的基矢
-        if os.path.basename(self.atom_config_path) != "tmp_structure_file":
-            for row_idx in [3, 4, 5]:
-                row_content = linecache.getline(self.atom_config_path, row_idx).split()[:3]
-                single_direction_vector = [float(value) for value in row_content]
-                basis_vectors_lst.append(single_direction_vector)
-        # MOVEMENT 文件中每一帧的5、6、7行是体系的基矢
-        elif os.path.basename(self.atom_config_path) == "tmp_structure_file":
-            for row_idx in [5, 6, 7]:
-                row_content = linecache.getline(self.atom_config_path, row_idx).split()[:3]
-                single_direction_vector = [float(value) for value in row_content]
-                basis_vectors_lst.append(single_direction_vector)
+
+        ### Step 1. 得到所有原子的原子序数、坐标
+        content = "LATTICE"    # 此处需要大写
+        idx_row = LineLocator.locate_all_lines(
+                                    file_path=self.atom_config_path,
+                                    content=content)[0]
+        with open(self.atom_config_path, 'r') as f:
+            atom_config_content = f.readlines()
+
+        ### Step 2. 获取基矢向量
+        for row_idx in [idx_row+1, idx_row+2, idx_row+3]:
+            row_content = linecache.getline(self.atom_config_path, row_idx).split()[:3]
+            single_direction_vector = [float(value) for value in row_content]
+            basis_vectors_lst.append(single_direction_vector)
                 
         return np.array(basis_vectors_lst)
+    
+    
+    def get_virial_tensor(self):
+        '''
+        Description
+        -----------
+            1. 得到材料的维里张量 (virial tensor)
+
+        Return
+        ------
+            1. virial_tensor: np.array, 是一个二维 np.ndarray            
+        '''
+        virial_tensor = []
+
+        ### Step 1. 得到所有原子的原子序数、坐标
+        content = "LATTICE"    # 此处需要大写
+        idx_row = LineLocator.locate_all_lines(
+                                    file_path=self.atom_config_path,
+                                    content=content)[0]
+        with open(self.atom_config_path, 'r') as f:
+            atom_config_content = f.readlines()
+
+        ### Step 2. 获取基矢向量
+        for row_idx in [idx_row+1, idx_row+2, idx_row+3]:
+            row_content = linecache.getline(self.atom_config_path, row_idx).split()[5:]
+            single_direction_vector = [float(value) for value in row_content]
+            virial_tensor.append(single_direction_vector)
+                
+        return np.array(virial_tensor)
+        
 
     
     def get_atomic_numbers_lst(self):
@@ -156,24 +187,79 @@ class AtomConfigExtractor(object):
         -----------
             1. 得到体系内所有原子的受力
         '''
-        ### Step 1. 得到 atom.config 文件中所有信息，以列表的形式组合
-        forces_lst = []
-        content = "Force"
-        idx_row = LineLocator.locate_all_lines(
-                                file_path=self.atom_config_path,
-                                content=content)[0]
-        with open(self.atom_config_path, 'r') as f:
-            atom_config_content = f.readlines()
+        try:    # atom.config 中有关于原子受力的信息
+            ### Step 1. 得到 atom.config 文件中所有信息，以列表的形式组合
+            forces_lst = []
+            content = "Force".upper()
+            idx_row = LineLocator.locate_all_lines(
+                                    file_path=self.atom_config_path,
+                                    content=content)[0]
+            with open(self.atom_config_path, 'r') as f:
+                atom_config_content = f.readlines()
+            
+            ### Step 2. 将力的信息，组织成
+            for row_content in atom_config_content[idx_row:idx_row + self.num_atoms]:
+                row_content_lst = row_content.split()
+                force_tmp = [float(value) for value in row_content_lst[1:4]]
+                forces_lst.append(np.array(force_tmp))
         
-        
-        ### Step 2. 将力的信息，组织成
-        for row_content in atom_config_content[idx_row:idx_row + self.num_atoms]:
-            row_content_lst = row_content.split()
-            force_tmp = [float(value) for value in row_content_lst[1:4]]
-            forces_lst.append(np.array(force_tmp))
-        
-        return np.array(forces_lst)
+            return np.array(forces_lst)
+        except: # atom.config 中没有关于原子受力的信息
+            return np.zeros((self.num_atoms, 3))
 
+
+    def get_atomic_velocitys_lst(self):
+        '''
+        Description
+        -----------
+            1. 得到体系内所有原子的速度
+        '''
+        try:    # atom.config 中有关于原子速度的信息
+            ### Step 1. 得到 atom.config 文件中所有信息，以列表的形式组合
+            velocitys_lst = []
+            content = "Velocity (bohr/fs)".upper()
+            idx_row = LineLocator.locate_all_lines(
+                                    file_path=self.atom_config_path,
+                                    content=content)[0]
+            with open(self.atom_config_path, 'r') as f:
+                atom_config_content = f.readlines()
+            
+            ### Step 2. 将速度的信息，组织成 np.ndarray 形式
+            for row_content in atom_config_content[idx_row:idx_row + self.num_atoms]:
+                row_content_lst = row_content.split()
+                force_tmp = [float(value) for value in row_content_lst[1:4]]
+                velocitys_lst.append(np.array(force_tmp))
+        
+            return np.array(velocitys_lst)
+        except: # atom.config 中没有关于原子速度的信息
+            return np.zeros((self.num_atoms, 3))
+
+
+    def get_atomic_energys_lst(self):
+        '''
+        Description
+        -----------
+            1. 得到体系内所有原子的能量
+        '''
+        try:    # atom.config 中有关于原子能量的信息
+            ### Step 1. 得到 atom.config 文件中所有信息，以列表的形式组合
+            energys_lst = []
+            content = "Atomic-Energy, ".upper()
+            idx_row = LineLocator.locate_all_lines(
+                                    file_path=self.atom_config_path,
+                                    content=content)[0]
+            with open(self.atom_config_path, 'r') as f:
+                atom_config_content = f.readlines()
+            
+            ### Step 2. 将能量的信息，组织成 np.ndarray 形式
+            for row_content in atom_config_content[idx_row:idx_row + self.num_atoms]:
+                row_content_lst = row_content.split()
+                energy_tmp = [float(value) for value in row_content_lst[1:4]]
+                energys_lst.append(np.array(energy_tmp))
+        
+            return np.array(energys_lst)
+        except: # atom.config 中没有关于原子能量的信息
+            return np.zeros((self.num_atoms, 3))
     
 
     def get_magnetic_moments(self):

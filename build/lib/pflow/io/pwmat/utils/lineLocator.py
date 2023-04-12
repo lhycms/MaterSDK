@@ -20,6 +20,10 @@ class LineLocator(object):
                 文件的绝对路径
             2. content: str
                 需要定位的内容
+        
+        Note
+        ----
+            1. content 必须为大写
         '''
         row_idxs_lst = []
         row_no = 0

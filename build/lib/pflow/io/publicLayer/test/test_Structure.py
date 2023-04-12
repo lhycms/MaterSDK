@@ -164,7 +164,6 @@ class StructureTest(unittest.TestCase):
         bidx2aidx = structure.get_bidx2aidx_supercell(scaling_matrix=scaling_matrix)
         #print(bidx2aidx)
         
-        
 
 
 if __name__ == "__main__":

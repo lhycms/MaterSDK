@@ -1,9 +1,7 @@
-import linecache
-import numpy as np
 import os 
+import numpy as np
 
 from ..utils.lineLocator import LineLocator
-from ...publicLayer.atom import Atom
 from ..utils.parameters import atomic_number2specie
 from ...publicLayer.structure import DStructure
 
@@ -19,7 +17,6 @@ class Movement(object):
                 - MOVEMENT 文件的路径
             2. 
             
-        
         Note
         ----
             1. MOVEMENT 第一步与其他步的 chunksize 不同。
@@ -28,7 +25,6 @@ class Movement(object):
         self.chunksizes_lst = self.get_chunksize()
         
         
-    
     def get_chunksize(self,
                     ):
         '''
@@ -41,7 +37,6 @@ class Movement(object):
         ------
             1. chunk_size: int 
                 - 每一帧的行数
-        
         
         Note
         ----
@@ -66,7 +61,7 @@ class Movement(object):
         Description
         -----------
             1. 得到某一帧的str
-            2. Note: 帧数从 1 开始
+            2. Note: 帧数从 0 开始
         
         Parameter
         ---------
@@ -77,20 +72,17 @@ class Movement(object):
         ------
             1. str_frame: str
                 - 某一帧的 str
-        '''
-        assert (idx_frame > 0)
-        
+        '''        
         ### Step 1. 得到对应的行数并组成str形式
         tmp_idx_frame = 0
         with open(self.movement_path, 'r') as f_mvt:
             while True: # 循环读取文件，直至文件末尾
-                ### Step 1.1. 帧数从 1 开始计数；每次开始新的一帧都要用空的str
-                tmp_idx_frame += 1 
+                ### Step 1.1. 帧数从 0 开始计数；每次开始新的一帧都要用空的str
                 tmp_chunk = ""
-                chunksize = self.chunksizes_lst[tmp_idx_frame-1]
+                tmp_chunksize = self.chunksizes_lst[tmp_idx_frame]
                 
                 ### Step 1.2. 收集这个 frame 对应的行数，组成 tmp_chunk
-                for tmp_row_idx in range(chunksize):
+                for tmp_row_idx in range(tmp_chunksize):
                     tmp_row = f_mvt.readline()  # Read the next row from the file
                     if not tmp_row: 
                         break   # End of file reached
@@ -99,6 +91,9 @@ class Movement(object):
                 ### Step 1.3. 当处理到对应的帧数时，返回对应的 tmp_chunk
                 if (tmp_idx_frame == idx_frame):
                     break
+                
+                ### Step 1.4. 将读取下一帧的 chunk
+                tmp_idx_frame += 1 
                         
         return tmp_chunk
         
@@ -109,10 +104,10 @@ class Movement(object):
         -----------
             1. 将某一帧的结构抽取出来，构建成 DStrucure 对象
         
-        Parameter
-        ---------
+        Parameters
+        ----------
             1. idx_frame: int
-                - 第几帧（从 1 开始计数）
+                - 第几帧（从 0 开始计数）
         
         Return
         ------
@@ -131,8 +126,118 @@ class Movement(object):
                             file_format="pwmat",
                             coords_are_cartesian=False
                             )
-        
         return structure
+    
+    
+    def get_frame_energy(self, idx_frame:int):
+        '''
+        Description
+        -----------
+            1. 获取某一帧的总能、势能、动能
+                72 atoms,Iteration (fs) =   -0.1000000000E+01, Etot,Ep,Ek (eV) =   -0.1188642969E+05  -0.1188642969E+05   0.0000000000E+00, SCF =    16
+                Lattice vector (Angstrom)
+                0.8759519000E+01    0.0000000000E+00    0.0000000000E+00     stress (eV):  0.124196E+02  0.479262E+01  0.245741E+01
+                0.2209000000E+00    0.7513335000E+01    0.0000000000E+00     stress (eV):  0.479308E+01  0.961132E+01  0.225365E+01
+                0.4093050000E+00    0.2651660000E+00    0.1828974400E+02     stress (eV):  0.245631E+01  0.225430E+01 -0.198978E+01
+        
+        Paramters
+        ---------
+            1. idx_frame: int
+                - 第几帧 (从第 0 帧开始计数)
+        
+        Return
+        ------
+            1. energy_tot: float
+            2. energy_p: float
+            3. energy_k: float
+        '''
+        ### 1. 获取 `idx_frame` 对应的 chunk
+        frame_str = self._get_frame_str(idx_frame=idx_frame)
+
+        ### 2. 获取Etot, Ep, Ek
+        first_row_lst = frame_str.split('\n')[0].split()    # 某一帧 chunk 的第一行
+        energy_tot = float( first_row_lst[8].strip() )
+        energy_p = float( first_row_lst[9].strip() )
+        energy_k = float( first_row_lst[10][:-1].strip() )
+
+        return energy_tot, energy_p, energy_k
+    
+    
+    def get_frame_virial(self, idx_frame:int):
+        '''
+        Description
+        -----------
+            1. 获取某一帧的维里张量
+                72 atoms,Iteration (fs) =   -0.1000000000E+01, Etot,Ep,Ek (eV) =   -0.1188642969E+05  -0.1188642969E+05   0.0000000000E+00, SCF =    16
+                Lattice vector (Angstrom)
+                0.8759519000E+01    0.0000000000E+00    0.0000000000E+00     stress (eV):  0.124196E+02  0.479262E+01  0.245741E+01
+                0.2209000000E+00    0.7513335000E+01    0.0000000000E+00     stress (eV):  0.479308E+01  0.961132E+01  0.225365E+01
+                0.4093050000E+00    0.2651660000E+00    0.1828974400E+02     stress (eV):  0.245631E+01  0.225430E+01 -0.198978E+01
+        
+        Parameters
+        ----------
+            1. idx_frame: int
+                - 第几帧 (从第 0 帧开始计数)
+        
+        Return
+        ------
+            1. virial_tensor: np.ndarray
+        '''
+        ### 1. 获取 `idx_frame` 对应的 chunk，并以 `\n` 为分裂标志将其分成列表
+        frame_str = self._get_frame_str(idx_frame=idx_frame)
+        rows_lst = frame_str.split("\n")
+        
+        ### 2. 找到 Lattice vector 对应的行的索引 -- `tmp_idx`
+        tmp_idx = 0
+        content = "Lattice vector"
+        for tmp_idx, tmp_row in enumerate(rows_lst):   # 找到 Lattice vector 对应的行的索引
+            if content in tmp_row:
+                break
+        
+        ### 3. 将 virial tensor 转换成 3*3 的 np.ndarray
+        virial_tensor_x = np.array([float(tmp_value.strip()) for tmp_value in rows_lst[tmp_idx+1].split()[-3:]])
+        virial_tensor_y = np.array([float(tmp_value.strip()) for tmp_value in rows_lst[tmp_idx+2].split()[-3:]])
+        virial_tensor_z = np.array([float(tmp_value.strip()) for tmp_value in rows_lst[tmp_idx+3].split()[-3:]])
+        virial_tensor = np.vstack([virial_tensor_x, virial_tensor_y, virial_tensor_z])
+        
+        return virial_tensor
+            
+    
+    def get_frame_volume(self, idx_frame:int):
+        '''
+        Description
+        -----------
+            1. 
+            
+        Parameters
+        ----------
+            1. 
+        
+        Return
+        ------
+            1. 
+        '''
+        ### 1. 获取 `idx_frame` 对应的 chunk，并以 `\n` 为分裂标志将其分成列表
+        frame_str = self._get_frame_str(idx_frame=idx_frame)
+        rows_lst = frame_str.split("\n")
+        
+        ### 2. 找到 Lattice vector 对应的行的索引 -- `tmp_idx`
+        tmp_idx = 0
+        content = "Lattice vector"
+        for tmp_idx, tmp_row in enumerate(rows_lst):   # 找到 Lattice vector 对应的行的索引
+            if content in tmp_row:
+                break
+            
+        ### 3. 获取 basis vector (np.ndarray)
+        basis_vector_x = np.array([float(tmp_value.strip()) for tmp_value in rows_lst[tmp_idx+1].split()[:3]])
+        basis_vector_y = np.array([float(tmp_value.strip()) for tmp_value in rows_lst[tmp_idx+2].split()[:3]])
+        basis_vector_z = np.array([float(tmp_value.strip()) for tmp_value in rows_lst[tmp_idx+3].split()[:3]])
+        basis_vector = np.vstack([basis_vector_x, basis_vector_y, basis_vector_z])
+        
+        ### 4. 计算体积
+        volume = np.linalg.det(basis_vector)
+        
+        return volume
 
 
 
@@ -159,5 +264,4 @@ class CreateAndRemove(object):
         
         
     def __exit__(self, exc_type, exc_value, traceback):
-        #os.remove(self.tmp_struct_file)
-        pass
+        os.remove(self.tmp_struct_file)
