@@ -32,13 +32,13 @@ You can:
 
 
 ## 1.4. Pick out specific frame from `MOVEMENT`
+### 1.4.1. Extract a `DStructure` object
 ```python
 from pflow.io.pwmat.output.movement import Movement
 
 movement_path = "<your_path>/MOVEMENT"
-movement_extractor = MovementExtractor(
-                       movement_path=movement_path)
-idx_frame = 400 # 帧数从 1 开始计数
+movement = Movement(movement_path=movement_path)
+idx_frame = 400 # 帧数从 0 开始计数
 
 movement.get_frame_structure(idx_frame=idx_frame)
 ```
@@ -124,6 +124,58 @@ Sites (72)
  69  Si    0.253045  0.495251  0.937931  [ 0.00257053 -0.1731131  -0.62582241]  [ 0.01815751 -0.02138941 -0.00058968]         0
  70  Si    0.498547  0.00286   0.939493  [-0.1360915   0.15734153  0.19855925]  [-0.0057966   0.01126682  0.01299549]         0
  71  Si    0.750529  0.502553  0.939188  [ 0.0670155   0.1030627  -0.33242543]  [0.00384533 0.01666297 0.01847533]            0
+```
+
+### 1.4.2. Extract virial of specific frame
+```python
+from pflow.io.pwmat.output.movement import Movement
+
+movement_path = "<your_path>/MOVEMENT"
+movement = Movement(movement_path=movement_path)
+idx_frame = 100 # 帧数从 1 开始计数
+
+virial_tensor = movement.get_frame_virial(idx_frame=idx_frame)
+print(virial_tensor)
+```
+Output:
+```shell
+[[ 0.494557  -0.0956012  3.97316  ]
+ [-0.0955897 15.6917     4.35965  ]
+ [ 3.97358    4.35888   13.3794   ]]
+```
+
+### 1.4.3. Extract volume of specific frame
+```python
+from pflow.io.pwmat.output.movement import Movement
+
+movement_path = "<your_path>/MOVEMENT"
+movement = Movement(movement_path=movement_path)
+idx_frame = 100 # 帧数从 1 开始计数
+
+volume = movement.get_frame_volume(idx_frame=idx_frame)
+print(volume)
+```
+Output:
+```shell
+1211.3249341683083
+```
+
+### 1.4.4. Extract energy of specific frame
+```python
+from pflow.io.pwmat.output.movement import Movement
+
+movement_path = "<your_path>/MOVEMENT"
+movement = Movement(movement_path=movement_path)
+energy_tot, energy_p, energy_k = movement.get_frame_energy(idx_frame=idx_frame)
+print( "\t1. Total energy: {0} eV".format(energy_tot) )
+print( "\t2. Potential energy: {0} eV".format(energy_p) )
+print( "\t3. Kenitic energy: {0} eV".format(energy_k) )
+```
+Output:
+```shell
+        1. Total energy: -11867.78458 eV
+        2. Potential energy: -11886.338 eV
+        3. Kenitic energy: 18.55341566 eV
 ```
 
 
