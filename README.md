@@ -177,6 +177,57 @@ Output:
         3. Kenitic energy: 18.55341566 eV
 ```
 
+# 1.5. Analyse the neighbors around a center atom
+```python
+from pflow.io.publicLayer.structure import DStructure
+from pflow.io.publicLayer.neigh import StructureNeighbors
+
+atom_config_path = "<your_path>/atom.config"
+scaling_matrix = [3, 3, 1]  # 取奇数
+reformat_mark = True
+n_neighbors = 60
+algorithm = "ball_tree"
+coords_are_cartesian = True
+
+structure = DStructure.from_file(
+                      file_format="pwmat", 
+                      file_path=file_path)
+neighbors = StructureNeighbors(
+                      structure=structure,
+                      scaling_matrix=scaling_matrix,
+                      reformat_mark=reformat_mark,
+                      n_neighbors=n_neighbors,
+                      algorithm=algorithm)
+
+print()
+print("Step 1. primitive_cell 中的原子在 supercell 中对应的index:", end="\t")
+print(neighbors._get_key_idxs(scaling_matrix))
+
+print()
+print("Step 2. primitive_cell 中原子的近邻原子情况:")
+key_nbr_species, key_nbr_distances, key_nbr_coords = \
+                       neighbors._get_key_neighs_info(
+                               scaling_matrix=scaling_matrix,
+                               n_neighbors=n_neighbors,
+                               algorithm=algorithm,
+                               coords_are_cartesian=coords_are_cartesian)
+print("\t2.1. The number of atoms in primitive cell:\t", len(neighbors.structure.species))
+print("\t2.2. The shape of key_nbr_species:\t", key_nbr_species.shape)
+print("\t2.3. The shape of key_nbr_distances:\t", key_nbr_distances.shape)
+print("\t2.4. The shape of key_nbr_coords:\t", key_nbr_coords.shape)
+```
+Output:
+```shell
+
+Step 1. primitive_cell 中的原子在 supercell 中对应的index:      [0, 1, 2, 3, 4, 5, 6, 7, 72, 73, 74, 75]
+
+Step 2. primitive_cell 中原子的近邻原子情况:
+        2.1. The number of atoms in primitive cell:      12
+        2.2. The shape of key_nbr_species:       (12, 60)
+        2.3. The shape of key_nbr_distances:     (12, 60)
+        2.4. The shape of key_nbr_coords:        (12, 60, 3)
+```
+
 
 # 2. Installation
 ## 2.1. Online
