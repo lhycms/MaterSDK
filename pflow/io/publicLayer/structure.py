@@ -259,7 +259,6 @@ class DStructure(Structure):
         return structure
         
 
-    
     def get_bidx2aidx_supercell(
                             self,
                             scaling_matrix:np.ndarray
@@ -267,7 +266,9 @@ class DStructure(Structure):
         '''
         Description
         -----------
-            1. 
+            1. 调用 `self.make_supercell_(scaling_matrix, reformat_mark)` 后，得到的supercell
+            会按照原子序数排序。这样一来我们就无法辨别出哪些原子是属于primitive cell的，因此我们需要
+            得到`按照原子序数排序前的index`与`按照原子序数排序后的index`的映射
         
         Return
         ------
@@ -286,6 +287,7 @@ class DStructure(Structure):
         supercell = self.make_supercell_(
                             scaling_matrix=scaling_matrix,
                             reformat_mark=False)
+        # sorted_indexes: 按照原子序数排序后的index
         sorted_indexes = [
                         idx for idx, _ in \
                                 sorted(
@@ -293,6 +295,7 @@ class DStructure(Structure):
                                     key=lambda tmp_entry: specie2atomic_number[str(tmp_entry[1].specie)]
                                     )
                         ]
+        # {排序后的index: 排序前的index}
         bidx2aidx = {sorted_indexes[i]: sorted_indexes.index(sorted_indexes[i]) \
                                         for i in range(len(sorted_indexes))}
         return bidx2aidx
@@ -326,7 +329,7 @@ class DStructure(Structure):
         ----------
             1. scaling_matrix: np.array
             2. reformat_mark: bool
-                - 是否按照原子顺序排序
+                - 是否按照原子序数排序
         
         Note
         ----
