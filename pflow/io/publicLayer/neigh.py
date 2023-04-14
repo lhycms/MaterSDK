@@ -46,7 +46,7 @@ class StructureNeighbors(object):
                                     scaling_matrix=scaling_matrix,
                                     reformat_mark=reformat_mark)
         # key 代指 primitive_cell 中的原子
-        self.key_nbr_species, self.key_nbr_distances, self.key_nbr_coords = \
+        self.key_nbr_atomic_numbers, self.key_nbr_distances, self.key_nbr_coords = \
                         self._get_key_neighs_info(
                                         scaling_matrix=scaling_matrix,
                                         n_neighbors=n_neighbors,
@@ -100,12 +100,12 @@ class StructureNeighbors(object):
                         coords_are_cartesian=coords_are_cartesian)
         
         ### Step 3. 得到近邻原子的元素种类(原子序数)、距中心原子的距离、坐标
-        # nbr_species: 近邻原子的元素种类(原子序数)
+        # nbr_atomic_numbers: 近邻原子的元素种类(原子序数)
         # nbr_distances: 近邻原子距中心原子的距离
         # nbr_coords: 近邻原子的坐标
         nbr_distances, nbr_idxs = nnbrs.kneighbors(keys_coords)
-        ### Step 3.1. nbr_species --> (primitive_cell原子数, n_neighbors)
-        nbr_species = np.array([
+        ### Step 3.1. nbr_atomic_numbers --> (primitive_cell原子数, n_neighbors)
+        nbr_atomic_numbers = np.array([
                             self.supercell.species[tmp_nbr_idx].Z \
                                     for tmp_nbr_idxs_tuple in nbr_idxs \
                                         for tmp_nbr_idx in tmp_nbr_idxs_tuple]).reshape(-1, n_neighbors)
@@ -127,7 +127,7 @@ class StructureNeighbors(object):
                         for tmp_nbr_idxs_tuple in nbr_idxs \
                             for tmp_nbr_idx in tmp_nbr_idxs_tuple]).flatten().reshape(-1, n_neighbors, 3)
             
-        return nbr_species, nbr_distances, nbr_coords
+        return nbr_atomic_numbers, nbr_distances, nbr_coords
         
 
     
@@ -189,6 +189,14 @@ class StructureNeighbors(object):
                 
         return nnbrs
     
+    
+    def extract_certain_nbr():
+        '''
+        Description
+        -----------
+            1. 仅
+        '''
+        pass
     
     
 class AtomNeighbors(object):

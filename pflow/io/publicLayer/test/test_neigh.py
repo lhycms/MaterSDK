@@ -38,7 +38,7 @@ class NeighborsTest(unittest.TestCase):
                                         algorithm=algorithm,
                                         coords_are_cartesian=coords_are_cartesian)
         print("\t2.1. The number of atoms in primitive cell:\t", len(neighbors.structure.species))
-        print("\t2.2. The shape of key_nbr_species:\t", key_nbr_species.shape)
+        print("\t2.2. The shape of key_nbr_atomic_numbers:\t", key_nbr_species.shape)
         print("\t2.3. The shape of key_nbr_distances:\t", key_nbr_distances.shape)
         print("\t2.4. The shape of key_nbr_coords:\t", key_nbr_coords.shape)
         
