@@ -92,11 +92,11 @@ class StructureTest(unittest.TestCase):
                         coords_are_cartesian=coords_are_cartesian
                         )
         
-        print("Step 1. Primimary structure:")
-        print(structure)
+        #print("Step 1. Primimary structure:")
+        #print(structure)
         new_structure = structure.reformat_elements(elements_lst=elements_lst)
-        print("\nStep 2. New structure:")
-        print(new_structure)  
+        #print("\nStep 2. New structure:")
+        #print(new_structure)  
     
     
     def test_remove_vacanies(self):
@@ -162,7 +162,7 @@ class StructureTest(unittest.TestCase):
                         coords_are_cartesian=coords_are_cartesian
                         )
         bidx2aidx = structure.get_bidx2aidx_supercell(scaling_matrix=scaling_matrix)
-        #print(bidx2aidx)
+        print(bidx2aidx)
         
 
 

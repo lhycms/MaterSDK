@@ -36,8 +36,25 @@ class MovementTest(unittest.TestCase):
         
         # 5.
         print()
-        print("Step 5. Energy of {0}th")
-        print(movement.get_energy(idx_frame=idx_frame))
+        print("Step 5. Energy of {0}th frame:".format(idx_frame))
+        energy_tot, energy_p, energy_k = movement.get_frame_energy(idx_frame=idx_frame)
+        print( "\t1. Total energy: {0} eV".format(energy_tot) )
+        print( "\t2. Potential energy: {0} eV".format(energy_p) )
+        print( "\t3. Kenitic energy: {0} eV".format(energy_k) )
+        
+        
+        # 6. 
+        print()
+        print("Step 6. Virial tensor of {0}th frame:".format(idx_frame))
+        virial_tensor = movement.get_frame_virial(idx_frame=idx_frame)
+        print(virial_tensor)
+        
+
+        # 7. 
+        print()
+        print("Step 7. Volume of {0}th frame:`".format(idx_frame), end="\t")
+        volume = movement.get_frame_volume(idx_frame=idx_frame)
+        print(volume)
     
         
         

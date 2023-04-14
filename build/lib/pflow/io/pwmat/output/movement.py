@@ -1,9 +1,7 @@
 import os 
-import re
 import numpy as np
 
 from ..utils.lineLocator import LineLocator
-from ...publicLayer.atom import Atom
 from ..utils.parameters import atomic_number2specie
 from ...publicLayer.structure import DStructure
 
@@ -155,11 +153,91 @@ class Movement(object):
         '''
         ### 1. 获取 `idx_frame` 对应的 chunk
         frame_str = self._get_frame_str(idx_frame=idx_frame)
+
+        ### 2. 获取Etot, Ep, Ek
+        first_row_lst = frame_str.split('\n')[0].split()    # 某一帧 chunk 的第一行
+        energy_tot = float( first_row_lst[8].strip() )
+        energy_p = float( first_row_lst[9].strip() )
+        energy_k = float( first_row_lst[10][:-1].strip() )
+
+        return energy_tot, energy_p, energy_k
+    
+    
+    def get_frame_virial(self, idx_frame:int):
+        '''
+        Description
+        -----------
+            1. 获取某一帧的维里张量
+                72 atoms,Iteration (fs) =   -0.1000000000E+01, Etot,Ep,Ek (eV) =   -0.1188642969E+05  -0.1188642969E+05   0.0000000000E+00, SCF =    16
+                Lattice vector (Angstrom)
+                0.8759519000E+01    0.0000000000E+00    0.0000000000E+00     stress (eV):  0.124196E+02  0.479262E+01  0.245741E+01
+                0.2209000000E+00    0.7513335000E+01    0.0000000000E+00     stress (eV):  0.479308E+01  0.961132E+01  0.225365E+01
+                0.4093050000E+00    0.2651660000E+00    0.1828974400E+02     stress (eV):  0.245631E+01  0.225430E+01 -0.198978E+01
         
-        ### 2. 获取
-        pattern = re.compile(r"Etot,Ep,Ek (eV) =.*?,")
-        content = pattern.search(frame_str)
-        return content
+        Parameters
+        ----------
+            1. idx_frame: int
+                - 第几帧 (从第 0 帧开始计数)
+        
+        Return
+        ------
+            1. virial_tensor: np.ndarray
+        '''
+        ### 1. 获取 `idx_frame` 对应的 chunk，并以 `\n` 为分裂标志将其分成列表
+        frame_str = self._get_frame_str(idx_frame=idx_frame)
+        rows_lst = frame_str.split("\n")
+        
+        ### 2. 找到 Lattice vector 对应的行的索引 -- `tmp_idx`
+        tmp_idx = 0
+        content = "Lattice vector"
+        for tmp_idx, tmp_row in enumerate(rows_lst):   # 找到 Lattice vector 对应的行的索引
+            if content in tmp_row:
+                break
+        
+        ### 3. 将 virial tensor 转换成 3*3 的 np.ndarray
+        virial_tensor_x = np.array([float(tmp_value.strip()) for tmp_value in rows_lst[tmp_idx+1].split()[-3:]])
+        virial_tensor_y = np.array([float(tmp_value.strip()) for tmp_value in rows_lst[tmp_idx+2].split()[-3:]])
+        virial_tensor_z = np.array([float(tmp_value.strip()) for tmp_value in rows_lst[tmp_idx+3].split()[-3:]])
+        virial_tensor = np.vstack([virial_tensor_x, virial_tensor_y, virial_tensor_z])
+        
+        return virial_tensor
+            
+    
+    def get_frame_volume(self, idx_frame:int):
+        '''
+        Description
+        -----------
+            1. 
+            
+        Parameters
+        ----------
+            1. 
+        
+        Return
+        ------
+            1. 
+        '''
+        ### 1. 获取 `idx_frame` 对应的 chunk，并以 `\n` 为分裂标志将其分成列表
+        frame_str = self._get_frame_str(idx_frame=idx_frame)
+        rows_lst = frame_str.split("\n")
+        
+        ### 2. 找到 Lattice vector 对应的行的索引 -- `tmp_idx`
+        tmp_idx = 0
+        content = "Lattice vector"
+        for tmp_idx, tmp_row in enumerate(rows_lst):   # 找到 Lattice vector 对应的行的索引
+            if content in tmp_row:
+                break
+            
+        ### 3. 获取 basis vector (np.ndarray)
+        basis_vector_x = np.array([float(tmp_value.strip()) for tmp_value in rows_lst[tmp_idx+1].split()[:3]])
+        basis_vector_y = np.array([float(tmp_value.strip()) for tmp_value in rows_lst[tmp_idx+2].split()[:3]])
+        basis_vector_z = np.array([float(tmp_value.strip()) for tmp_value in rows_lst[tmp_idx+3].split()[:3]])
+        basis_vector = np.vstack([basis_vector_x, basis_vector_y, basis_vector_z])
+        
+        ### 4. 计算体积
+        volume = np.linalg.det(basis_vector)
+        
+        return volume
 
 
 

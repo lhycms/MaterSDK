@@ -30,6 +30,7 @@ pflow/hpc/slurm/job.py
 pflow/io/__init__.py
 pflow/io/publicLayer/__init__.py
 pflow/io/publicLayer/atom.py
+pflow/io/publicLayer/neigh.py
 pflow/io/publicLayer/structure.py
 pflow/io/publicLayer/test/__init__.py
 pflow/io/publicLayer/test/test_Structure.py
