@@ -179,7 +179,7 @@ Output:
 
 # 1.5. Analyse the neighbors around a center atom
 Using following algorithm to handle the periodic boundary conditions. Our new `expansion function (DStructure.make_supercell_())` requires the corresponding surfaces of structure to be parallel.
-<img src="./demo/pics/pic_2.png" width = "340" height = "400"  />
+<img src="./demo/pics/pic_2.png" width = "360" height = "400"  />
 
 ```python
 from pflow.io.publicLayer.structure import DStructure
