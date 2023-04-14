@@ -179,7 +179,7 @@ Output:
 
 # 1.5. Analyse the neighbors around a center atom
 ![pic_4](demo/pics/pic_2.png)
-<img src="./demo/pics/pic_2.png" width = "400" height = "300"  />
+<img src="./demo/pics/pic_2.png" width = "380" height = "400"  />
 
 ```python
 from pflow.io.publicLayer.structure import DStructure
