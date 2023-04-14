@@ -178,7 +178,8 @@ Output:
 ```
 
 # 1.5. Analyse the neighbors around a center atom
-Using following algorithm to handle the periodic boundary conditions ( Take an 2D materials as an demo). Our new `expansion function (DStructure.make_supercell_())` requires the corresponding surfaces of structure to be parallel.
+Using following algorithm to handle the periodic boundary conditions (Take an 2D materials as an demo). Our new `expansion function (DStructure.make_supercell_())` requires the corresponding surfaces of structure to be parallel.
+
 <img src="./demo/pics/pic_2.png" width = "360" height = "400"  />
 
 ```python
