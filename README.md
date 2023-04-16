@@ -234,6 +234,45 @@ Step 2. primitive_cell 中原子的近邻原子情况:
         2.4. The shape of key_nbr_coords:        (12, 60, 3)
 ```
 
+## 1.6. Adjacent Matrix
+```python
+from pflow.io.publicLayer.neigh import AdjacentMatrix
+
+
+atom_config_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/atom.config"
+scaling_matrix = [3, 3, 3]
+structure = DStructure.from_file(
+                   file_format="pwmat",
+                   file_path=atom_config_path
+                   )
+rcut = 3.2
+
+
+adjacent_matrix = AdjacentMatrix(
+                       structure=structure,
+                       rcut=rcut,
+                       scaling_matrix=scaling_matrix
+                       )
+print("The adjacent matrix (radius cutoff = {0}):".forma(rcut))              
+print(adjacent_matrix.get_adjacent_matrix())
+```
+Output:
+```shell
+The adjacent matrix (radius cutoff = 3.2):
+[[0. 1. 1. 1. 0. 0. 1. 1. 1. 1. 0. 0.]
+ [1. 0. 1. 1. 1. 0. 0. 1. 0. 0. 1. 0.]
+ [1. 1. 0. 1. 0. 1. 0. 0. 1. 0. 0. 1.]
+ [1. 1. 1. 0. 1. 1. 0. 0. 0. 1. 1. 1.]
+ [0. 1. 0. 1. 0. 1. 0. 0. 0. 0. 1. 0.]
+ [0. 0. 1. 1. 1. 0. 0. 0. 0. 0. 0. 1.]
+ [1. 0. 0. 0. 0. 0. 0. 1. 1. 1. 0. 0.]
+ [1. 1. 0. 0. 0. 0. 1. 0. 1. 1. 1. 0.]
+ [1. 0. 1. 0. 0. 0. 1. 1. 0. 1. 0. 1.]
+ [1. 0. 0. 1. 0. 0. 1. 1. 1. 0. 1. 1.]
+ [0. 1. 0. 1. 1. 0. 0. 1. 0. 1. 0. 1.]
+ [0. 0. 1. 1. 0. 1. 0. 0. 1. 1. 1. 0.]]
+```
+
 
 # 2. Installation
 ## 2.1. Online
