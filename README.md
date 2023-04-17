@@ -240,12 +240,12 @@ from pflow.io.publicLayer.neigh import AdjacentMatrix
 
 
 atom_config_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/atom.config"
-scaling_matrix = [3, 3, 3]
+scaling_matrix = [3, 3, 3]      # 扩包用于处理周期性边界条件，scaling_matrix需要是奇数
 structure = DStructure.from_file(
                    file_format="pwmat",
                    file_path=atom_config_path
                    )
-rcut = 3.2
+rcut = 3.2      # 截断半径
 
 
 adjacent_matrix = AdjacentMatrix(
