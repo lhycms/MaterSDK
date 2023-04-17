@@ -98,7 +98,7 @@ class DpFeatureTest(unittest.TestCase):
         dp_feature = DpFeaturePair(structure_neighbors=neighbors)        
         
         
-        ### Step 1. 抽取一对 "中心原子-近邻原子" 的 DpFeature
+        ### Step 1. 抽取一对 "中心原子-近邻原子" 的 DpFeaturePair
         print()
         print("Step 1. extract_feature:")
         center_atomic_number = 42
@@ -121,6 +121,23 @@ class DpFeatureTest(unittest.TestCase):
         print("1.3. Coords -- dp_feature_pair_c:")
         print(dp_feature_pair_c)
         
+        
+        ### Step 2. The embedding of `DpFeaturePair`
+        print()
+        print("Step 2. extract feature pair embedding:")
+        center_atomic_number = 42
+        nbr_atomic_number = 42
+        rcut = 3.2
+        max_num_nbrs = 10   # 需要设置的大一些
+        
+        #dp_feature_pair_embedding = \
+        #            dp_feature.extract_feature_pair_embedding(
+        #                            center_atomic_number=center_atomic_number,
+        #                            nbr_atomic_number=nbr_atomic_number,
+        #                            rcut=rcut,
+        #                            max_num_nbrs=max_num_nbrs)
+        #print(dp_feature_pair_embedding)
+        #print(dp_feature_pair_embedding.shape)
     
 if __name__ == "__main__":
     unittest.main()
