@@ -613,9 +613,21 @@ class DpFeaturePair(object):
         ### Step 2.2. lasting three element of embedding (xij/Rij^2, yij/Rij^2, zij/Rij^2)
         # shape = (4, 10, 3)
         dp_feature_pair_xyz = dp_feature_pair_c / dp_feature_pair_Rij2
-        
+        # shape = (4, 10, 3)
+        dp_feature_pair_xyz = np.where(np.isnan(dp_feature_pair_xyz), 0, dp_feature_pair_xyz)
         
         ### Step 2.3. concatenate
-        # shape = (4, 10, 4)
-        dp_feature_pair_embedding = np.concatenate([dp_feature_pair_Rij2, dp_feature_pair_xyz], axis=2)
+        # shape = (4, 10)
+        dp_feature_pair_Rij = dp_feature_pair_d
+        # shape = (4, 10)
+        dp_feature_pair_Rij_r = np.where(dp_feature_pair_d==0, 0, np.reciprocal(dp_feature_pair_d))
+        # shape = (4, 10, 1)
+        dp_feature_pair_Rij_r = np.repeat(
+                                    dp_feature_pair_Rij_r[:, :, np.newaxis],
+                                    1,
+                                    axis=2)
+        
+        # shape = (4, 10, 4)    # (num_centers, max_num_nbrs, embedding_size)
+        dp_feature_pair_embedding = np.concatenate([dp_feature_pair_Rij_r, dp_feature_pair_xyz], axis=2)
+        
         return dp_feature_pair_embedding

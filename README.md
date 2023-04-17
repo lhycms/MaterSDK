@@ -348,6 +348,95 @@ Step 1. extract_feature:
   [ 0.          0.          0.        ]]]
 ```
 
+### 1.5.2. Embedding of Deepmd feature pair
+```python
+atom_config_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/atom.config"
+scaling_matrix = [3, 3, 1]
+reformat_mark = True
+n_neighbors = 60    # 需要设置得大一些
+algorithm = "ball_tree"
+coords_are_cartesian = True
+
+structure = DStructure.from_file(
+             file_format="pwmat", 
+             file_path=atom_config_path)
+neighbors = StructureNeighbors(
+             structure=structure,
+             scaling_matrix=scaling_matrix,
+             reformat_mark=reformat_mark,
+             n_neighbors=n_neighbors,
+             algorithm=algorithm,
+             coords_are_cartesian=coords_are_cartesian)
+dp_feature = DpFeaturePair(structure_neighbors=neighbors) 
+
+### Step 2. The embedding of `DpFeaturePair`
+print()
+print("Step 2. extract feature pair embedding:")
+center_atomic_number = 42
+nbr_atomic_number = 42
+rcut = 3.2
+max_num_nbrs = 10   # 需要设置的大一些
+
+dp_feature_pair_embedding = \
+         dp_feature.extract_feature_pair_embedding(
+                         center_atomic_number=center_atomic_number,
+                         nbr_atomic_number=nbr_atomic_number,
+                         rcut=rcut,
+                         max_num_nbrs=max_num_nbrs)
+print(dp_feature_pair_embedding)
+```
+Output
+```shell
+Step 2. extract feature pair embedding:
+/data/home/liuhanyu/hyliu/code/pflow/pflow/io/publicLayer/neigh.py:615: RuntimeWarning: invalid value encountered in divide
+  dp_feature_pair_xyz = dp_feature_pair_c / dp_feature_pair_Rij2
+/data/home/liuhanyu/hyliu/code/pflow/pflow/io/publicLayer/neigh.py:623: RuntimeWarning: divide by zero encountered in reciprocal
+  dp_feature_pair_Rij_r = np.where(dp_feature_pair_d==0, 0, np.reciprocal(dp_feature_pair_d))
+[[[ 0.31344863  0.31344863  0.          0.        ]
+  [ 0.31344863 -0.31344863  0.          0.        ]
+  [ 0.31344863 -0.1567243   0.27145449  0.        ]
+  [ 0.31344863  0.1567243  -0.27145449  0.        ]
+  [ 0.31344862  0.15672432  0.27145446  0.        ]
+  [ 0.31344862 -0.15672432 -0.27145446  0.        ]
+  [ 0.          0.          0.          0.        ]
+  [ 0.          0.          0.          0.        ]
+  [ 0.          0.          0.          0.        ]
+  [ 0.          0.          0.          0.        ]]
+
+ [[ 0.31344863 -0.31344863  0.          0.        ]
+  [ 0.31344863  0.31344863  0.          0.        ]
+  [ 0.31344863 -0.1567243   0.27145449  0.        ]
+  [ 0.31344863  0.1567243  -0.27145449  0.        ]
+  [ 0.31344862  0.15672432  0.27145446  0.        ]
+  [ 0.31344862 -0.15672432 -0.27145446  0.        ]
+  [ 0.          0.          0.          0.        ]
+  [ 0.          0.          0.          0.        ]
+  [ 0.          0.          0.          0.        ]
+  [ 0.          0.          0.          0.        ]]
+
+ [[ 0.31344863 -0.31344863  0.          0.        ]
+  [ 0.31344863  0.31344863  0.          0.        ]
+  [ 0.31344863  0.1567243  -0.27145449  0.        ]
+  [ 0.31344863 -0.1567243   0.27145449  0.        ]
+  [ 0.31344862 -0.15672432 -0.27145446  0.        ]
+  [ 0.31344862  0.15672432  0.27145446  0.        ]
+  [ 0.          0.          0.          0.        ]
+  [ 0.          0.          0.          0.        ]
+  [ 0.          0.          0.          0.        ]
+  [ 0.          0.          0.          0.        ]]
+
+ [[ 0.31344863 -0.31344863  0.          0.        ]
+  [ 0.31344863  0.31344863  0.          0.        ]
+  [ 0.31344863  0.1567243  -0.27145449  0.        ]
+  [ 0.31344863 -0.1567243   0.27145449  0.        ]
+  [ 0.31344862 -0.15672432 -0.27145446  0.        ]
+  [ 0.31344862  0.15672432  0.27145446  0.        ]
+  [ 0.          0.          0.          0.        ]
+  [ 0.          0.          0.          0.        ]
+  [ 0.          0.          0.          0.        ]
+  [ 0.          0.          0.          0.        ]]]
+```
+
 ## 1.6. Adjacent Matrix
 ```python
 from pflow.io.publicLayer.structure import DStructure

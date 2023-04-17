@@ -137,7 +137,6 @@ class DpFeatureTest(unittest.TestCase):
                                     rcut=rcut,
                                     max_num_nbrs=max_num_nbrs)
         print(dp_feature_pair_embedding)
-        print(dp_feature_pair_embedding.shape)
     
 if __name__ == "__main__":
     unittest.main()
