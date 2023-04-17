@@ -177,7 +177,7 @@ Output:
         3. Kenitic energy: 18.55341566 eV
 ```
 
-# 1.5. Analyse the neighbors around a center atom
+## 1.5. Analyse the neighbors around a center atom
 Using following algorithm to handle the periodic boundary conditions (Take an 2D materials as an demo). Our new `expansion function (DStructure.make_supercell_())` requires:
 1. The corresponding surfaces of structure to be parallel.
 2. The element in `scaling matrix` must be odd number.
@@ -234,12 +234,126 @@ Step 2. primitive_cell 中原子的近邻原子情况:
         2.4. The shape of key_nbr_coords:        (12, 60, 3)
 ```
 
+### 1.5.1. Deepmd feature pair
+```Python
+from pflow.io.publicLayer.structure import DStructure
+from pflow.io.publicLayer.neigh import DpFeaturePair
+
+atom_config_path = "<your_path>/atom.config"
+scaling_matrix = [3, 3, 1]
+reformat_mark = True
+n_neighbors = 60        # 需要设置大一些
+algorithm = "ball_tree"
+coords_are_cartesian = True
+
+structure = DStructure.from_file(
+                file_format="pwmat",
+                file_path=atom_config_path)
+neighbors = StructureNeighbors(
+                structure=structure,
+                scaling_matrix=scaling_matrix,
+                reformat_mark=reformat_mark,
+                n_neighbors=neighbors,
+                algorithm=algorithm,
+                coords_are_cartesian=coords_are_cartesian)
+
+### Driver code
+dp_feature_pair = DpFeaturePair(structure_neighbors=neighbors)
+
+print()
+print("Step 1. extract_feature:")
+center_atomic_number = 42
+nbr_atomic_number = 42
+rcut = 3.2
+max_num_nbrs = 10   # 需要设置的大一些
+
+dp_feature_pair_an, dp_feature_pair_d, dp_feature_pair_c = \
+           dp_feature.extract_feature_pair(
+                           center_atomic_number=center_atomic_number,
+                           nbr_atomic_number=nbr_atomic_number,
+                           rcut=rcut,
+                           max_num_nbrs=max_num_nbrs)
+print("1.1. Atomic number -- dp_feature_pair_an:")
+print(dp_feature_pair_an)
+print()
+print("1.2. Distance -- dp_feature_pair_d:")
+print(dp_feature_pair_d)
+print()
+print("1.3. Coords -- dp_feature_pair_c:")
+print(dp_feature_pair_c)
+```
+Output:
+```shell
+Step 1. extract_feature:
+1.1. Atomic number -- dp_feature_pair_an:
+[[42. 42. 42. 42. 42. 42.  0.  0.  0.  0.]
+ [42. 42. 42. 42. 42. 42.  0.  0.  0.  0.]
+ [42. 42. 42. 42. 42. 42.  0.  0.  0.  0.]
+ [42. 42. 42. 42. 42. 42.  0.  0.  0.  0.]]
+
+1.2. Distance -- dp_feature_pair_d:
+[[3.19031539 3.19031539 3.19031539 3.19031539 3.19031556 3.19031556
+  1.         0.         0.         0.        ]
+ [3.19031539 3.19031539 3.19031539 3.19031539 3.19031556 3.19031556
+  1.         0.         0.         0.        ]
+ [3.19031539 3.19031539 3.19031539 3.19031539 3.19031556 3.19031556
+  1.         0.         0.         0.        ]
+ [3.19031539 3.19031539 3.19031539 3.19031539 3.19031556 3.19031556
+  1.         0.         0.         0.        ]]
+
+1.3. Coords -- dp_feature_pair_c:
+[[[ 3.19031550e+00  1.84192952e+00  1.15648844e+01]
+  [-3.19031528e+00  1.84192952e+00  1.15648844e+01]
+  [-1.59515741e+00  4.60482379e+00  1.15648844e+01]
+  [ 1.59515764e+00 -9.20964758e-01  1.15648844e+01]
+  [ 1.59515798e+00  4.60482379e+00  1.15648844e+01]
+  [-1.59515775e+00 -9.20964758e-01  1.15648844e+01]
+  [ 0.00000000e+00  0.00000000e+00  0.00000000e+00]
+  [ 0.00000000e+00  0.00000000e+00  0.00000000e+00]
+  [ 0.00000000e+00  0.00000000e+00  0.00000000e+00]
+  [ 0.00000000e+00  0.00000000e+00  0.00000000e+00]]
+
+ [[-6.38063067e+00  1.84192952e+00  1.15648844e+01]
+  [ 1.14930143e-07  1.84192952e+00  1.15648844e+01]
+  [-4.78547280e+00  4.60482379e+00  1.15648844e+01]
+  [-1.59515775e+00 -9.20964758e-01  1.15648844e+01]
+  [-1.59515741e+00  4.60482379e+00  1.15648844e+01]
+  [-4.78547314e+00 -9.20964758e-01  1.15648844e+01]
+  [ 0.00000000e+00  0.00000000e+00  0.00000000e+00]
+  [ 0.00000000e+00  0.00000000e+00  0.00000000e+00]
+  [ 0.00000000e+00  0.00000000e+00  0.00000000e+00]
+  [ 0.00000000e+00  0.00000000e+00  0.00000000e+00]]
+
+ [[-1.59515741e+00  4.60482379e+00  1.15648844e+01]
+  [ 4.78547337e+00  4.60482379e+00  1.15648844e+01]
+  [ 3.19031550e+00  1.84192952e+00  1.15648844e+01]
+  [ 4.59730143e-07  7.36771806e+00  1.15648844e+01]
+  [ 1.14930143e-07  1.84192952e+00  1.15648844e+01]
+  [ 3.19031585e+00  7.36771806e+00  1.15648844e+01]
+  [ 0.00000000e+00  0.00000000e+00  0.00000000e+00]
+  [ 0.00000000e+00  0.00000000e+00  0.00000000e+00]
+  [ 0.00000000e+00  0.00000000e+00  0.00000000e+00]
+  [ 0.00000000e+00  0.00000000e+00  0.00000000e+00]]
+
+ [[-4.78547280e+00  4.60482379e+00  1.15648844e+01]
+  [ 1.59515798e+00  4.60482379e+00  1.15648844e+01]
+  [ 1.14930143e-07  1.84192952e+00  1.15648844e+01]
+  [-3.19031493e+00  7.36771806e+00  1.15648844e+01]
+  [-3.19031528e+00  1.84192952e+00  1.15648844e+01]
+  [ 4.59730143e-07  7.36771806e+00  1.15648844e+01]
+  [ 0.00000000e+00  0.00000000e+00  0.00000000e+00]
+  [ 0.00000000e+00  0.00000000e+00  0.00000000e+00]
+  [ 0.00000000e+00  0.00000000e+00  0.00000000e+00]
+  [ 0.00000000e+00  0.00000000e+00  0.00000000e+00]]]
+```
+
 ## 1.6. Adjacent Matrix
 ```python
+from pflow.io.publicLayer.structure import DStructure
 from pflow.io.publicLayer.neigh import AdjacentMatrix
 
 
-atom_config_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/atom.config"
+atom_config_path = "<your_path>/atom.config"
 scaling_matrix = [3, 3, 3]      # 扩包用于处理周期性边界条件，scaling_matrix需要是奇数
 structure = DStructure.from_file(
                    file_format="pwmat",
