@@ -130,14 +130,14 @@ class DpFeatureTest(unittest.TestCase):
         rcut = 3.2
         max_num_nbrs = 10   # 需要设置的大一些
         
-        #dp_feature_pair_embedding = \
-        #            dp_feature.extract_feature_pair_embedding(
-        #                            center_atomic_number=center_atomic_number,
-        #                            nbr_atomic_number=nbr_atomic_number,
-        #                            rcut=rcut,
-        #                            max_num_nbrs=max_num_nbrs)
-        #print(dp_feature_pair_embedding)
-        #print(dp_feature_pair_embedding.shape)
+        dp_feature_pair_embedding = \
+                    dp_feature.extract_feature_pair_embedding(
+                                    center_atomic_number=center_atomic_number,
+                                    nbr_atomic_number=nbr_atomic_number,
+                                    rcut=rcut,
+                                    max_num_nbrs=max_num_nbrs)
+        print(dp_feature_pair_embedding)
+        print(dp_feature_pair_embedding.shape)
     
 if __name__ == "__main__":
     unittest.main()
