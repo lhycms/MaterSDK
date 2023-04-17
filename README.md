@@ -280,7 +280,7 @@ print()
 print("1.2. Distance -- dp_feature_pair_d:")
 print(dp_feature_pair_d)
 print()
-print("1.3. Coords -- dp_feature_pair_c:")
+print("1.3. Relative Coords -- dp_feature_pair_c:")
 print(dp_feature_pair_c)
 ```
 Output:
@@ -349,6 +349,9 @@ Step 1. extract_feature:
 ```
 
 ### 1.5.2. Embedding of Deepmd feature pair
+1. The embedding of Deepmd($D_{ij}$) is described as below:
+$$D_{ij} = {(\frac{1}{R_ij}, \frac{x_{ij}}{R_{ij}^2}, \frac{y_{ij}}{R^{2}_{ij}}, \frac{z_{ij}}{R_{ij}^2})}$$
+
 ```python
 atom_config_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/atom.config"
 scaling_matrix = [3, 3, 1]
