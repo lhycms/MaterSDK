@@ -386,7 +386,7 @@ dp_feature_pair_embedding = \
                          nbr_atomic_number=nbr_atomic_number,
                          rcut=rcut,
                          max_num_nbrs=max_num_nbrs)
-print(dp_feature_pair_embedding)
+print(dp_feature_pair_embedding)  # shape = (num_center, max_num_nbrs, size_embedding)
 ```
 Output
 ```shell
