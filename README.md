@@ -234,7 +234,7 @@ Step 2. primitive_cell 中原子的近邻原子情况:
         2.4. The shape of key_nbr_coords:        (12, 60, 3)
 ```
 
-### 1.5.1. Deepmd feature pair
+### 1.5.1. Deepmd feature pair (0.25 second per `DStructure`)
 ```Python
 from pflow.io.publicLayer.structure import DStructure
 from pflow.io.publicLayer.neigh import DpFeaturePair
