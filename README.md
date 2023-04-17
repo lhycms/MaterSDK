@@ -237,6 +237,7 @@ Step 2. primitive_cell 中原子的近邻原子情况:
 ### 1.5.1. Deepmd feature pair (0.25 second per `DStructure`)
 ```Python
 from pflow.io.publicLayer.structure import DStructure
+from pflow.io.publicLayer.neigh import StructureNeighbors
 from pflow.io.publicLayer.neigh import DpFeaturePair
 
 atom_config_path = "<your_path>/atom.config"
