@@ -4,7 +4,7 @@ from ...io.publicLayer.neigh import StructureNeighbors
 from ...io.publicLayer.neigh import DpFeaturePairPremise
 
 
-class DeepmdSeR(object):
+class DeepmdSeTildeR(object):
     '''
     Description
     -----------
@@ -36,7 +36,7 @@ class DeepmdSeR(object):
                             rcut=rcut,
                             max_num_nbrs=max_num_nbrs
                     )
-        self.dp_feature_pair_s = self._get_s(rcut=rcut, rcut_smooth=rcut_smooth)
+        self.dp_feature_pair_tildeR = self._get_tildeR(rcut=rcut, rcut_smooth=rcut_smooth)
         
     
     def _get_premise(
@@ -100,9 +100,14 @@ class DeepmdSeR(object):
         Parameters
         ----------
             1. rcut: float
-                - 
-            2. rcut_smooth: float
-                - 
+                - 近邻原子距中心原子的距离超过 `rcut` 时，不予考虑
+            2. rcut_smooth: float 
+                - 近邻原子距中心原子的距离超过 `rcut_smooth` 时，计算对应的分段函数形式
+                
+        Return
+        ------
+            1. dp_feature_pair_s: np.ndarray, shape=(num_center, max_num_nbrs)
+                - s 是根据 `近邻原子距中心原子的距离` 计算得出的，是一个分段函数形式
             
         Note
         ----
@@ -127,9 +132,64 @@ class DeepmdSeR(object):
         )
         
         ### Step 4. 根据 Step2. 和 Step3. 的结果筛选 
+        # (num_center, max_num_nbrs)
         dp_feature_pair_s = np.where(
                                 (self.dp_feature_pair_d>rcut_smooth) & (self.dp_feature_pair_d<rcut),
                                 dp_feature_pair_d_scaled,
                                 dp_feature_pair_d_reciprocal)
         
         return dp_feature_pair_s
+    
+    
+    def _get_tildeR(self, rcut:float, rcut_smooth:float):
+        '''
+        Description
+        -----------
+            1. Get $\widetilde{R}$ in Zhang L, Han J, Wang H, et al. End-to-end symmetry preserving inter-atomic potential energy model for finite and extended systems[J]. Advances in neural information processing systems, 2018, 31.
+            
+        Parameters
+        ----------
+            1. rcut: float
+                - 近邻原子距中心原子的距离超过 `rcut` 时，不予考虑
+            2. rcut_smooth: float 
+                - 近邻原子距中心原子的距离超过 `rcut_smooth` 时，计算对应的分段函数形式      
+            
+        Return
+        ------
+            1. dp_feature_pair_tildeR: np.ndarray, shape=(num_center, max_num_nbrs, 4)
+                - $\widetilde{R}$ in Zhang L, Han J, Wang H, et al. End-to-end symmetry preserving inter-atomic potential energy model for finite and extended systems[J]. Advances in neural information processing systems, 2018, 31.
+        '''
+        ### Step 1. 调用 `self._get_s()` 得到 `dp_feature_pair_s`
+        # shape = (num_center, max_num_nbrs)
+        dp_feature_pair_s = self._get_s(rcut=rcut, rcut_smooth=rcut_smooth)
+        # shape = (num_center, max_num_nbrs, 1)
+        dp_feature_pair_s = np.repeat(
+                                dp_feature_pair_s[:, :, np.newaxis],
+                                1,
+                                axis=2)
+        
+        ### Step 2. 利用 `self.dp_feature_pair_rc` 计算 $\widetilde{R}$ 的后三列
+        ### Step 2.1.
+        # shape = (num_center, max_num_nbrs)
+        dp_feature_pair_d_reciprocal = np.where(
+                                self.dp_feature_pair_d == 0,
+                                0,
+                                np.reciprocal(self.dp_feature_pair_d)
+        ) 
+        # shape = (num_center, max_num_nbrs, 1)
+        dp_feature_pair_d_reciprocal = np.repeat(
+                                dp_feature_pair_d_reciprocal[:, :, np.newaxis],
+                                1,
+                                axis=2)
+        
+        ### Step 2.2.
+        # shape = (num_center, max_num_nbrs, 3)
+        tildeR_last3 = dp_feature_pair_s * dp_feature_pair_d_reciprocal * self.dp_feature_pair_rc
+        
+        ### Step 3. 合并 `dp_feature_pair` 和 `tildeR_last3`
+        # shape = (num_center, max_num_nbrs, 4)
+        dp_feature_pair_tildeR = np.concatenate(
+                                        [dp_feature_pair_s, tildeR_last3],
+                                        axis=2)
+        
+        return dp_feature_pair_tildeR

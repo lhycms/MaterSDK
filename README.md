@@ -369,7 +369,7 @@ Step 1. extract_feature:
   [ 0.          0.          0.        ]]]
 ```
 
-### 1.5.2. Embedding of Deepmd feature pair
+### 1.5.2. Embedding of Deepmd featur`e pair
 1. The embedding of Deepmd($D_{ij}$) is described as $D_{ij} = {(\frac{1}{R_{ij}}, \frac{x_{ij}}{R_{ij}^2}, \frac{y_{ij}}{R^{2}_{ij}}, \frac{z_{ij}}{R_{ij}^2})}$
 
 ```python

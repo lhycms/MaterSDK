@@ -3,7 +3,7 @@ import unittest
 # python3 -m pflow.feature.deepmd.test.test_se
 from ....io.publicLayer.structure import DStructure
 from ....io.publicLayer.neigh import StructureNeighbors
-from ..se import DeepmdSeR
+from ..se import DeepmdSeTildeR
 
 
 class DeepmdSeRTest(unittest.TestCase):
@@ -33,7 +33,7 @@ class DeepmdSeRTest(unittest.TestCase):
         rcut_smooth = 3.1
         max_num_nbrs = 10
         
-        deepmd_se_r = DeepmdSeR(
+        deepmd_se_r = DeepmdSeTildeR(
                         structure_neighbors=neighbors,
                         center_atomic_number=center_atomic_number,
                         nbr_atomic_number=nbr_atomic_number,
@@ -50,8 +50,14 @@ class DeepmdSeRTest(unittest.TestCase):
         ### Step 2. Get smooth edition s_{ij}
         print()
         print("Step 2. Get segmented form of s in Deepmd:")
-        #print(deepmd_se_r._get_s(rcut=rcut, rcut_smooth=rcut_smooth))
-        print(deepmd_se_r.dp_feature_pair_s)
+        print(deepmd_se_r._get_s(rcut=rcut, rcut_smooth=rcut_smooth))
+        
+        
+        ### Step 3.
+        print()
+        print("Step 3.")
+        #print(deepmd_se_r._get_tildeR(rcut=rcut, rcut_smooth=rcut_smooth).shape)
+        print(deepmd_se_r.dp_feature_pair_tildeR)
         
     
 
