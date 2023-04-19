@@ -443,7 +443,7 @@ Step 1. extract_feature:
 ```python
 from pflow.io.publicLayer.structure import DStructure
 from pflow.io.publicLayer.neigh import StructureNeighborsV2
-from pflow.io.publicLayer.neigh import DpFeaturePair
+from pflow.feature.deepmd.se import DeepmdSeTildeR
 
 atom_config_path = "<your_path>/atom.config"
 scaling_matrix = [3, 3, 1]
