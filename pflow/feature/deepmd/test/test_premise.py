@@ -2,7 +2,9 @@ import unittest
 
 # python3 -m pflow.feature.deepmd.test.test_premise
 from ....io.publicLayer.structure import DStructure
-from ....io.publicLayer.neigh import StructureNeighbors
+from ....io.publicLayer.neigh import StructureNeighborsBase
+from ....io.publicLayer.neigh import StructureNeighborsV1
+from ....io.publicLayer.neigh import StructureNeighborsV2
 from ..premise import DpFeaturePairPremise
 
 
@@ -20,12 +22,12 @@ class DpFeatureTest(unittest.TestCase):
         structure = DStructure.from_file(
                         file_format="pwmat", 
                         file_path=atom_config_path)
-        neighbors = StructureNeighbors(
+        neighbors = StructureNeighborsV2(
                         structure=structure,
                         scaling_matrix=scaling_matrix,
                         reformat_mark=reformat_mark,
                         n_neighbors=n_neighbors,
-                        algorithm=algorithm,
+                        #algorithm=algorithm,
                         coords_are_cartesian=coords_are_cartesian)
         #neighbors = StructureNeighborsV2(
         #                structure=structure,

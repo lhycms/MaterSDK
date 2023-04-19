@@ -2,7 +2,7 @@ import unittest
 
 # python3 -m pflow.io.publicLayer.test.test_neigh
 from ..structure import DStructure
-from ..neigh import StructureNeighbors
+from ..neigh import StructureNeighborsV1
 from ..neigh import StructureNeighborsV2
 
 
@@ -18,7 +18,7 @@ class StructureNeighborsTest(unittest.TestCase):
         structure = DStructure.from_file(
                         file_format="pwmat", 
                         file_path=atom_config_path)
-        neighbors = StructureNeighbors(
+        neighbors = StructureNeighborsV1(
                         structure=structure,
                         scaling_matrix=scaling_matrix,
                         reformat_mark=reformat_mark,

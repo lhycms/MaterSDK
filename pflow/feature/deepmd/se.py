@@ -1,8 +1,7 @@
 import numpy as np
 
-from ...io.publicLayer.neigh import StructureNeighbors
-from ...io.publicLayer.neigh import DpFeaturePairPremise
-
+from ...io.publicLayer.neigh import StructureNeighborsBase
+from .premise import DpFeaturePairPremise
 
 class DeepmdSeTildeR(object):
     '''
@@ -41,7 +40,7 @@ class DeepmdSeTildeR(object):
     
     def _get_premise(
                     self,
-                    structure_neighbors:StructureNeighbors,
+                    structure_neighbors:StructureNeighborsBase,
                     center_atomic_number:int,
                     nbr_atomic_number:int,
                     rcut:float,

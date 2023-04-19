@@ -1,11 +1,26 @@
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
 from typing import List
+from abc import ABC, abstractmethod
 
 from .structure import DStructure
 
 
-class StructureNeighbors(object):
+class StructureNeighborsBase(ABC):
+    @abstractmethod
+    def _get_key_neighs_info(self):
+        pass
+    
+    def _get_nnbrs(self):
+        '''
+        Note
+        ----
+            1. Only implemented in `StructureNeighborsV1`
+        '''
+        pass
+    
+
+class StructureNeighborsV1(StructureNeighborsBase):
     def __init__(
                 self,
                 structure:DStructure,
@@ -151,7 +166,7 @@ class StructureNeighbors(object):
 
 
 
-class StructureNeighborsV2(object):
+class StructureNeighborsV2(StructureNeighborsBase):
     def __init__(
                 self,
                 structure:DStructure,

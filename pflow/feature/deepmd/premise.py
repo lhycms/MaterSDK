@@ -1,12 +1,12 @@
 import numpy as np
-from ...io.publicLayer.neigh import StructureNeighbors
+from ...io.publicLayer.neigh import StructureNeighborsBase
 
 
 
 class DpFeaturePairPremise(object):
     def __init__(
                 self,
-                structure_neighbors:StructureNeighbors,
+                structure_neighbors:StructureNeighborsBase,
                 ):
         ### `StructureNeighbors` contains informations:
         ###     1. `key_nbr_atomic_numbers` shape = (12, 60)

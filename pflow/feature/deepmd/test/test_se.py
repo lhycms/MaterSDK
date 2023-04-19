@@ -2,7 +2,7 @@ import unittest
 
 # python3 -m pflow.feature.deepmd.test.test_se
 from ....io.publicLayer.structure import DStructure
-from ....io.publicLayer.neigh import StructureNeighbors
+from ....io.publicLayer.neigh import StructureNeighborsV1
 from ....io.publicLayer.neigh import StructureNeighborsV2
 from ..se import DeepmdSeTildeR
 
