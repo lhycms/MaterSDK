@@ -3,6 +3,7 @@ import unittest
 # python3 -m pflow.feature.deepmd.test.test_se
 from ....io.publicLayer.structure import DStructure
 from ....io.publicLayer.neigh import StructureNeighbors
+from ....io.publicLayer.neigh import StructureNeighborsV2
 from ..se import DeepmdSeTildeR
 
 
@@ -12,18 +13,18 @@ class DeepmdSeTildeRTest(unittest.TestCase):
         scaling_matrix = [3, 3, 1]
         reformat_mark = True
         n_neighbors = 60    # 需要设置得大一些
-        algorithm = "ball_tree"
+        #algorithm = "ball_tree"
         coords_are_cartesian = True
         
         structure = DStructure.from_file(
                         file_format="pwmat",
                         file_path=atom_config_path)
-        neighbors = StructureNeighbors(
+        neighbors = StructureNeighborsV2(
                         structure=structure,
                         scaling_matrix=scaling_matrix,
                         reformat_mark=reformat_mark,
                         n_neighbors=n_neighbors,
-                        algorithm=algorithm,
+                        #algorithm=algorithm,
                         coords_are_cartesian=coords_are_cartesian)
         
         ### Step 1. Print the attributions of DeepmdSeR

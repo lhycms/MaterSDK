@@ -184,6 +184,13 @@ Using following algorithm to handle the periodic boundary conditions (Take an 2D
 
 <img src="./demo/pics/pic_2.png" width = "360" height = "400"  />
 
+### 1.5.1. Use `pflow.io.publicLayer.neigh.StructureNeighbors` to analyse the surrouing environment for specific atom.
+<font color="red" size="4">
+
+1. `pflow.io.publicLayer.neigh.StructureNeighborsV2` is much faster than `pflow.io.publicLayer.neigh.StructureNeighbors`.
+
+</font>
+
 ```python
 from pflow.io.publicLayer.structure import DStructure
 from pflow.io.publicLayer.neigh import StructureNeighbors
@@ -233,7 +240,66 @@ Step 2. primitive_cell 中原子的近邻原子情况:
         2.3. The shape of key_nbr_distances:     (12, 60)
         2.4. The shape of key_nbr_coords:        (12, 60, 3)
 ```
-### 1.5.0. `atom.config` 示例
+
+### 1.5.2. Use `pflow.io.publicLayer.neigh.StructureNeighborsV2` to analyse the surrouing environment for specific atom.
+<font color="red" size="4">
+
+1. `pflow.io.publicLayer.neigh.StructureNeighborsV2` is much faster than `pflow.io.publicLayer.neigh.StructureNeighbors`.
+
+</font>
+
+```python
+atom_config_path = "<your_path>/atom.config"
+scaling_matrix = [3, 3, 1]
+reformat_mark = True
+n_neighbors = 60
+coords_are_cartesian = True
+
+structure = DStructure.from_file(
+               file_format="pwmat", 
+               file_path=atom_config_path)
+neighbors_v2 = StructureNeighborsV2(
+               structure=structure,
+               scaling_matrix=scaling_matrix,
+               reformat_mark=reformat_mark,
+               coords_are_cartesian=coords_are_cartesian,
+               n_neighbors=n_neighbors)
+
+### Step 1. 
+print()
+print("Step 1. primitive_cell 中的原子在 supercell 中对应的index:", end="\t")
+print(neighbors_v2._get_key_idxs(scaling_matrix))
+
+
+### Step 2.
+print()
+print("Step 2. primitive_cell 中原子的近邻原子情况:")
+
+key_nbr_species, key_nbr_distances, key_nbr_coords = \
+           neighbors_v2._get_key_neighs_info(
+                           scaling_matrix=scaling_matrix,
+                           n_neighbors=n_neighbors,
+                           coords_are_cartesian=coords_are_cartesian)
+
+print("\t2.1. The number of atoms in primitive cell:\t", len(neighbors_v2.structure.species))
+print("\t2.2. The shape of key_nbr_species:\t", key_nbr_species.shape)
+print("\t2.3. The shape of key_nbr_distances:\t", key_nbr_distances.shape)
+print("\t2.4. The shape of key_nbr_coords:\t", key_nbr_coords.shape)
+```
+Output:
+```shell
+Step 1. primitive_cell 中的原子在 supercell 中对应的index:      [0, 1, 2, 3, 4, 5, 6, 7, 72, 73, 74, 75]
+
+Step 2. primitive_cell 中原子的近邻原子情况:
+        2.1. The number of atoms in primitive cell:      12
+        2.2. The shape of key_nbr_species:       (12, 60)
+        2.3. The shape of key_nbr_distances:     (12, 60)
+        2.4. The shape of key_nbr_coords:        (12, 60, 3)
+.
+```
+
+
+### 1.5.3. `atom.config` 示例
 ```txt
           12
 Lattice vector
@@ -255,7 +321,7 @@ Position, move_x, move_y, move_z
   16    0.666666666667    0.833333333333    0.567656723452   1   1   1
 ```
 
-### 1.5.1. Deepmd feature pair (0.25 second per `DStructure`)
+### 1.5.4. Deepmd feature pair (0.25 second per `DStructure`)
 ```Python
 from pflow.io.publicLayer.structure import DStructure
 from pflow.io.publicLayer.neigh import StructureNeighbors
@@ -369,9 +435,9 @@ Step 1. extract_feature:
   [ 0.          0.          0.        ]]]
 ```
 
-### 1.5.2. Smooth edition $\widetilde{R}$ of Deepmd feature pair 
+### 1.5.5. Smooth edition $\widetilde{R}$ of Deepmd feature pair 
 1. The $\widetilde{R_{ji}}$ of Smooth edition Deepmd(`DeepPot-SE`) is described as $\widetilde{R_{ji}} = (s(r_{ji}), \frac{s{(r_{ji})} x_{ji}}{r_{ji}}, \frac{s{(r_{ji})} y_{ji}}{r_{ji}}, \frac{s{(r_{ji})} z_{ji}}{r_{ji}})$
-2. $s(r_{ji})\begin{cases}\frac{1}{r_{ji}},\quad r_{ji}<r_{cs}\\ \frac{1}{r_{ji}}\{\frac{1}{2}\cos{[\pi\frac{(r_{ji} - r_{cs})}{(r_c - r_{cs})}]+\frac{1}{2}}\},\quad r_{cs}<r_{ji}< r_{c} \\ 0,\quad r_{ji}>r_c \end{cases}$
+2. $s(r_{ji})=\begin{cases}\frac{1}{r_{ji}},\quad r_{ji}<r_{cs}\\ \frac{1}{r_{ji}}\{\frac{1}{2}\cos{[\pi\frac{(r_{ji} - r_{cs})}{(r_c - r_{cs})}]+\frac{1}{2}}\},\quad r_{cs}<r_{ji}< r_{c} \\ 0,\quad r_{ji}>r_c \end{cases}$
 3. The $\widetilde{R}$ has shape of `(num_center, max_num_nbrs, 4)`
 
 ```python

@@ -12,8 +12,8 @@ class StructureNeighbors(object):
                 structure:DStructure,
                 scaling_matrix:List[int]=[3,3,1],
                 reformat_mark:bool=True,
-                coords_are_cartesian:bool=False,
-                n_neighbors:int=50,
+                coords_are_cartesian:bool=True,
+                n_neighbors:int=60,
                 algorithm:str="ball_tree"):
         '''
         Description
@@ -189,6 +189,142 @@ class StructureNeighbors(object):
         nnbrs.fit(coords)
                 
         return nnbrs
+
+
+
+class StructureNeighborsV2(object):
+    def __init__(
+                self,
+                structure:DStructure,
+                scaling_matrix:List[int]=[3,3,1],
+                reformat_mark:bool=True,
+                coords_are_cartesian:bool=True,
+                n_neighbors:int=60):
+        self.structure = structure
+        self.supercell = self.structure.make_supercell_(
+                                scaling_matrix=scaling_matrix,
+                                reformat_mark=reformat_mark)
+        # key 代指 primitive_cell 中的原子
+        self.key_nbr_atomic_numbers, self.key_nbr_distances, self.key_nbr_coords = \
+                self._get_key_neighs_info(
+                        scaling_matrix=scaling_matrix,
+                        n_neighbors=n_neighbors,
+                        coords_are_cartesian=coords_are_cartesian)
+    
+    
+    def _get_key_neighs_info(
+                self,
+                scaling_matrix:List[int],
+                n_neighbors:int,
+                coords_are_cartesian:bool):
+        '''
+        Description
+        -----------
+            1. 
+        
+        Parameters
+        ----------
+            1. scaling_matrix: List[int]
+                - 
+            2. n_neighbors: int 
+                - 
+            3. coords_are_cartesian: bool
+                - 
+        
+        Return 
+        ------
+            1. nbr_atomic_numbers: np.ndarray, shape = (num_center, n_neighbors)
+                - 
+            2. nbr_distances: np.ndarray, shape = (num_center, n_neighbors)
+                - 
+            3. nbr_coords: np.ndarray, shape = (num_center, n_neighbors, 3)
+                - 
+        '''
+        ### Step 0. 获取 primitive_cell 中的原子在 supercell 中的 index
+        key_idxs = self._get_key_idxs(scaling_matrix=scaling_matrix)
+        
+        ### Step 1. 获取 supercell 的各种信息，便于后面直接从其中抽取信息填写
+        ###             1) nbr_atomic_numbers, nbr_coords
+        ### Step 1.1. 获取 supercell 的各位点的原子序数 -- `supercell_species`
+        supercell_species = np.array([tmp_site.specie.Z for tmp_site in self.supercell.sites])
+        
+        ### Step 1.2. 获取 supercell 的(笛卡尔)坐标 -- `supercell_coords`
+        if coords_are_cartesian:
+            supercell_coords = self.supercell.cart_coords
+        else:
+            supercell_coords = self.supercell.frac_coords
+
+        ### Step 2. 初始化需要返回的三个 np.ndarray
+        #   nbr_atomic_numbers: 近邻原子的元素种类(原子序数)
+        #   nbr_distances: 近邻原子距中心原子的距离
+        #   nbr_coords: 近邻原子的坐标
+        # shape = (num_center, n_neighbors)
+        nbr_atomic_numbers = np.zeros((len(key_idxs), n_neighbors))
+        # shape = (num_center, n_neighbors)
+        nbr_distances = np.zeros((len(key_idxs), n_neighbors))
+        # shape = (num_center, n_neighbors, 3)
+        nbr_coords = np.zeros((len(key_idxs), n_neighbors, 3))
+        
+        ### Step 2.1. 每个 primitive_cell 中的原子，循环一次
+        for tmp_i, tmp_center_idx in enumerate(key_idxs):
+            '''
+            Note
+            ----
+                1. `tmp_i`: 从 0 开始
+                2. `tmp_center_idx`: primitive_cell的原子在supercell中的index
+                3. `tmp_nbr_idxs`: 距中心原子最近的 `n_neighbors` 个原子的索引 (这个索引指的是在supercell中的索引)
+            '''
+            ### Step 2.1.1. 计算所有原子距离该中心原子的距离
+            # shape = (3,) -> (1,3)
+            tmp_center_coord = supercell_coords[tmp_center_idx].reshape(1, 3)
+            # shape = (num_supercell, 3)
+            tmp_relative_coords = supercell_coords - tmp_center_coord
+            # shape = (num_supercell,)
+            distances = np.linalg.norm(tmp_relative_coords, axis=1)
+            
+            ### Step 2.1.2. 取出距中心原子最近的 `n_neighbors` 个原子的索引（这个索引指的是在supercell中的索引）
+            ### Note: 包括了中心原子本身
+            # shape = (n_neighbors,), `tmp_nbr_idxs` 是指在 supercell 中的索引
+            tmp_nbr_idxs = np.argsort(distances)[:n_neighbors]
+            
+            ### Step 2.1.3. 根据 `Step 2.1.2` 的索引取出 atomic_number (近邻原子的原子序数，包括自身)
+            # shape = (n_neighbors,)
+            tmp_nbr_atomic_numbers = supercell_species[tmp_nbr_idxs]
+            nbr_atomic_numbers[tmp_i, :] = tmp_nbr_atomic_numbers.reshape(1, -1)
+            
+            ### Step 2.1.4. 根据 `Step 2.1.2` 的索引取出 distance (近邻原子距中心原子的距离，包括自身)
+            # shape = (n_neighbors,)
+            tmp_nbr_distances = np.array(sorted(distances, key=lambda tmp_d: tmp_d)[:n_neighbors])
+            nbr_distances[tmp_i, :] = tmp_nbr_distances.reshape(1, -1)
+            
+            ### Step 2.1.5. 根据 `Step 2.1.2` 的索引取出 nbr_coord (近邻原子的坐标，包括自身)
+            # shape = (n_neighbors, 3)
+            tmp_nbr_coord = supercell_coords[tmp_nbr_idxs, :]
+            nbr_coords[tmp_i, :, :] = tmp_nbr_coord
+            
+        return nbr_atomic_numbers, nbr_distances, nbr_coords
+
+        
+    
+        
+    def _get_key_idxs(
+                self,
+                scaling_matrix:List[int]):
+        ### Step 1. 获取 `bidx2aidx_supercell`
+        # bidx2aidx_supercell: supercell `重排前原子的index`: `重排后原子的index`
+        bidx2aidx_supercell = self.structure.get_bidx2aidx_supercell(scaling_matrix=scaling_matrix)
+        
+        ### Step 2. 获取 primitive_cell 中的原子在 supercell 中的index (经历`DStructure.make_supercell_()`)
+        idxs_primitive_cell_ = []
+        # num_atoms: primitive_cell 中的原子数
+        num_atoms = self.structure.num_sites
+        for idx in range(num_atoms):
+            idxs_primitive_cell_.append(bidx2aidx_supercell[idx])
+        
+        ### Step 3. 按照 index 大小排序，本身index小的意味着对应的原子序数小
+        idxs_primitive_cell = sorted(idxs_primitive_cell_, key=lambda tmp_idx: tmp_idx)
+        
+        return idxs_primitive_cell
 
 
     
