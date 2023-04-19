@@ -6,7 +6,7 @@ from ....io.publicLayer.neigh import StructureNeighbors
 from ..se import DeepmdSeTildeR
 
 
-class DeepmdSeRTest(unittest.TestCase):
+class DeepmdSeTildeRTest(unittest.TestCase):
     def test_all(self):
         atom_config_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/atom.config"
         scaling_matrix = [3, 3, 1]
