@@ -77,36 +77,6 @@ class StructureNeighborsV2Test(unittest.TestCase):
         print("\t1.2. The shape of key_nbr_species:\t", key_nbr_species.shape)
         print("\t1.3. The shape of key_nbr_distances:\t", key_nbr_distances.shape)
         print("\t1.4. The shape of key_nbr_coords:\t", key_nbr_coords.shape)
-        
-
-
-
-class AdjacentMatrixTest(unittest.TestCase):
-    def all(self):
-        atom_config_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/atom.config"
-        scaling_matrix = [3, 3, 3]
-        structure = DStructure.from_file(
-                            file_format="pwmat",
-                            file_path=atom_config_path
-                            )
-        rcut = 3.2
-        
-        
-        adjacent_matrix = AdjacentMatrix(
-                                structure=structure,
-                                rcut=rcut,
-                                scaling_matrix=scaling_matrix
-                                )
-        
-        ### Step 1. 
-        print()
-        print("Step 1. get_neigh_primitive_frac_coords:")
-        #adjacent_matrix._get_neigh_primtive_cell_frac_coords()
-        
-        ### Step 2. 
-        print()
-        print("Step 2. The adjacent matrix (radius cutoff = {0})".format(rcut))
-        adjacent_matrix.get_adjacent_matrix()
 
 
 
