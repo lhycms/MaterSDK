@@ -4,7 +4,7 @@ import unittest
 from ..structure import DStructure
 from ..neigh import StructureNeighbors
 from ..neigh import AdjacentMatrix
-from ..neigh import DpFeaturePair
+from ..neigh import DpFeaturePairPremise
 
 
 class NeighborsTest(unittest.TestCase):
@@ -95,10 +95,10 @@ class DpFeatureTest(unittest.TestCase):
                         n_neighbors=n_neighbors,
                         algorithm=algorithm,
                         coords_are_cartesian=coords_are_cartesian)
-        dp_feature = DpFeaturePair(structure_neighbors=neighbors)        
+        dp_feature = DpFeaturePairPremise(structure_neighbors=neighbors)        
         
         
-        ### Step 1. 抽取一对 "中心原子-近邻原子" 的 DpFeaturePair
+        ### Step 1. 抽取一对 "中心原子-近邻原子" 的 DpFeaturePairPremise
         print()
         print("Step 1. extract_feature:")
         center_atomic_number = 42
@@ -122,21 +122,21 @@ class DpFeatureTest(unittest.TestCase):
         print(dp_feature_pair_c)
         
         
-        ### Step 2. The embedding of `DpFeaturePair`
-        print()
-        print("Step 2. extract feature pair embedding:")
-        center_atomic_number = 42
-        nbr_atomic_number = 42
-        rcut = 3.2
-        max_num_nbrs = 10   # 需要设置的大一些
-        
-        dp_feature_pair_embedding = \
-                    dp_feature.extract_feature_pair_embedding(
-                                    center_atomic_number=center_atomic_number,
-                                    nbr_atomic_number=nbr_atomic_number,
-                                    rcut=rcut,
-                                    max_num_nbrs=max_num_nbrs)
-        print(dp_feature_pair_embedding)
+        ### Step 2. The embedding of `DpFeaturePairPremise`
+        #print()
+        #print("Step 2. extract feature pair embedding:")
+        #center_atomic_number = 42
+        #nbr_atomic_number = 42
+        #rcut = 3.2
+        #max_num_nbrs = 10   # 需要设置的大一些
+        # 
+        #dp_feature_pair_embedding = \
+        #            dp_feature.extract_feature_pair_embedding(
+        #                            center_atomic_number=center_atomic_number,
+        #                            nbr_atomic_number=nbr_atomic_number,
+        #                            rcut=rcut,
+        #                            max_num_nbrs=max_num_nbrs)
+        #print(dp_feature_pair_embedding)
     
 if __name__ == "__main__":
     unittest.main()

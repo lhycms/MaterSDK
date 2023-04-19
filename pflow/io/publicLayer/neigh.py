@@ -333,7 +333,7 @@ class AdjacentMatrix(object):
         
 
 
-class DpFeaturePair(object):
+class DpFeaturePairPremise(object):
     def __init__(
                 self,
                 structure_neighbors:StructureNeighbors,
@@ -348,6 +348,10 @@ class DpFeaturePair(object):
         self.structure_neighbors = structure_neighbors
         
         self.n_neighbors = structure_neighbors.key_nbr_atomic_numbers.shape[1]
+        
+        ### Note:
+        # 函数 `self.extract_feature_pair_embedding()` 实现了PRL版DEEPMD，目前的DEEPMD是 Smooth edition
+        #del self.extract_feature_pair_embedding
     
     
     def extract_feature_pair(
@@ -383,19 +387,26 @@ class DpFeaturePair(object):
                 - 原子序数
                 - 
             2. dp_feature_pair_d:  shape = (num of atoms of center specie, max_num_nbrs)
-                - 距离
+                - 近邻原子距中心原子的距离 (单位：埃)
                 - 
-            3. dp_feature_pair_c:  shape = (num of atoms of center specie, max_num_nbrs)
-                - 坐标
+            3. dp_feature_pair_rc:  shape = (num of atoms of center specie, max_num_nbrs)
+                - 近邻原子的笛卡尔坐标 (不具有旋转对称性)
                 - 
-                
+        
+        Attribute
+        ---------
+            1. `num_centers`: int
+                - 中心原子的数目
+            2. `max_num_nbrs_num`: int
+                - 近邻原子的最大数目（真实的，without zero-padding）
+        
         Note
         ----
             1. `selected_knan`: 以某原子为中心，近邻原子的元素种类
                 - 第一列是中心原子自身
             2. `selected_knd`: 以某原子为中心，近邻原子距其距离
                 - 第一列是中心原子自身
-            3. `selected_knc`: 以某原子为中心，近邻原子距其`相对坐标`
+            3. `selected_knrc`: 以某原子为中心，近邻原子距其`相对坐标`
                 - 第一列是中心原子自身
             
         Step
@@ -405,9 +416,6 @@ class DpFeaturePair(object):
             3. 按照 `近邻原子的原子序数` 筛选
             4. 
         '''
-        ### Step 0. `key_nbr_coords`
-        
-        
         ### Step 1. 根据中心原子的原子序数，设置筛选条件 -- `mask_center`
         ###     e.g. 12原子的 MoS2: `mask_center = [False False False False False False False False  True  True  True  True]`
         mask_center = (self.structure_neighbors.key_nbr_atomic_numbers[:, 0] == center_atomic_number )
@@ -453,16 +461,15 @@ class DpFeaturePair(object):
                         mask4key_nbr_atomic_number[:, :, np.newaxis],
                         3,
                         axis=2)
-
-        ### Note: 计算各近邻原子距中心原子的相对坐标
+        ### Note: 计算各近邻原子距中心原子的相对坐标 (在笛卡尔坐标系下)
         # shape = (12, 3)
         center_coords = self.structure_neighbors.key_nbr_coords[:, 0, :]
         # shape = (12, 1, 3)
         center_coords = np.repeat(center_coords[:, np.newaxis, :], 1, axis=1)
         # shape = (12, 60, 3)
-        selected_knc = self.structure_neighbors.key_nbr_coords[:, :, :] - center_coords
+        selected_knrc = self.structure_neighbors.key_nbr_coords[:, :, :] - center_coords
         # shape = (4, 60, 3)
-        selected_knc = selected_knc[mask4knc].reshape(-1, self.n_neighbors, 3)
+        selected_knrc = selected_knrc[mask4knc].reshape(-1, self.n_neighbors, 3)
         
         ### Step 3. 按照 `距中心原子的距离` 筛选 (`rcut`: 局域描述符的截断半径)
         # shape = (4, 60)
@@ -477,13 +484,13 @@ class DpFeaturePair(object):
                     3, 
                     axis=2)
         # shape = (4, 60, 3)
-        selected_knc = np.where(mask4knc, selected_knc, 0).reshape(-1, self.n_neighbors, 3)
+        selected_knrc = np.where(mask4knc, selected_knrc, 0).reshape(-1, self.n_neighbors, 3)
 
 
         ### Step 4. 按照近邻原子的元素种类 (`nbr_atomic_number`) 筛选 ("Mo"-"S"), 此步则筛选近邻的S        
         ###     1. `selected_knan`: atomic_number
         ###     2. `selected_knd` : distances
-        ###     3. `selected_knc` : coords
+        ###     3. `selected_knrc` :  relative coords (相对于center_atom的坐标，在笛卡尔坐标系下)
         # shape = (4, 60)
         mask4nbr_atomic_number = (selected_knan == nbr_atomic_number)
         # shape = (4, 60)
@@ -516,7 +523,7 @@ class DpFeaturePair(object):
                         mask4nbr_atomic_number[:, :, np.newaxis],
                         3,
                         axis=2)
-        selected_knc = np.where(mask4knc, selected_knc, 0)
+        selected_knrc = np.where(mask4knc, selected_knrc, 0)
         
         
         ### Step 5. 找到 `实际的近邻原子的最大数目` -- `max_num_nbrs_real`
@@ -534,10 +541,10 @@ class DpFeaturePair(object):
         # shape = (4, 10)
         dp_feature_pair_d = np.zeros((self.num_centers, max_num_nbrs))
         # shape = (4, 10, 3)
-        dp_feature_pair_c = np.zeros((self.num_centers, max_num_nbrs, 3))
+        dp_feature_pair_rc = np.zeros((self.num_centers, max_num_nbrs, 3))
 
-        ### Step 7. 根据之前信息填充 `dp_feature_pair_an`, `dp_feature_pair_d`, `dp_feature_pair_c`
-        ### Note: 注意 `selected_knan`, `selected_knd`, `selected_knc` 的第一列 (axis=1 为列) 均为中心原子本身
+        ### Step 7. 根据之前信息填充 `dp_feature_pair_an`, `dp_feature_pair_d`, `dp_feature_pair_relative_c`
+        ### Note: 注意 `selected_knan`, `selected_knd`, `selected_knrc` 的第一列 (axis=1 为列) 均为中心原子本身
         # shape = (4, 60)
         mask4not_zero = (selected_knan != 0)
         # shape (4, 60)
@@ -557,12 +564,17 @@ class DpFeaturePair(object):
             tmp_selected_knd = selected_knd[idx_center, :][tmp_mask]
             dp_feature_pair_d[idx_center, :tmp_num_nbrs] = tmp_selected_knd
         
-            ### Step 7.3. Set `dp_feature_pair_coords` -- tmp_selected_knc
+            ### Step 7.3. Set `dp_feature_pair_relative_coords` -- tmp_selected_knrc
             tmp_mask_c = np.repeat(tmp_mask[:, np.newaxis], 3, axis=1)
-            tmp_selected_knc = selected_knc[idx_center, :][tmp_mask_c].reshape(-1, 3)
-            dp_feature_pair_c[idx_center, :tmp_num_nbrs] = tmp_selected_knc
+            tmp_selected_knrc = selected_knrc[idx_center, :][tmp_mask_c].reshape(-1, 3)
+            dp_feature_pair_rc[idx_center, :tmp_num_nbrs] = tmp_selected_knrc
     
-        return dp_feature_pair_an, dp_feature_pair_d, dp_feature_pair_c
+        return dp_feature_pair_an, dp_feature_pair_d, dp_feature_pair_rc
+    
+    
+    
+    
+    
     
     
     def extract_feature_pair_embedding(
@@ -576,6 +588,7 @@ class DpFeaturePair(object):
         -----------
             1. 计算 `deepmd feature pair embedding`
                 - (1/Rij, xij/Rij^2, yij/Rij^2, zij/Rij^2)
+            2. 
         
         Parameters
         ----------
@@ -593,8 +606,8 @@ class DpFeaturePair(object):
         ### Step 1. 调用 `self.extract_feature_pair()` 获取信息
         #       dp_feature_pair_an: (num_center, max_num_nbrs)
         #       dp_feature_pair_d : (num_center, max_num_nbrs)
-        #       dp_feature_pair_c : (num_center, max_num_nbrs, 3)
-        dp_feature_pair_an, dp_feature_pair_d, dp_feature_pair_c = \
+        #       dp_feature_pair_rc : (num_center, max_num_nbrs, 3)
+        dp_feature_pair_an, dp_feature_pair_d, dp_feature_pair_rc = \
                         self.extract_feature_pair(
                             center_atomic_number=center_atomic_number,
                             nbr_atomic_number=nbr_atomic_number,
@@ -612,7 +625,7 @@ class DpFeaturePair(object):
         
         ### Step 2.2. lasting three element of embedding (xij/Rij^2, yij/Rij^2, zij/Rij^2)
         # shape = (4, 10, 3)
-        dp_feature_pair_xyz = dp_feature_pair_c / dp_feature_pair_Rij2
+        dp_feature_pair_xyz = dp_feature_pair_rc / dp_feature_pair_Rij2
         # shape = (4, 10, 3)
         dp_feature_pair_xyz = np.where(np.isnan(dp_feature_pair_xyz), 0, dp_feature_pair_xyz)
         
