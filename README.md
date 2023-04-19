@@ -371,7 +371,8 @@ Step 1. extract_feature:
 
 ### 1.5.2. Smooth edition $\widetilde{R}$ of Deepmd feature pair 
 1. The $\widetilde{R_{ji}}$ of Smooth edition Deepmd(`DeepPot-SE`) is described as $\widetilde{R_{ji}} = (s(r_{ji}), \frac{s{(r_{ji})} x_{ji}}{r_{ji}}, \frac{s{(r_{ji})} y_{ji}}{r_{ji}}, \frac{s{(r_{ji})} z_{ji}}{r_{ji}})$
-2. The $\widetilde{R}$ has shape of `(num_center, max_num_nbrs, 4)`
+2. $s(r_{ji})\begin{cases}\frac{1}{r_{ji}},\quad r_{ji}<r_{cs}\\ \frac{1}{r_{ji}}\{\frac{1}{2}\cos{[\pi\frac{(r_{ji} - r_{cs})}{(r_c - r_{cs})}]+\frac{1}{2}}\},\quad r_{cs}<r_{ji}< r_{c} \\ 0,\quad r_{ji}>r_c \end{cases}$
+3. The $\widetilde{R}$ has shape of `(num_center, max_num_nbrs, 4)`
 
 ```python
 atom_config_path = "<your_path>/atom.config"
