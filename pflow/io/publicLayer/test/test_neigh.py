@@ -9,7 +9,7 @@ from ..neigh import DpFeaturePairPremise
 
 
 class NeighborsTest(unittest.TestCase):
-    def all(self):
+    def test_all(self):
         atom_config_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/atom.config"
         scaling_matrix = [3, 3, 1]
         reformat_mark = True
@@ -30,26 +30,22 @@ class NeighborsTest(unittest.TestCase):
                         )
         
         print()
-        print("Step 1. primitive_cell 中的原子在 supercell 中对应的index:", end="\t")
-        print(neighbors._get_key_idxs(scaling_matrix))
-        
-        print()
-        print("Step 2. primitive_cell 中原子的近邻原子情况:")
+        print("Step 1. primitive_cell 中原子的近邻原子情况:")
         key_nbr_species, key_nbr_distances, key_nbr_coords = \
                                 neighbors._get_key_neighs_info(
                                         scaling_matrix=scaling_matrix,
                                         n_neighbors=n_neighbors,
                                         algorithm=algorithm,
                                         coords_are_cartesian=coords_are_cartesian)
-        print("\t2.1. The number of atoms in primitive cell:\t", len(neighbors.structure.species))
-        print("\t2.2. The shape of key_nbr_atomic_numbers:\t", key_nbr_species.shape)
-        print("\t2.3. The shape of key_nbr_distances:\t", key_nbr_distances.shape)
-        print("\t2.4. The shape of key_nbr_coords:\t", key_nbr_coords.shape)
+        print("\t1.1. The number of atoms in primitive cell:\t", len(neighbors.structure.species))
+        print("\t1.2. The shape of key_nbr_atomic_numbers:\t", key_nbr_species.shape)
+        print("\t1.3. The shape of key_nbr_distances:\t", key_nbr_distances.shape)
+        print("\t1.4. The shape of key_nbr_coords:\t", key_nbr_coords.shape)
         
 
 
 class StructureNeighborsV2Test(unittest.TestCase):
-    def all(self):
+    def test_all(self):
         atom_config_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/atom.config"
         scaling_matrix = [3, 3, 1]
         reformat_mark = True
@@ -65,16 +61,11 @@ class StructureNeighborsV2Test(unittest.TestCase):
                         reformat_mark=reformat_mark,
                         coords_are_cartesian=coords_are_cartesian,
                         n_neighbors=n_neighbors)
-
-        ### Step 1. 
-        print()
-        print("Step 1. primitive_cell 中的原子在 supercell 中对应的index:", end="\t")
-        print(neighbors_v2._get_key_idxs(scaling_matrix))
         
         
-        ### Step 2.
+        ### Step 1.
         print()
-        print("Step 2. primitive_cell 中原子的近邻原子情况:")
+        print("Step 1. primitive_cell 中原子的近邻原子情况:")
         
         key_nbr_species, key_nbr_distances, key_nbr_coords = \
                     neighbors_v2._get_key_neighs_info(
@@ -82,10 +73,10 @@ class StructureNeighborsV2Test(unittest.TestCase):
                                     n_neighbors=n_neighbors,
                                     coords_are_cartesian=coords_are_cartesian)
         
-        print("\t2.1. The number of atoms in primitive cell:\t", len(neighbors_v2.structure.species))
-        print("\t2.2. The shape of key_nbr_species:\t", key_nbr_species.shape)
-        print("\t2.3. The shape of key_nbr_distances:\t", key_nbr_distances.shape)
-        print("\t2.4. The shape of key_nbr_coords:\t", key_nbr_coords.shape)
+        print("\t1.1. The number of atoms in primitive cell:\t", len(neighbors_v2.structure.species))
+        print("\t1.2. The shape of key_nbr_species:\t", key_nbr_species.shape)
+        print("\t1.3. The shape of key_nbr_distances:\t", key_nbr_distances.shape)
+        print("\t1.4. The shape of key_nbr_coords:\t", key_nbr_coords.shape)
         
 
 
@@ -120,7 +111,7 @@ class AdjacentMatrixTest(unittest.TestCase):
 
 
 class DpFeatureTest(unittest.TestCase):
-    def test_all(self):
+    def all(self):
         ### Step 0.1. 
         atom_config_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/atom.config"
         scaling_matrix = [3, 3, 1]

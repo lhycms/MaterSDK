@@ -88,7 +88,7 @@ class StructureNeighbors(object):
                 - shape = (primitive cell中的原子数, n_neighbors, 3)
         '''
         ### Step 1. 获取 primitive_cell 原子在 supercell 中的坐标 -- `keys_coords`
-        key_idxs = self._get_key_idxs(scaling_matrix=scaling_matrix)
+        key_idxs = self.structure.get_key_idxs(scaling_matrix=scaling_matrix)
         if coords_are_cartesian:
             keys_coords = self.supercell.cart_coords[key_idxs]
         else:
@@ -128,47 +128,7 @@ class StructureNeighbors(object):
                         for tmp_nbr_idxs_tuple in nbr_idxs \
                             for tmp_nbr_idx in tmp_nbr_idxs_tuple]).flatten().reshape(-1, n_neighbors, 3)
             
-        return nbr_atomic_numbers, nbr_distances, nbr_coords
-        
-
-    
-    def _get_key_idxs(
-                    self,
-                    scaling_matrix:List[int]
-                    ):
-        '''
-        Description
-        -----------
-            1. 在 supercell 中找到 primitive_cell 所对应的原子
-                1. 扩包后，primitive_cell 对应的原子处于最前几个 sites (得益于我们重写的 `DStructure.make_supercell_()`)
-                2. 经历`原子序数重拍`，primitive_cell 所对应的原子不在处于最前几个sites
-        
-        Parameters
-        ----------
-            1. scaling_matrix: List[int]
-                - 处理周期性边界条件时，指定的扩包倍数
-        
-        Return
-        ------
-            1. idxs_primitive_cell: List[int]
-                - primitive_cell 中的原子在 supercell 中的index
-                - 仍按照原子序数从小到大排序
-        '''
-        ### Step 1. 获取 bidx2aidx_supercell
-        # bidx2aidx_supercell: supercell `重排前原子的index`: `重排后原子的index`
-        bidx2aidx_supercell = self.structure.get_bidx2aidx_supercell(scaling_matrix=scaling_matrix)
-        
-        ### Step 2. 获取 primitive_cell 中的原子在 supercell中的index (经历`DStructure.make_supercell_()`)
-        idxs_primitive_cell_ = []
-        # num_atoms: primitive cell中的原子数
-        num_atoms = self.structure.num_sites
-        for idx in range(num_atoms):
-            idxs_primitive_cell_.append(bidx2aidx_supercell[idx])
-        
-        ### Step 3. 按照index大小排序，本身index小意味着对应的原子序数小
-        idxs_primitive_cell = sorted(idxs_primitive_cell_, key=lambda tmp_idx: tmp_idx)
-        
-        return idxs_primitive_cell        
+        return nbr_atomic_numbers, nbr_distances, nbr_coords     
 
 
     def _get_nnbrs(
@@ -241,7 +201,7 @@ class StructureNeighborsV2(object):
                 - 
         '''
         ### Step 0. 获取 primitive_cell 中的原子在 supercell 中的 index
-        key_idxs = self._get_key_idxs(scaling_matrix=scaling_matrix)
+        key_idxs = self.structure.get_key_idxs(scaling_matrix=scaling_matrix)
         
         ### Step 1. 获取 supercell 的各种信息，便于后面直接从其中抽取信息填写
         ###             1) nbr_atomic_numbers, nbr_coords
@@ -303,28 +263,6 @@ class StructureNeighborsV2(object):
             nbr_coords[tmp_i, :, :] = tmp_nbr_coord
             
         return nbr_atomic_numbers, nbr_distances, nbr_coords
-
-        
-    
-        
-    def _get_key_idxs(
-                self,
-                scaling_matrix:List[int]):
-        ### Step 1. 获取 `bidx2aidx_supercell`
-        # bidx2aidx_supercell: supercell `重排前原子的index`: `重排后原子的index`
-        bidx2aidx_supercell = self.structure.get_bidx2aidx_supercell(scaling_matrix=scaling_matrix)
-        
-        ### Step 2. 获取 primitive_cell 中的原子在 supercell 中的index (经历`DStructure.make_supercell_()`)
-        idxs_primitive_cell_ = []
-        # num_atoms: primitive_cell 中的原子数
-        num_atoms = self.structure.num_sites
-        for idx in range(num_atoms):
-            idxs_primitive_cell_.append(bidx2aidx_supercell[idx])
-        
-        ### Step 3. 按照 index 大小排序，本身index小的意味着对应的原子序数小
-        idxs_primitive_cell = sorted(idxs_primitive_cell_, key=lambda tmp_idx: tmp_idx)
-        
-        return idxs_primitive_cell
 
 
     

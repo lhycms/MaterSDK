@@ -257,9 +257,40 @@ class DStructure(Structure):
                         )
 
         return structure
+    
+    
+    def get_key_idxs(self, scaling_matrix:np.ndarray):
+        '''
+        Description
+        -----------
+            1. 调用 `self.make_supercell_(scaling_matrix, reformat_mark)` 后，得到的supercell
+            会按照原子序数排序。这样一来我们就无法辨别出哪些原子是属于primitive cell的，因此我们需要
+            得到`按照原子序数排序前的index`与`按照原子序数排序后的index`的映射.
+            2. 随后我们需要将该映射的前 `self.num_sites` 个index取出
+            3. 这 `self.num_sites` 所对应的index便是 primitive_cell 中原子在 supercell 中的index
         
+        
+        Return
+        ------
+            1. 
+            
+        Note
+        ---- 
+            1. 此处我们用 `key` 代指 supercell 中的 primitive_cell 原子
+        '''
+        ### Step 1. 得到 `扩胞前index` 与 `扩包后index` 的映射
+        #       由于扩包后，原子会按照原子序数重排，所以会打乱
+        bidx2aidx_supercell = self._get_bidx2aidx_supercell(scaling_matrix=scaling_matrix)
+        key_idxs = [bidx2aidx_supercell[i] for i in range(self.num_sites)]
+        
+        ###
+        # shape = (self.num_sites,)
+        key_idxs = np.array(sorted(key_idxs, key=lambda tmp_key_idx: tmp_key_idx))
+        
+        return key_idxs
+    
 
-    def get_bidx2aidx_supercell(
+    def _get_bidx2aidx_supercell(
                             self,
                             scaling_matrix:np.ndarray
                             ):
@@ -295,7 +326,7 @@ class DStructure(Structure):
                                     key=lambda tmp_entry: specie2atomic_number[str(tmp_entry[1].specie)]
                                     )
                         ]
-        # {排序后的index: 排序前的index}
+        # {排序前的index: 排序后的index}
         bidx2aidx = {sorted_indexes[i]: sorted_indexes.index(sorted_indexes[i]) \
                                         for i in range(len(sorted_indexes))}
         return bidx2aidx
