@@ -370,7 +370,7 @@ Step 1. extract_feature:
 ```
 
 ### 1.5.2. Smooth edition $\widetilde{R}$ of Deepmd feature pair
-1. The embedding of Deepmd($D_{ij}$) is described as $\widetilde{R_{ji}} = (s(r_{ji}), \frac{s{(r_{ji})} x_{ji}}{r_{ji}}, \frac{s{(r_{ji})} y_{ji}}{r_{ji}}, \frac{s{(r_{ji})} z_{ji}}{r_{ji}})$
+1. The $\widetilde{R_{ji}}$ of Smooth edition Deepmd(`DeepPot-SE`) is described as $\widetilde{R_{ji}} = (s(r_{ji}), \frac{s{(r_{ji})} x_{ji}}{r_{ji}}, \frac{s{(r_{ji})} y_{ji}}{r_{ji}}, \frac{s{(r_{ji})} z_{ji}}{r_{ji}})$
 2. The $\widetilde{R}$ has shape of `(num_center, max_num_nbrs, 4)`
 
 ```python
