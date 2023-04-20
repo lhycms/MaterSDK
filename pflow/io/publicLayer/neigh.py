@@ -19,6 +19,10 @@ class StructureNeighborsBase(ABC):
         '''
         pass
     
+    @abstractmethod
+    def _judge_rationality(self):
+        pass
+    
 
 class StructureNeighborsV1(StructureNeighborsBase):
     def __init__(
@@ -27,7 +31,7 @@ class StructureNeighborsV1(StructureNeighborsBase):
                 scaling_matrix:List[int]=[3,3,1],
                 reformat_mark:bool=True,
                 coords_are_cartesian:bool=True,
-                n_neighbors:int=60,
+                n_neighbors:int=200,
                 algorithm:str="ball_tree"):
         '''
         Description
@@ -55,11 +59,24 @@ class StructureNeighborsV1(StructureNeighborsBase):
             6. algorihtm: str
                 - `sklearn.neighbors.NearestNeighbors` 的参数
                 - 采用的算法名
+            
+        Note
+        ----
+            1. `n_neighbors` is the number of all kinds of atoms
+                - So, it must be larger than `max_num_nbrs` in `DeepPot-SE`
+            2. You must tune `scaling_matrix` larger when tuning `n_neighbors` larger
         '''
+        ### Step 1.
         self.structure = structure
         self.supercell = self.structure.make_supercell_(
                                     scaling_matrix=scaling_matrix,
                                     reformat_mark=reformat_mark)
+        
+        ### Step 2.
+        if self._judge_rationality(n_neighbors=n_neighbors):
+            raise ValueError("Now the number of atoms in supercell is less than n_neighbors! You must tune scaling_matrix larger.")
+        
+        ### Step 3.
         # key 代指 primitive_cell 中的原子
         self.key_nbr_atomic_numbers, self.key_nbr_distances, self.key_nbr_coords = \
                         self._get_key_neighs_info(
@@ -94,7 +111,7 @@ class StructureNeighborsV1(StructureNeighborsBase):
                 
         Return
         ------
-            1. nbr_species: np.ndarray
+            1. nbr_atomic_numbers: np.ndarray
                 - shape = (primitive cell中的原子数, n_neighbors)
             2. nbr_distances: np.ndarray
                 - shape = (primitive cell中的原子数, n_neighbors)
@@ -160,24 +177,48 @@ class StructureNeighborsV1(StructureNeighborsBase):
             coords = self.supercell.frac_coords
         
         ### Step 3. fit
-        nnbrs.fit(coords)
-                
+        nnbrs.fit(coords)        
         return nnbrs
-
+    
+    def _judge_rationality(self, n_neighbors:int):
+        '''
+        Description
+        ----------- 
+            1. 判断经过 `scaling_matrix`
+        '''
+        return (self.supercell.num_sites < n_neighbors)
 
 
 class StructureNeighborsV2(StructureNeighborsBase):
+    '''
+    Description
+    -----------
+        1. Work as `StructureNeighborsV2`, but rewrite myself.
+    '''
     def __init__(
                 self,
                 structure:DStructure,
                 scaling_matrix:List[int]=[3,3,1],
                 reformat_mark:bool=True,
                 coords_are_cartesian:bool=True,
-                n_neighbors:int=60):
+                n_neighbors:int=200):
+        '''
+        Note
+        ----
+            1. `n_neighbors` is the number of all kinds of atoms
+                - So, it must be larger than `max_num_nbrs` in `DeepPot-SE`
+        '''
+        ### Step 1. 
         self.structure = structure
         self.supercell = self.structure.make_supercell_(
                                 scaling_matrix=scaling_matrix,
                                 reformat_mark=reformat_mark)
+
+        ### Step 2.
+        if self._judge_rationality(n_neighbors=n_neighbors):
+            raise ValueError("Now the number of atoms in supercell is less than n_neighbors! You must tune scaling_matrix larger.")
+
+        ### Step 3.         
         # key 代指 primitive_cell 中的原子
         self.key_nbr_atomic_numbers, self.key_nbr_distances, self.key_nbr_coords = \
                 self._get_key_neighs_info(
@@ -217,10 +258,10 @@ class StructureNeighborsV2(StructureNeighborsBase):
         ### Step 0. 获取 primitive_cell 中的原子在 supercell 中的 index
         key_idxs = self.structure.get_key_idxs(scaling_matrix=scaling_matrix)
         
-        ### Step 1. 获取 supercell 的各种信息，便于后面直接从其中抽取信息填写
-        ###             1) nbr_atomic_numbers, nbr_coords
-        ### Step 1.1. 获取 supercell 的各位点的原子序数 -- `supercell_species`
-        supercell_species = np.array([tmp_site.specie.Z for tmp_site in self.supercell.sites])
+        ### Step 1. 获取 supercell 的各种信息（sites的原子序数、坐标），便于后面直接从其中抽取信息填写
+        ###             1) supercell_atomic_numbers, supercell_coords
+        ### Step 1.1. 获取 supercell 的各位点的原子序数 -- `supercell_atomic_numbers`
+        supercell_atomic_numbers = np.array([tmp_site.specie.Z for tmp_site in self.supercell.sites])
         
         ### Step 1.2. 获取 supercell 的(笛卡尔)坐标 -- `supercell_coords`
         if coords_are_cartesian:
@@ -263,7 +304,7 @@ class StructureNeighborsV2(StructureNeighborsBase):
             
             ### Step 2.1.3. 根据 `Step 2.1.2` 的索引取出 atomic_number (近邻原子的原子序数，包括自身)
             # shape = (n_neighbors,)
-            tmp_nbr_atomic_numbers = supercell_species[tmp_nbr_idxs]
+            tmp_nbr_atomic_numbers = supercell_atomic_numbers[tmp_nbr_idxs]
             nbr_atomic_numbers[tmp_i, :] = tmp_nbr_atomic_numbers.reshape(1, -1)
             
             ### Step 2.1.4. 根据 `Step 2.1.2` 的索引取出 distance (近邻原子距中心原子的距离，包括自身)
@@ -277,3 +318,12 @@ class StructureNeighborsV2(StructureNeighborsBase):
             nbr_coords[tmp_i, :, :] = tmp_nbr_coord
             
         return nbr_atomic_numbers, nbr_distances, nbr_coords
+
+
+    def _judge_rationality(self, n_neighbors:int):
+        '''
+        Description
+        ----------- 
+            1. 判断经过 `scaling_matrix`
+        '''
+        return (self.supercell.num_sites < n_neighbors)

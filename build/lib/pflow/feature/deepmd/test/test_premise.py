@@ -2,6 +2,7 @@ import unittest
 
 # python3 -m pflow.feature.deepmd.test.test_premise
 from ....io.publicLayer.structure import DStructure
+from ....io.publicLayer.neigh import StructureNeighborsV1
 from ....io.publicLayer.neigh import StructureNeighborsV2
 from ..premise import DpFeaturePairPremise
 
@@ -11,11 +12,9 @@ class DpFeatureTest(unittest.TestCase):
     def test_all(self):
         ### Step 0.1. 
         atom_config_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/atom.config"
-        #atom_config_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/feature/movement/LiSi.config"
-        scaling_matrix = [5, 5, 1]
-        #scaling_matrix = [3, 3, 3]
+        scaling_matrix = [3, 3, 1]
         reformat_mark = True
-        n_neighbors = 200    # 需要设置得大一些
+        n_neighbors = 60    # 需要设置得大一些
         algorithm = "ball_tree"
         coords_are_cartesian = True
         

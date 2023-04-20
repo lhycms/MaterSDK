@@ -198,10 +198,7 @@ class DpFeaturePairPremise(object):
         
         ### Step 5. 找到 `实际的近邻原子的最大数目` -- `max_num_nbrs_real`
         mask4knan = (selected_knan != 0)
-        try:
-            max_num_nbrs_real = np.max(np.sum(mask4knan, axis=1), axis=0) - 1
-        except:
-            raise ValueError("Please check the atomic number you input!!! Maybe the system does not contain these kinds of eklement.")
+        max_num_nbrs_real = np.max(np.sum(mask4knan, axis=1), axis=0) - 1
         setattr(self, "max_num_nbrs_real", max_num_nbrs_real)
         setattr(self, "num_centers", selected_knan.shape[0])
         

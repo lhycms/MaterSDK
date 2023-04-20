@@ -21,6 +21,17 @@ pflow/calculation/kpoints/test/test_kpointsSampler.py
 pflow/click/__init__.py
 pflow/click/addMag.py
 pflow/click/convertFormat.py
+pflow/feature/__init__.py
+pflow/feature/deepmd/__init__.py
+pflow/feature/deepmd/premise.py
+pflow/feature/deepmd/se.py
+pflow/feature/deepmd/test/__init__.py
+pflow/feature/deepmd/test/test_premise.py
+pflow/feature/deepmd/test/test_se.py
+pflow/feature/graph/__init__.py
+pflow/feature/graph/edge.py
+pflow/feature/graph/test/__init__.py
+pflow/feature/graph/test/test_edge.py
 pflow/featurizer/__init__.py
 pflow/featurizer/gridPoint/__init__.py
 pflow/hpc/__init__.py
@@ -34,6 +45,7 @@ pflow/io/publicLayer/neigh.py
 pflow/io/publicLayer/structure.py
 pflow/io/publicLayer/test/__init__.py
 pflow/io/publicLayer/test/test_Structure.py
+pflow/io/publicLayer/test/test_neigh.py
 pflow/io/pwmat/__init__.py
 pflow/io/pwmat/input/__init__.py
 pflow/io/pwmat/input/dos_input.py

@@ -126,7 +126,7 @@ class StructureTest(unittest.TestCase):
         #print(structure)
     
     
-    def test_make_supercell(self):
+    def test_make_supercell_(self):
         file_format = "pwmat"
         # 1. 普通的测试
         file_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/atom.config"
@@ -161,9 +161,26 @@ class StructureTest(unittest.TestCase):
                         file_format=file_format,
                         coords_are_cartesian=coords_are_cartesian
                         )
-        bidx2aidx = structure.get_bidx2aidx_supercell(scaling_matrix=scaling_matrix)
+        bidx2aidx = structure._get_bidx2aidx_supercell(scaling_matrix=scaling_matrix)
         print(bidx2aidx)
+
+    def test_get_key_idxs(self):
+        file_format = "pwmat"
+        # 1. 普通的测试
+        file_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/atom.config"
+        coords_are_cartesian = False
+        scaling_matrix=np.array([3, 3, 1])
+        structure = DStructure.from_file(
+                        file_path=file_path,
+                        file_format=file_format,
+                        coords_are_cartesian=coords_are_cartesian
+                        )
         
+        key_idxs = structure.get_key_idxs(scaling_matrix=scaling_matrix)
+        print(key_idxs)
+        
+          
+
 
 
 if __name__ == "__main__":
