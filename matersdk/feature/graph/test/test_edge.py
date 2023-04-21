@@ -1,7 +1,7 @@
 import unittest
 
 
-# python3 -m pflow.feature.graph.test.test_edge
+# python3 -m matersdk.feature.graph.test.test_edge
 from ....io.publicLayer.structure import DStructure
 from ..edge import AdjacentMatrix
 
@@ -9,7 +9,7 @@ from ..edge import AdjacentMatrix
 
 class AdjacentMatrixTest(unittest.TestCase):
     def test_all(self):
-        atom_config_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/atom.config"
+        atom_config_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/atom.config"
         scaling_matrix = [3, 3, 3]
         structure = DStructure.from_file(
                             file_format="pwmat",

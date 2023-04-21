@@ -9,7 +9,7 @@ from ....io.publicLayer.structure import DStructure
 
 class KpointsSamplerTest(unittest.TestCase):
     def test_get_kpoints(self):
-        atom_config_path = "/Users/mac/我的文件/Mycode/new/new2/pflow/test_data/atom_config/atom.config"
+        atom_config_path = "/Users/mac/我的文件/Mycode/new/new2/matersdk/test_data/atom_config/atom.config"
         structure = DStructure.from_file(
                         file_path=atom_config_path,
                         file_format="pwmat",
@@ -31,7 +31,7 @@ class KpointsSamplerTest(unittest.TestCase):
 
 
     def test_get_num_kpoints(self):
-        atom_config_path = "/Users/mac/我的文件/Mycode/new/new2/pflow/test_data/atom_config/atom.config"
+        atom_config_path = "/Users/mac/我的文件/Mycode/new/new2/matersdk/test_data/atom_config/atom.config"
         structure = DStructure.from_file(
                         file_path=atom_config_path,
                         file_format="pwmat",

@@ -1,6 +1,6 @@
 import unittest
 
-# python3 -m pflow.io.pwmat.output.test.test_dostotalspin
+# python3 -m matersdk.io.pwmat.output.test.test_dostotalspin
 from ..dostotalspin import Dostotalspin
 
 class DostotalspinTest(unittest.TestCase):

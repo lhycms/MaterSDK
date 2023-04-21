@@ -1,6 +1,6 @@
 import unittest
 
-# python3 -m pflow.feature.deepmd.test.test_premise
+# python3 -m matersdk.feature.deepmd.test.test_premise
 from ....io.publicLayer.structure import DStructure
 from ....io.publicLayer.neigh import StructureNeighborsV2
 from ..premise import DpFeaturePairPremise
@@ -10,8 +10,8 @@ from ..premise import DpFeaturePairPremise
 class DpFeatureTest(unittest.TestCase):
     def test_all(self):
         ### Step 0.1. 
-        atom_config_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/atom.config"
-        #atom_config_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/feature/movement/LiSi.config"
+        atom_config_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/atom.config"
+        #atom_config_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/feature/movement/LiSi.config"
         scaling_matrix = [5, 5, 1]
         #scaling_matrix = [3, 3, 3]
         reformat_mark = True

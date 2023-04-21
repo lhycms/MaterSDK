@@ -17,7 +17,7 @@ class KpathSamplerTest(unittest.TestCase):
     def test_get_kpath(self):
         ### Part I. Get DStructure from atom.config
         file_format = "pwmat"
-        file_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/kpath/atom.config"
+        file_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/kpath/atom.config"
         file_path = "/data/home/liuhanyu/hyliu/pwmat_demo/scf_3d/atom.config"
         
         coords_are_cartesian = False
@@ -42,8 +42,8 @@ class KpathSamplerTest(unittest.TestCase):
                             angle_tolerance=angle_tolerance,
                             atol=atol,
                             )
-        kpath_sampler.HIGHK_file_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/kpath/HIGHK"
-        kpath_sampler.gen_kpt_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/kpath/gen.kpt"
+        kpath_sampler.HIGHK_file_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/kpath/HIGHK"
+        kpath_sampler.gen_kpt_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/kpath/gen.kpt"
 
         kpath_sampler.HIGHK_file_path = "/data/home/liuhanyu/hyliu/pwmat_demo/scf_3d/HIGHK"
         kpath_sampler.gen_kpt_path = "/data/home/liuhanyu/hyliu/pwmat_demo/scf_3d/gen.kpt"

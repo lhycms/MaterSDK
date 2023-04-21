@@ -2,7 +2,7 @@
 """
 Usage
 -----
-    $ python3 addMag.py  --atom_config /Users/mac/我的文件/Mycode/new/new2/pflow/test_data/atom_config/addMag/output/atom.config --atom_config_template /Users/mac/我的文件/Mycode/new/new2/pflow/test_data/atom_config/addMag/tem/atom.config -n 12 -n 25
+    $ python3 addMag.py  --atom_config /Users/mac/我的文件/Mycode/new/new2/matersdk/test_data/atom_config/addMag/output/atom.config --atom_config_template /Users/mac/我的文件/Mycode/new/new2/matersdk/test_data/atom_config/addMag/tem/atom.config -n 12 -n 25
 """
 import click
 from masksdk.io.pwmat.addMag import AtomConfigMagTem

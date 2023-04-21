@@ -1,6 +1,6 @@
 import numpy as np
 import itertools
-from pflow.io.publicLayer.structure import DStructure
+from matersdk.io.publicLayer.structure import DStructure
 
 
 
@@ -8,7 +8,7 @@ r_cutoff = 3.2
 
 
 structure = DStructure.from_file(file_format="pwmat",
-                                 file_path="/data/home/liuhanyu/hyliu/code/pflow/demo/structure/atom.config")
+                                 file_path="/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/atom.config")
 #result = find_connected_atoms(struct=structure, tolerance=0.45)
 
 num_atoms = len(structure.species)
