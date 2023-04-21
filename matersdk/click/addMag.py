@@ -1,19 +1,11 @@
 #!/Users/mac/opt/anaconda3/envs/research/bin/python3
-'''
-Author       : Liu Hanyu
-Email        : hyliu2016@buaa.edu.cn
-Date         : 2022-11-03 14:00:46
-LastEditTime : 2022-11-03 15:23:18
-FilePath     : /pflow/pflow/click/addMag.py
-Description  : 
-'''
 """
 Usage
 -----
     $ python3 addMag.py  --atom_config /Users/mac/我的文件/Mycode/new/new2/pflow/test_data/atom_config/addMag/output/atom.config --atom_config_template /Users/mac/我的文件/Mycode/new/new2/pflow/test_data/atom_config/addMag/tem/atom.config -n 12 -n 25
 """
 import click
-from pflow.io.pwmat.addMag import AtomConfigMagTem
+from masksdk.io.pwmat.addMag import AtomConfigMagTem
 
 
 @click.command()

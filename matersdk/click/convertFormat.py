@@ -1,14 +1,6 @@
 #!/Users/mac/opt/anaconda3/envs/research/bin/python3
-'''
-Author       : Liu Hanyu
-Email        : hyliu2016@buaa.edu.cn
-Date         : 2022-11-03 10:38:43
-LastEditTime : 2022-11-04 13:19:36
-FilePath     : /pflow/pflow/click/convertFormat.py
-Description  : 
-'''
 import click
-from pflow.io.publicLayer.structure import DStructure
+from matersdk.io.publicLayer.structure import DStructure
 
 
 @click.command()
