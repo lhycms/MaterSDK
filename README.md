@@ -1,4 +1,4 @@
-# pflow
+# Material Software Development Kit (MaterSDK)
 A python library for computational materials science. You can use it to:
 1. Process structure file (For PWmat, VASP, ATAT, ...)
 2. Process Kohn-Sham state (For PWmat, VASP, ...)
@@ -33,7 +33,7 @@ You can:
 ## 1.4. Pick out specific frame from `MOVEMENT`
 ### 1.4.1. Extract a `DStructure` object
 ```python
-from pflow.io.pwmat.output.movement import Movement
+from matersdk.io.pwmat.output.movement import Movement
 
 movement_path = "<your_path>/MOVEMENT"
 movement = Movement(movement_path=movement_path)
@@ -127,7 +127,7 @@ Sites (72)
 
 ### 1.4.2. Extract virial of specific frame
 ```python
-from pflow.io.pwmat.output.movement import Movement
+from matersdk.io.pwmat.output.movement import Movement
 
 movement_path = "<your_path>/MOVEMENT"
 movement = Movement(movement_path=movement_path)
@@ -145,7 +145,7 @@ Output:
 
 ### 1.4.3. Extract volume of specific frame
 ```python
-from pflow.io.pwmat.output.movement import Movement
+from matersdk.io.pwmat.output.movement import Movement
 
 movement_path = "<your_path>/MOVEMENT"
 movement = Movement(movement_path=movement_path)
@@ -161,7 +161,7 @@ Output:
 
 ### 1.4.4. Extract energy of specific frame
 ```python
-from pflow.io.pwmat.output.movement import Movement
+from matersdk.io.pwmat.output.movement import Movement
 
 movement_path = "<your_path>/MOVEMENT"
 movement = Movement(movement_path=movement_path)
@@ -184,123 +184,9 @@ Using following algorithm to handle the periodic boundary conditions (Take an 2D
 
 <img src="./demo/pics/pic_2.png" width = "360" height = "400"  />
 
-### 1.5.1. Use `pflow.io.publicLayer.neigh.StructureNeighbors` to analyse the surrouing environment for specific atom.
-<font color="red" size="4">
-
-1. `pflow.io.publicLayer.neigh.StructureNeighborsV2` is much faster than `pflow.io.publicLayer.neigh.StructureNeighbors`.
-
-</font>
-
-```python
-from pflow.io.publicLayer.structure import DStructure
-from pflow.io.publicLayer.neigh import StructureNeighbors
-
-atom_config_path = "<your_path>/atom.config"
-scaling_matrix = [3, 3, 1]  # 取奇数
-reformat_mark = True
-n_neighbors = 60
-algorithm = "ball_tree"
-coords_are_cartesian = True
-
-structure = DStructure.from_file(
-                      file_format="pwmat", 
-                      file_path=file_path)
-neighbors = StructureNeighbors(
-                      structure=structure,
-                      scaling_matrix=scaling_matrix,
-                      reformat_mark=reformat_mark,
-                      n_neighbors=n_neighbors,
-                      algorithm=algorithm)
-
-print()
-print("Step 1. primitive_cell 中的原子在 supercell 中对应的index:", end="\t")
-print(neighbors._get_key_idxs(scaling_matrix))
-
-print()
-print("Step 2. primitive_cell 中原子的近邻原子情况:")
-key_nbr_species, key_nbr_distances, key_nbr_coords = \
-                       neighbors._get_key_neighs_info(
-                               scaling_matrix=scaling_matrix,
-                               n_neighbors=n_neighbors,
-                               algorithm=algorithm,
-                               coords_are_cartesian=coords_are_cartesian)
-print("\t2.1. The number of atoms in primitive cell:\t", len(neighbors.structure.species))
-print("\t2.2. The shape of key_nbr_species:\t", key_nbr_species.shape)
-print("\t2.3. The shape of key_nbr_distances:\t", key_nbr_distances.shape)
-print("\t2.4. The shape of key_nbr_coords:\t", key_nbr_coords.shape)
-```
-Output:
+### 1.5.0. atom.config 示例
 ```shell
-
-Step 1. primitive_cell 中的原子在 supercell 中对应的index:      [0, 1, 2, 3, 4, 5, 6, 7, 72, 73, 74, 75]
-
-Step 2. primitive_cell 中原子的近邻原子情况:
-        2.1. The number of atoms in primitive cell:      12
-        2.2. The shape of key_nbr_species:       (12, 60)
-        2.3. The shape of key_nbr_distances:     (12, 60)
-        2.4. The shape of key_nbr_coords:        (12, 60, 3)
-```
-
-### 1.5.2. Use `pflow.io.publicLayer.neigh.StructureNeighborsV2` to analyse the surrouing environment for specific atom.
-<font color="red" size="4">
-
-1. `pflow.io.publicLayer.neigh.StructureNeighborsV2` is much faster than `pflow.io.publicLayer.neigh.StructureNeighbors`.
-
-</font>
-
-```python
-atom_config_path = "<your_path>/atom.config"
-scaling_matrix = [3, 3, 1]
-reformat_mark = True
-n_neighbors = 60
-coords_are_cartesian = True
-
-structure = DStructure.from_file(
-               file_format="pwmat", 
-               file_path=atom_config_path)
-neighbors_v2 = StructureNeighborsV2(
-               structure=structure,
-               scaling_matrix=scaling_matrix,
-               reformat_mark=reformat_mark,
-               coords_are_cartesian=coords_are_cartesian,
-               n_neighbors=n_neighbors)
-
-### Step 1. 
-print()
-print("Step 1. primitive_cell 中的原子在 supercell 中对应的index:", end="\t")
-print(neighbors_v2._get_key_idxs(scaling_matrix))
-
-
-### Step 2.
-print()
-print("Step 2. primitive_cell 中原子的近邻原子情况:")
-
-key_nbr_species, key_nbr_distances, key_nbr_coords = \
-           neighbors_v2._get_key_neighs_info(
-                           scaling_matrix=scaling_matrix,
-                           n_neighbors=n_neighbors,
-                           coords_are_cartesian=coords_are_cartesian)
-
-print("\t2.1. The number of atoms in primitive cell:\t", len(neighbors_v2.structure.species))
-print("\t2.2. The shape of key_nbr_species:\t", key_nbr_species.shape)
-print("\t2.3. The shape of key_nbr_distances:\t", key_nbr_distances.shape)
-print("\t2.4. The shape of key_nbr_coords:\t", key_nbr_coords.shape)
-```
-Output:
-```shell
-Step 1. primitive_cell 中的原子在 supercell 中对应的index:      [0, 1, 2, 3, 4, 5, 6, 7, 72, 73, 74, 75]
-
-Step 2. primitive_cell 中原子的近邻原子情况:
-        2.1. The number of atoms in primitive cell:      12
-        2.2. The shape of key_nbr_species:       (12, 60)
-        2.3. The shape of key_nbr_distances:     (12, 60)
-        2.4. The shape of key_nbr_coords:        (12, 60, 3)
-.
-```
-
-
 ### 1.5.3. `atom.config` 示例
-```txt
           12
 Lattice vector
       3.1903157348      5.5257885468      0.0000000000
@@ -321,217 +207,24 @@ Position, move_x, move_y, move_z
   16    0.666666666667    0.833333333333    0.567656723452   1   1   1
 ```
 
-### 1.5.4. Deepmd feature pair (0.25 second per `DStructure`)
-```Python
-from pflow.io.publicLayer.structure import DStructure
-from pflow.io.publicLayer.neigh import StructureNeighbors
-from pflow.io.publicLayer.neigh import DpFeaturePair
+### 1.5.1. Use `matersdk.io.publicLayer.neigh.StructureNeighborsDescriptor` to analyse the surrouing environment for specific atom.
+1. `matersdk.io.publicLayer.neigh.StructureNeighborsV2` is much faster than `matersdk.io.publicLayer.neigh.StructureNeighbors`.
+2. Demo url: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/neighs/SturtureNeighbors.ipynb
 
-atom_config_path = "<your_path>/atom.config"
-scaling_matrix = [3, 3, 1]
-reformat_mark = True
-n_neighbors = 60        # 需要设置大一些
-algorithm = "ball_tree"
-coords_are_cartesian = True
+### 1.5.2. Use `matersdk.io.publicLayer.neigh.StructureNeighborsV2` to analyse the surrouing environment for specific atom.
+1. `matersdk.io.publicLayer.neigh.StructureNeighborsV2` is much faster than `matersdk.io.publicLayer.neigh.StructureNeighbors`.
+2. Demo url: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/neighs/SturtureNeighbors.ipynb
 
-structure = DStructure.from_file(
-                file_format="pwmat",
-                file_path=atom_config_path)
-neighbors = StructureNeighbors(
-                structure=structure,
-                scaling_matrix=scaling_matrix,
-                reformat_mark=reformat_mark,
-                n_neighbors=neighbors,
-                algorithm=algorithm,
-                coords_are_cartesian=coords_are_cartesian)
-
-### Driver code
-dp_feature_pair = DpFeaturePair(structure_neighbors=neighbors)
-
-print()
-print("Step 1. extract_feature:")
-center_atomic_number = 42
-nbr_atomic_number = 42
-rcut = 3.2
-max_num_nbrs = 10   # 需要设置的大一些
-
-dp_feature_pair_an, dp_feature_pair_d, dp_feature_pair_c = \
-           dp_feature.extract_feature_pair(
-                           center_atomic_number=center_atomic_number,
-                           nbr_atomic_number=nbr_atomic_number,
-                           rcut=rcut,
-                           max_num_nbrs=max_num_nbrs)
-print("1.1. Atomic number -- dp_feature_pair_an:")
-print(dp_feature_pair_an)
-print()
-print("1.2. Distance -- dp_feature_pair_d:")
-print(dp_feature_pair_d)
-print()
-print("1.3. Relative Coords -- dp_feature_pair_c:")
-print(dp_feature_pair_c)
-```
-Output:
-```shell
-Step 1. extract_feature:
-1.1. Atomic number -- dp_feature_pair_an:
-[[42. 42. 42. 42. 42. 42.  0.  0.  0.  0.]
- [42. 42. 42. 42. 42. 42.  0.  0.  0.  0.]
- [42. 42. 42. 42. 42. 42.  0.  0.  0.  0.]
- [42. 42. 42. 42. 42. 42.  0.  0.  0.  0.]]
-
-1.2. Distance -- dp_feature_pair_d:
-[[3.19031539 3.19031539 3.19031539 3.19031539 3.19031556 3.19031556
-  0.         0.         0.         0.        ]
- [3.19031539 3.19031539 3.19031539 3.19031539 3.19031556 3.19031556
-  0.         0.         0.         0.        ]
- [3.19031539 3.19031539 3.19031539 3.19031539 3.19031556 3.19031556
-  0.         0.         0.         0.        ]
- [3.19031539 3.19031539 3.19031539 3.19031539 3.19031556 3.19031556
-  0.         0.         0.         0.        ]]
-
-1.3. Coords -- dp_feature_pair_c:
-[[[ 3.19031539  0.          0.        ]
-  [-3.19031539  0.          0.        ]
-  [-1.59515752  2.76289427  0.        ]
-  [ 1.59515752 -2.76289427  0.        ]
-  [ 1.59515787  2.76289427  0.        ]
-  [-1.59515787 -2.76289427  0.        ]
-  [ 0.          0.          0.        ]
-  [ 0.          0.          0.        ]
-  [ 0.          0.          0.        ]
-  [ 0.          0.          0.        ]]
-
- [[-3.19031539  0.          0.        ]
-  [ 3.19031539  0.          0.        ]
-  [-1.59515752  2.76289427  0.        ]
-  [ 1.59515752 -2.76289427  0.        ]
-  [ 1.59515787  2.76289427  0.        ]
-  [-1.59515787 -2.76289427  0.        ]
-  [ 0.          0.          0.        ]
-  [ 0.          0.          0.        ]
-  [ 0.          0.          0.        ]
-  [ 0.          0.          0.        ]]
-
- [[-3.19031539  0.          0.        ]
-  [ 3.19031539  0.          0.        ]
-  [ 1.59515752 -2.76289427  0.        ]
-  [-1.59515752  2.76289427  0.        ]
-  [-1.59515787 -2.76289427  0.        ]
-  [ 1.59515787  2.76289427  0.        ]
-  [ 0.          0.          0.        ]
-  [ 0.          0.          0.        ]
-  [ 0.          0.          0.        ]
-  [ 0.          0.          0.        ]]
-
- [[-3.19031539  0.          0.        ]
-  [ 3.19031539  0.          0.        ]
-  [ 1.59515752 -2.76289427  0.        ]
-  [-1.59515752  2.76289427  0.        ]
-  [-1.59515787 -2.76289427  0.        ]
-  [ 1.59515787  2.76289427  0.        ]
-  [ 0.          0.          0.        ]
-  [ 0.          0.          0.        ]
-  [ 0.          0.          0.        ]
-  [ 0.          0.          0.        ]]]
-```
+### 1.5.3. Premise for Deepmd feature pair
+1. Demo url: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/deepmd/premise.ipynb
 
 ### 1.5.5. Smooth edition $\widetilde{R}$ of Deepmd feature pair 
-1. The $\widetilde{R_{ji}}$ of Smooth edition Deepmd(`DeepPot-SE`) is described as $\widetilde{R_{ji}} = (s(r_{ji}), \frac{s{(r_{ji})} x_{ji}}{r_{ji}}, \frac{s{(r_{ji})} y_{ji}}{r_{ji}}, \frac{s{(r_{ji})} z_{ji}}{r_{ji}})$
-2. $s(r_{ji})=\begin{cases}\frac{1}{r_{ji}},\quad r_{ji}<r_{cs}\\ \frac{1}{r_{ji}}\{\frac{1}{2}\cos{[\pi\frac{(r_{ji} - r_{cs})}{(r_c - r_{cs})}]+\frac{1}{2}}\},\quad r_{cs}<r_{ji}< r_{c} \\ 0,\quad r_{ji}>r_c \end{cases}$
-3. The $\widetilde{R}$ has shape of `(num_center, max_num_nbrs, 4)`
-
-```python
-from pflow.io.publicLayer.structure import DStructure
-from pflow.io.publicLayer.neigh import StructureNeighborsV2
-from pflow.feature.deepmd.se import DeepmdSeTildeR
-
-atom_config_path = "<your_path>/atom.config"
-scaling_matrix = [3, 3, 1]
-reformat_mark = True
-n_neighbors = 60    # 需要设置得大一些
-#algorithm = "ball_tree"
-coords_are_cartesian = True
-
-structure = DStructure.from_file(
-               file_format="pwmat",
-               file_path=atom_config_path)
-neighbors = StructureNeighborsV2(
-               structure=structure,
-               scaling_matrix=scaling_matrix,
-               reformat_mark=reformat_mark,
-               n_neighbors=n_neighbors,
-               #algorithm=algorithm,
-               coords_are_cartesian=coords_are_cartesian)
-
-### Step 1. Print the attributions of DeepmdSeR
-center_atomic_number = 42
-nbr_atomic_number = 42
-rcut = 3.4
-rcut_smooth = 3.1
-max_num_nbrs = 10 # max_num_nbrs for deepmd_se
-
-deepmd_se_r = DeepmdSeTildeR(
-               structure_neighbors=neighbors,
-               center_atomic_number=center_atomic_number,
-               nbr_atomic_number=nbr_atomic_number,
-               rcut=rcut,
-               rcut_smooth=rcut_smooth,
-               max_num_nbrs=max_num_nbrs)
-
-#print(deepmd_se_r._get_tildeR(rcut=rcut, rcut_smooth=rcut_smooth).shape)
-print(deepmd_se_r.dp_feature_pair_tildeR) # shape = (4, 10, 4)
-```
-Output
-```shell
-[[[ 0.24842529  0.24842529  0.          0.        ]
-  [ 0.24842529 -0.24842529  0.          0.        ]
-  [ 0.24842529 -0.12421263  0.21514262  0.        ]
-  [ 0.24842529  0.12421263 -0.21514262  0.        ]
-  [ 0.24842505  0.12421253  0.2151424   0.        ]
-  [ 0.24842505 -0.12421253 -0.2151424   0.        ]
-  [ 0.          0.          0.          0.        ]
-  [ 0.          0.          0.          0.        ]
-  [ 0.          0.          0.          0.        ]
-  [ 0.          0.          0.          0.        ]]
-
- [[ 0.24842529 -0.24842529  0.          0.        ]
-  [ 0.24842529  0.24842529  0.          0.        ]
-  [ 0.24842529 -0.12421263  0.21514262  0.        ]
-  [ 0.24842529  0.12421263 -0.21514262  0.        ]
-  [ 0.24842505  0.12421253  0.2151424   0.        ]
-  [ 0.24842505 -0.12421253 -0.2151424   0.        ]
-  [ 0.          0.          0.          0.        ]
-  [ 0.          0.          0.          0.        ]
-  [ 0.          0.          0.          0.        ]
-  [ 0.          0.          0.          0.        ]]
-
- [[ 0.24842529 -0.24842529  0.          0.        ]
-  [ 0.24842529  0.24842529  0.          0.        ]
-  [ 0.24842529  0.12421263 -0.21514262  0.        ]
-  [ 0.24842529 -0.12421263  0.21514262  0.        ]
-  [ 0.24842505 -0.12421253 -0.2151424   0.        ]
-  [ 0.24842505  0.12421253  0.2151424   0.        ]
-  [ 0.          0.          0.          0.        ]
-  [ 0.          0.          0.          0.        ]
-  [ 0.          0.          0.          0.        ]
-  [ 0.          0.          0.          0.        ]]
-
- [[ 0.24842529 -0.24842529  0.          0.        ]
-  [ 0.24842529  0.24842529  0.          0.        ]
-  [ 0.24842529  0.12421263 -0.21514262  0.        ]
-  [ 0.24842529 -0.12421263  0.21514262  0.        ]
-  [ 0.24842505 -0.12421253 -0.2151424   0.        ]
-  [ 0.24842505  0.12421253  0.2151424   0.        ]
-  [ 0.          0.          0.          0.        ]
-  [ 0.          0.          0.          0.        ]
-  [ 0.          0.          0.          0.        ]
-  [ 0.          0.          0.          0.        ]]]
-```
+1. Demo url: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/deepmd/deepmdTileR_3d.ipynb
 
 ## 1.6. Adjacent Matrix
 ```python
-from pflow.io.publicLayer.structure import DStructure
-from pflow.io.publicLayer.neigh import AdjacentMatrix
+from matersdk.io.publicLayer.structure import DStructure
+from matersdk.io.publicLayer.neigh import AdjacentMatrix
 
 
 atom_config_path = "<your_path>/atom.config"
@@ -573,9 +266,9 @@ The adjacent matrix (radius cutoff = 3.2):
 ## 2.1. Online
 ```shell
 $ git clone git@github.com:LonxunQuantum/pwkit.git
-$ cd pflow
+$ cd matersdk
 $ pip install .
 ```
 
 ## 2.1. Offline
-1. You can download a python interpreter containing `pflow` from https://www.jianguoyun.com/p/DfhQFx8Q_qS-CxifgfwEIAA.
+1. You can download a python interpreter containing `matersdk` from https://www.jianguoyun.com/p/DfhQFx8Q_qS-CxifgfwEIAA.
