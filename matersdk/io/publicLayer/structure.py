@@ -1,11 +1,3 @@
-'''
-Author       : Liu Hanyu
-Email        : hyliu2016@buaa.edu.cn
-Date         : 2022-10-31 16:24:03
-LastEditTime : 2022-12-07 16:52:40
-FilePath     : /pflow/pflow/io/publicLayer/structure.py
-Description  : 
-'''
 import numpy as np
 from pymatgen.core import Structure
 

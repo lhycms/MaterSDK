@@ -1,15 +1,7 @@
-'''
-Author       : Liu Hanyu
-Email        : hyliu2016@buaa.edu.cn
-Date         : 2022-12-08 17:58:14
-LastEditTime : 2022-12-09 11:53:36
-FilePath     : /pflow/pflow/calculation/kpath/test/test_kpathSampler.py
-Description  : 
-'''
 import unittest
 import warnings
 
-# python3 -m pflow.calculation.kpath.test.test_kpathSampler
+# python3 -m matersdk.calculation.kpath.test.test_kpathSampler
 from ....io.publicLayer.structure import DStructure
 from ..kpathSampler import KpathSampler
 

@@ -1,6 +1,6 @@
 import unittest
 
-# python3 -m pflow.io.pwmat.input.test.test_inkpt
+# python3 -m matersdk.io.pwmat.input.test.test_inkpt
 from ..inkpt import Inkpt
 
 

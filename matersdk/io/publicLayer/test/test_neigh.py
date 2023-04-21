@@ -1,6 +1,6 @@
 import unittest
 
-# python3 -m pflow.io.publicLayer.test.test_neigh
+# python3 -m matersdk.io.publicLayer.test.test_neigh
 from ..structure import DStructure
 from ..neigh import StructureNeighborsDescriptor
 

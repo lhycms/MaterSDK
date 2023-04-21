@@ -1,6 +1,6 @@
 import unittest
 
-# python3 -m pflow.io.pwmat.input.test.test_gen_vext
+# python3 -m matersdk.io.pwmat.input.test.test_gen_vext
 from ..gen_vext import GenVext
 
 class GenVextTest(unittest.TestCase):

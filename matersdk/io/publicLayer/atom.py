@@ -1,11 +1,3 @@
-'''
-Author       : Liu Hanyu
-Email        : hyliu2016@buaa.edu.cn
-Date         : 2022-11-03 13:21:03
-LastEditTime : 2022-11-03 13:21:23
-FilePath     : /pflow/pflow/io/publicLayer/atom.py
-Description  : 
-'''
 from prettytable import PrettyTable
 
 

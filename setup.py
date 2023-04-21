@@ -10,7 +10,7 @@ from setuptools import setup, find_packages
 
 
 setup(
-    name="pflow",
+    name="matersdk",
     version="v1.0",
     author="Liu Hanyu  &&  LONXUN QUANTUM",
     author_email="domainofbuaa@gmail.com",
