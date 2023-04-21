@@ -207,7 +207,7 @@ Position, move_x, move_y, move_z
   16    0.666666666667    0.833333333333    0.567656723452   1   1   1
 ```
 
-### 1.5.1. Use `matersdk.io.publicLayer.neigh.StructureNeighborsDescriptor` to analyse the surrouing environment for specific atom.
+### 1.5.1. Use `matersdk.io.publicLayer.neigh.StructureNeighborsV1` to analyse the surrouing environment for specific atom.
 1. `matersdk.io.publicLayer.neigh.StructureNeighborsV2` is much faster than `matersdk.io.publicLayer.neigh.StructureNeighbors`.
 2. Demo url: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/neighs/SturtureNeighbors.ipynb
 
