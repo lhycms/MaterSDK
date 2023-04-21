@@ -21,7 +21,7 @@ class GenVextTest(unittest.TestCase):
                         add_vr,
                         a4, a5, a6, a7, a8, a9
                         )
-        output_path = "/data/home/liuhanyu/hyliu/code/pflow/pflow/io/pwmat/input/test/gen.vext"
+        output_path = "/data/home/liuhanyu/hyliu/code/matersdk/matersdk/io/pwmat/input/test/gen.vext"
         gen_vext.to(output_path=output_path)
     
     

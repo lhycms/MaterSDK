@@ -10,7 +10,7 @@ from ..neigh import StructureNeighborsDescriptor
 
 class StructureNeighborsV1Test(unittest.TestCase):
     def all(self):
-        atom_config_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/atom.config"
+        atom_config_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/atom.config"
         scaling_matrix = [5, 5, 1]
         reformat_mark = True
         n_neighbors = 200
@@ -54,7 +54,7 @@ class StructureNeighborsV1Test(unittest.TestCase):
 
 class StructureNeighborsV2Test(unittest.TestCase):
     def test_all(self):
-        atom_config_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/atom.config"
+        atom_config_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/atom.config"
         scaling_matrix = [5, 5, 1]
         reformat_mark = True
         n_neighbors = 200

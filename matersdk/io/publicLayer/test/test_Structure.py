@@ -8,7 +8,7 @@ from ..structure import DStructure
 
 class StructureTest(unittest.TestCase):
     def test_structure_init(self):
-        file_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/atom.config"
+        file_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/atom.config"
         file_format = "pwmat"
         coords_are_cartesian = False
         
@@ -27,16 +27,16 @@ class StructureTest(unittest.TestCase):
     def test_structure_to_(self):
         file_format = "pwmat"
         # 1. 普通的测试
-        file_path = "/Users/mac/我的文件/Mycode/new/new2/pflow/test_data/atom_config/atom.config"
+        file_path = "/Users/mac/我的文件/Mycode/new/new2/matersdk/test_data/atom_config/atom.config"
         # 2. 测试 DStructure.site_properties["magnetic_properties"]
-        file_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/atom.config"
+        file_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/atom.config"
         
         # 1. 
         output_file_path = \
-                "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/test.config"
+                "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/test.config"
         # 2. 
         output_file_path = \
-                "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/test.config"
+                "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/test.config"
         coords_are_cartesian = False
 
         structure = DStructure.from_file(
@@ -60,7 +60,7 @@ class StructureTest(unittest.TestCase):
 
     def test_judge_vacuum_exist(self):
         file_format = "pwmat"
-        file_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/atom.config"
+        file_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/atom.config"
         coords_are_cartesian = False
 
         structure = DStructure.from_file(
@@ -74,7 +74,7 @@ class StructureTest(unittest.TestCase):
     
     def test_reformat_elements(self):
         file_format = "pwmat"
-        file_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/atom.config"
+        file_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/atom.config"
         coords_are_cartesian = False
         elements_lst = ["S", "Mo"]
         
@@ -93,7 +93,7 @@ class StructureTest(unittest.TestCase):
     
     def test_remove_vacanies(self):
         file_format = "pwmat"
-        file_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/atom.config"
+        file_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/atom.config"
         coords_are_cartesian = False
         
         structure = DStructure.from_file(
@@ -121,7 +121,7 @@ class StructureTest(unittest.TestCase):
     def test_make_supercell_(self):
         file_format = "pwmat"
         # 1. 普通的测试
-        file_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/atom.config"
+        file_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/atom.config"
         coords_are_cartesian = False
         
         structure = DStructure.from_file(
@@ -145,7 +145,7 @@ class StructureTest(unittest.TestCase):
     def test_get_bidx2aidx_supercell(self):
         file_format = "pwmat"
         # 1. 普通的测试
-        file_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/atom.config"
+        file_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/atom.config"
         coords_are_cartesian = False
         scaling_matrix=np.array([3, 3, 1])
         structure = DStructure.from_file(
@@ -159,7 +159,7 @@ class StructureTest(unittest.TestCase):
     def test_get_key_idxs(self):
         file_format = "pwmat"
         # 1. 普通的测试
-        file_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/atom.config"
+        file_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/atom.config"
         coords_are_cartesian = False
         scaling_matrix=np.array([3, 3, 1])
         structure = DStructure.from_file(
