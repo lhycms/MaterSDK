@@ -1,6 +1,6 @@
 import unittest
 
-# python3 -m pflow.io.pwmat.output.test.test_outfermi
+# python3 -m matersdk.io.pwmat.output.test.test_outfermi
 from ..outfermi import OutFermi
 
 
