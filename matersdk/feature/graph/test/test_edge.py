@@ -10,11 +10,13 @@ from ..edge import AdjacentMatrix
 class AdjacentMatrixTest(unittest.TestCase):
     def test_all(self):
         atom_config_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/atom.config"
-        scaling_matrix = [3, 3, 3]
+        scaling_matrix = [5, 5, 1]
         structure = DStructure.from_file(
                             file_format="pwmat",
                             file_path=atom_config_path
                             )
+        structure.reformat_elements_()
+        print(structure)
         rcut = 3.2
         
         
@@ -27,7 +29,7 @@ class AdjacentMatrixTest(unittest.TestCase):
         ### Step 1. 
         print()
         print("Step 1. get_neigh_primitive_frac_coords:")
-        #adjacent_matrix._get_neigh_primtive_cell_frac_coords()
+        #print(adjacent_matrix._get_supercell_frac_coords().shape)
         
         ### Step 2. 
         print()
