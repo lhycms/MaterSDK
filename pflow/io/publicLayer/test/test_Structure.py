@@ -1,15 +1,7 @@
-'''
-Author       : Liu Hanyu
-Email        : hyliu2016@buaa.edu.cn
-Date         : 2022-10-31 16:45:10
-LastEditTime : 2022-12-09 11:54:28
-FilePath     : /pflow/pflow/io/publicLayer/test/test_Structure.py
-Description  : 
-'''
 import unittest
 import numpy as np
 
-# python3 -m pflow.io.publicLayer.test.test_Structure
+# python3 -m matersdk.io.publicLayer.test.test_Structure
 from ..structure import DStructure
 
 

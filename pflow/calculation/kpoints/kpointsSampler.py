@@ -1,11 +1,3 @@
-'''
-Author       : Liu Hanyu
-Email        : hyliu2016@buaa.edu.cn
-Date         : 2022-11-16 15:00:00
-LastEditTime : 2022-12-07 17:54:04
-FilePath     : /pflow/pflow/calculation/kpoints/kpointsSampler.py
-Description  : 
-'''
 import numpy as np
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 

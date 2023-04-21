@@ -1,14 +1,6 @@
-'''
-Author       : Liu Hanyu
-Email        : hyliu2016@buaa.edu.cn
-Date         : 2022-11-17 09:54:56
-LastEditTime : 2022-11-17 21:29:50
-FilePath     : /pflow/pflow/calculation/kpoints/test/test_kmesh.py
-Description  : 
-'''
 import unittest
 
-# python3 -m pflow.calculation.kpoints.test.test_kmesh
+# python3 -m matersdk.calculation.kpoints.test.test_kmesh
 from ..kmesh import KMesh
 
 

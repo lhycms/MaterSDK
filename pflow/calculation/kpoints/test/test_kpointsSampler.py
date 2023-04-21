@@ -1,15 +1,7 @@
-'''
-Author       : Liu Hanyu
-Email        : hyliu2016@buaa.edu.cn
-Date         : 2022-12-07 17:40:09
-LastEditTime : 2022-12-07 17:51:04
-FilePath     : /pflow/pflow/calculation/kpoints/test/test_kpointsSampler.py
-Description  : 
-'''
 import unittest
 import numpy as np
 
-# python3 -m pflow.calculation.kpoints.test.test_kpointsSampler
+# python3 -m matersdk.calculation.kpoints.test.test_kpointsSampler
 from ..kpointsSampler import KPointsSampler
 from ....io.publicLayer.structure import DStructure
 

@@ -6,6 +6,43 @@ from abc import ABC, abstractmethod
 from .structure import DStructure
 
 
+class StructureNeighborsDescriptor(object):
+    '''
+    Description
+    -----------
+        1. Map str to Drived class of `StructureNeighborBase`.
+    
+    Usage
+    -----
+        1. Demo 1
+            ```python
+            snd_v1 = StructureNeighborsDescriptor.create("v1")
+            ```
+    
+    -----
+        1. 'v1': `StructureNeighborsV1`
+            - sklearn.NearestNeighbors
+        2. 'v2': `StructureNeighborsV2`
+            - Custom KNN
+        3. 'v3': `StructureNeighborsV3`
+    '''
+    registry = {}
+    
+    @classmethod
+    def register(cls, name:str):
+        def wrapper(subclass):
+            cls.registry[name] = subclass
+        return wrapper
+    
+    @classmethod
+    def create(cls, name:str, *args, **kwargs):
+        subclass = cls.registry[name]
+        if subclass is None:
+            raise ValueError(f"No StructureNeighbors registered with name '{name}'")
+        return subclass(*args, **kwargs)
+
+
+
 class StructureNeighborsBase(ABC):
     @abstractmethod
     def _get_key_neighs_info(self):
@@ -23,7 +60,9 @@ class StructureNeighborsBase(ABC):
     def _judge_rationality(self):
         pass
     
-
+    
+    
+@StructureNeighborsDescriptor.register("v1")
 class StructureNeighborsV1(StructureNeighborsBase):
     def __init__(
                 self,
@@ -189,6 +228,8 @@ class StructureNeighborsV1(StructureNeighborsBase):
         return (self.supercell.num_sites < n_neighbors)
 
 
+
+@StructureNeighborsDescriptor.register("v2")
 class StructureNeighborsV2(StructureNeighborsBase):
     '''
     Description

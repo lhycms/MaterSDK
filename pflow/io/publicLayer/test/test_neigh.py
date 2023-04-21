@@ -2,11 +2,13 @@ import unittest
 
 # python3 -m pflow.io.publicLayer.test.test_neigh
 from ..structure import DStructure
-from ..neigh import StructureNeighborsV1
-from ..neigh import StructureNeighborsV2
+from ..neigh import StructureNeighborsDescriptor
 
 
-class StructureNeighborsTest(unittest.TestCase):
+#class StructureNeighborsDescriptor()
+
+
+class StructureNeighborsV1Test(unittest.TestCase):
     def all(self):
         atom_config_path = "/data/home/liuhanyu/hyliu/code/pflow/demo/structure/atom.config"
         scaling_matrix = [5, 5, 1]
@@ -18,14 +20,22 @@ class StructureNeighborsTest(unittest.TestCase):
         structure = DStructure.from_file(
                         file_format="pwmat", 
                         file_path=atom_config_path)
-        neighbors = StructureNeighborsV1(
+        #neighbors = StructureNeighborsV1(
+        #                structure=structure,
+        #                scaling_matrix=scaling_matrix,
+        #                reformat_mark=reformat_mark,
+        #                coords_are_cartesian=coords_are_cartesian,
+        #                n_neighbors=n_neighbors,
+        #                algorithm=algorithm
+        #                )
+        neighbors = StructureNeighborsDescriptor.create(
+                        "v1",
                         structure=structure,
                         scaling_matrix=scaling_matrix,
                         reformat_mark=reformat_mark,
                         coords_are_cartesian=coords_are_cartesian,
                         n_neighbors=n_neighbors,
-                        algorithm=algorithm
-                        )
+                        algorithm=algorithm)
         
         print()
         print("Step 1. primitive_cell 中原子的近邻原子情况:")
@@ -53,7 +63,14 @@ class StructureNeighborsV2Test(unittest.TestCase):
         structure = DStructure.from_file(
                         file_format="pwmat", 
                         file_path=atom_config_path)
-        neighbors_v2 = StructureNeighborsV2(
+        #neighbors_v2 = StructureNeighborsV2(
+        #                structure=structure,
+        #                scaling_matrix=scaling_matrix,
+        #                reformat_mark=reformat_mark,
+        #                coords_are_cartesian=coords_are_cartesian,
+        #                n_neighbors=n_neighbors)
+        neighbors_v2 = StructureNeighborsDescriptor.create(
+                        "v2",
                         structure=structure,
                         scaling_matrix=scaling_matrix,
                         reformat_mark=reformat_mark,

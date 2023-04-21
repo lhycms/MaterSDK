@@ -1,12 +1,4 @@
-'''
-Author       : Liu Hanyu
-Email        : hyliu2016@buaa.edu.cn
-Date         : 2022-11-16 15:28:57
-LastEditTime : 2022-11-17 21:31:44
-FilePath     : /pflow/pflow/calculation/kpoints/kmesh.py
-Description  : 
-'''
-# python3 -m pflow.calculation.kpoints.kmesh
+# python3 -m matersdk.calculation.kpoints.kmesh
 import numpy as np
 from ...io.publicLayer.structure import DStructure
 
