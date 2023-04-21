@@ -1,6 +1,6 @@
 import unittest
 
-# python3 -m pflow.io.pwmat.output.test.test_fatbandstructureTxt
+# python3 -m matersdk.io.pwmat.output.test.test_fatbandstructureTxt
 from ..fatabandstructureTxt import FatbandStructure
 
 

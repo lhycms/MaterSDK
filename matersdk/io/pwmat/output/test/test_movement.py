@@ -1,6 +1,6 @@
 import unittest
 
-# python3 -m pflow.io.pwmat.output.test.test_movement
+# python3 -m matersdk.io.pwmat.output.test.test_movement
 from ..movement import Movement
 
 

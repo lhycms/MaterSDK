@@ -81,7 +81,7 @@ class KMesh(object):
 if __name__ == "__main__":
     kmesh = KMesh(
             file_format="pwmat",
-            file_path="/Users/mac/我的文件/Mycode/new/new2/pflow/test_data/atom_config/atom.config"
+            file_path="/Users/mac/我的文件/Mycode/new/new2/matersdk/test_data/atom_config/atom.config"
             )
     kmesh.get_lattice_info()
     print( kmesh.get_kmesh(0.03) )

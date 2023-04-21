@@ -1,11 +1,3 @@
-'''
-Author       : Liu Hanyu
-Email        : hyliu2016@buaa.edu.cn
-Date         : 2022-10-31 15:14:30
-LastEditTime : 2022-12-09 11:57:02
-FilePath     : /pflow/pflow/io/pwmat/atomConfigExtractor.py
-Description  : 
-'''
 import linecache
 import numpy as np
 

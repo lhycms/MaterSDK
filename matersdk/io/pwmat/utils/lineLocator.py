@@ -1,11 +1,3 @@
-'''
-Author       : Liu Hanyu
-Email        : hyliu2016@buaa.edu.cn
-Date         : 2022-10-31 15:20:26
-LastEditTime : 2022-11-03 13:01:27
-FilePath     : /pflow/pflow/io/utilitys/lineLocator.py
-Description  : 
-'''
 class LineLocator(object):
     @staticmethod
     def locate_all_lines(file_path:str, content:str):

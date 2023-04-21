@@ -1,11 +1,3 @@
-'''
-Author       : Liu Hanyu
-Email        : hyliu2016@buaa.edu.cn
-Date         : 2022-11-03 16:29:38
-LastEditTime : 2022-11-03 16:55:41
-FilePath     : /pflow/pflow/io/utilitys/parameters.py
-Description  : 
-'''
 atomic_number2specie = \
                 {
                     0: 'X0+',
