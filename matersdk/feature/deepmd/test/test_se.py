@@ -30,7 +30,7 @@ class DeepmdSeTildeRTest(unittest.TestCase):
         ### Step 1. Print the attributions of DeepmdSeR
         center_atomic_number = 42
         nbr_atomic_number = 42
-        rcut = 3.2
+        rcut = 3.4
         rcut_smooth = 3.1
         max_num_nbrs = 10
         
