@@ -48,7 +48,13 @@ class AdjacentMatrix(object):
         
         ### Step 2. 扩包后，周围会有很多primitive_cell，需要得到新primitive_cell 的 `分数原子坐标`
         ###     Note: 包含了本身的 primitive_cell
-        supercell_frac_coords, shifted_supercell_frac_coords = self._get_supercell_frac_coords()
+        # shape = (num_atoms_in_primitive_cell, 3, 1)
+        primitive_frac_coords = np.repeat(
+                                    self.structure.frac_coords[:, :, np.newaxis],
+                                    1,
+                                    axis=-1)
+        # shape = (num_atoms_in_primitive_cell, 3, 27)
+        shifted_supercell_frac_coords = self._get_shifted_supercell_frac_coords()
         
         ### Step 3. 初始化 adjacent_matrix
         adjacent_matrix = np.zeros((num_atoms, num_atoms))
@@ -58,7 +64,7 @@ class AdjacentMatrix(object):
             for idx_atom_2 in range(idx_atom_1, num_atoms):
                     ### Step 4.1. 
                 # shape = (3, 27)
-                atom_frac_diff = shifted_supercell_frac_coords[idx_atom_2] - supercell_frac_coords[idx_atom_1]
+                atom_frac_diff = shifted_supercell_frac_coords[idx_atom_2] - primitive_frac_coords[idx_atom_1]
                 distance_ij = np.dot(basis_vectors_array.T, atom_frac_diff)
                 if sum(np.linalg.norm(distance_ij, axis=0) <= self.rcut) > 0:
                     adjacent_matrix[idx_atom_1, idx_atom_2] = sum(np.linalg.norm(distance_ij, axis=0) <= self.rcut)
@@ -72,7 +78,7 @@ class AdjacentMatrix(object):
         
         
     
-    def _get_supercell_frac_coords(self):
+    def _get_shifted_supercell_frac_coords(self):
         '''
         Description
         -----------
@@ -135,4 +141,4 @@ class AdjacentMatrix(object):
         shifted_supercell_frac_coords = supercell_frac_coords - frac_shift_matrix
         
         
-        return supercell_frac_coords, shifted_supercell_frac_coords
+        return shifted_supercell_frac_coords

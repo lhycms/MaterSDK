@@ -194,8 +194,7 @@ class DpFeaturePairPremise(object):
                         3,
                         axis=2)
         selected_knrc = np.where(mask4knc, selected_knrc, 0)
-        
-        
+
         ### Step 5. 找到 `实际的近邻原子的最大数目` -- `max_num_nbrs_real`
         mask4knan = (selected_knan != 0)
         try:
@@ -215,6 +214,7 @@ class DpFeaturePairPremise(object):
         dp_feature_pair_d = np.zeros((self.num_centers, max_num_nbrs))
         # shape = (4, 10, 3)
         dp_feature_pair_rc = np.zeros((self.num_centers, max_num_nbrs, 3))
+
 
         ### Step 7. 根据之前信息填充 `dp_feature_pair_an`, `dp_feature_pair_d`, `dp_feature_pair_relative_c`
         ### Note: 注意 `selected_knan`, `selected_knd`, `selected_knrc` 的第一列 (axis=1 为列) 均为中心原子本身

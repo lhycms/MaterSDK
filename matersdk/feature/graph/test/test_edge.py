@@ -29,12 +29,12 @@ class AdjacentMatrixTest(unittest.TestCase):
         ### Step 1. 
         print()
         print("Step 1. get_neigh_primitive_frac_coords:")
-        #print(adjacent_matrix._get_supercell_frac_coords().shape)
+        #print(adjacent_matrix._get_shifted_supercell_frac_coords())
         
         ### Step 2. 
         print()
         print("Step 2. The adjacent matrix (radius cutoff = {0})".format(rcut))
-        adjacent_matrix.get_adjacent_matrix()
+        print(adjacent_matrix.get_adjacent_matrix())
 
 
 if __name__ == "__main__":
