@@ -35,7 +35,7 @@ You can:
 5. Extract `energy` of specific frame
 
 
-## 1.4. Analyse the neighbors around a center atom
+## 1.4. Generate feature for structure. (For DeepPot-SE, GNN and so on)
 Using following algorithm to handle the periodic boundary conditions (Take an 2D materials as an demo). Our new `expansion function (DStructure.make_supercell_())` requires:
 1. The corresponding surfaces of structure to be parallel.
 2. The element in `scaling matrix` must be odd number.
