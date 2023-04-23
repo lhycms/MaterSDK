@@ -41,36 +41,44 @@ class AdjacentMatrix(object):
         Description
         -----------
             1. 得到邻接矩阵 (adjacent matrix)
-        
-        
         '''
         ### Step 1. 得到原子总数和 primitive_cell 的向量基矢
-        num_atoms = len(self.structure.species)
+        num_atoms = self.structure.num_sites
         basis_vectors_array = self.structure.lattice.matrix
         
         ### Step 2. 扩包后，周围会有很多primitive_cell，需要得到新primitive_cell 的 `分数原子坐标`
         ###     Note: 包含了本身的 primitive_cell
-        neigh_primitive_cell_frac_coords = self._get_neigh_primtive_cell_frac_coords()
+        # shape = (num_atoms_in_primitive_cell, 3, 1)
+        primitive_frac_coords = np.repeat(
+                                    self.structure.frac_coords[:, :, np.newaxis],
+                                    1,
+                                    axis=-1)
+        # shape = (num_atoms_in_primitive_cell, 3, 27)
+        shifted_supercell_frac_coords = self._get_shifted_supercell_frac_coords()
         
         ### Step 3. 初始化 adjacent_matrix
         adjacent_matrix = np.zeros((num_atoms, num_atoms))
         
         ### Step 4. 根据上述信息获取 adjacent matrix
         for idx_atom_1 in range(num_atoms):
-            for idx_atom_2 in range(idx_atom_1+1, num_atoms):
+            for idx_atom_2 in range(idx_atom_1, num_atoms):
+                    ### Step 4.1. 
                 # shape = (3, 27)
-                atom_frac_diff = neigh_primitive_cell_frac_coords[idx_atom_2] - neigh_primitive_cell_frac_coords[idx_atom_1]
+                atom_frac_diff = shifted_supercell_frac_coords[idx_atom_2] - primitive_frac_coords[idx_atom_1]
                 distance_ij = np.dot(basis_vectors_array.T, atom_frac_diff)
                 if sum(np.linalg.norm(distance_ij, axis=0) <= self.rcut) > 0:
-                    adjacent_matrix[idx_atom_1, idx_atom_2] = 1
-                    adjacent_matrix[idx_atom_2, idx_atom_1] = 1
-        print(adjacent_matrix)
+                    adjacent_matrix[idx_atom_1, idx_atom_2] = sum(np.linalg.norm(distance_ij, axis=0) <= self.rcut)
+                    adjacent_matrix[idx_atom_2, idx_atom_1] = sum(np.linalg.norm(distance_ij, axis=0) <= self.rcut)
+        
+        ### Step 5. 减去该原子与自身的近邻的情况
+        adjacent_matrix = adjacent_matrix - np.eye(num_atoms)
+        
         return adjacent_matrix
         
         
         
     
-    def _get_neigh_primtive_cell_frac_coords(self):
+    def _get_shifted_supercell_frac_coords(self):
         '''
         Description
         -----------
@@ -80,13 +88,13 @@ class AdjacentMatrix(object):
         Return
         ------
             1. neigh_primitive_cell_frac_coords: np.ndarray
+                - supercell 中所有原子距 primitive_cell 原子的分数坐标
                 - shape = (12, 3, 27)
                     - `12`: 12 个原子
                     - `3` : x, y, z 三个坐标
                     - `27`: 3 * 3 * 3 (扩包倍数)
         '''
-        ### Step 1. 获取扩胞前primitive_cell的 `原子总数` 和 `原子分数坐标`
-        num_atoms = len(self.structure.species)
+        ### Step 1. 获取扩胞前primitive_cell的 `原子分数坐标`
         frac_coords = np.array(self.structure.frac_coords)
         
         ### Step 2. 扩包时，各个primitive_cell相对于未扩包的primitive_cell的移动
@@ -117,11 +125,10 @@ class AdjacentMatrix(object):
                                         list(range(-shift_z, shift_z+1))
                             ))
         ).T
-        #print(frac_shift_matrix)
         
         ### Step 3. `neigh_primitive_cell_frac_coords`
         # shape = (12, 3, 27)
-        neigh_primitive_cell_frac_coords_ = np.repeat(
+        supercell_frac_coords = np.repeat(
                                     frac_coords[:, :, np.newaxis],
                                     self.scaling_matrix[0] * self.scaling_matrix[1] * self.scaling_matrix[2],
                                     axis=2)
@@ -131,5 +138,6 @@ class AdjacentMatrix(object):
                                     1,
                                     axis=0)
         # shape = (12, 3, 27)
-        neigh_primitive_cell_frac_coords = neigh_primitive_cell_frac_coords_ - frac_shift_matrix
-        return neigh_primitive_cell_frac_coords
+        shifted_supercell_frac_coords = supercell_frac_coords - frac_shift_matrix
+        
+        return shifted_supercell_frac_coords

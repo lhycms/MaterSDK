@@ -11,7 +11,7 @@ class DeepmdSeTildeRTest(unittest.TestCase):
         atom_config_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/atom.config"
         scaling_matrix = [5, 5, 1]
         reformat_mark = True
-        n_neighbors = 200    # 需要设置得大一些
+        n_neighbors = 300    # 需要设置得大一些
         #algorithm = "ball_tree"
         coords_are_cartesian = True
         
@@ -30,7 +30,7 @@ class DeepmdSeTildeRTest(unittest.TestCase):
         ### Step 1. Print the attributions of DeepmdSeR
         center_atomic_number = 42
         nbr_atomic_number = 42
-        rcut = 3.2
+        rcut = 3.4
         rcut_smooth = 3.1
         max_num_nbrs = 10
         

@@ -140,5 +140,4 @@ class AdjacentMatrix(object):
         # shape = (12, 3, 27)
         shifted_supercell_frac_coords = supercell_frac_coords - frac_shift_matrix
         
-        
         return shifted_supercell_frac_coords

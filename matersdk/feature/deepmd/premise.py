@@ -118,7 +118,6 @@ class DpFeaturePairPremise(object):
             raise ValueError("Please check the atomic number you input!!! Maybe the system does not contain these kinds of element.")
         setattr(self, "max_num_nbrs_real", max_num_nbrs_real)
         setattr(self, "num_centers", np.count_nonzero(np.count_nonzero(mask_total==True, axis=1)) )
-        print("num_centers:", self.num_centers)
         
         
         ### Step 3. 根据输入的 `max_num_nbrs` 和 `num_centers` 规定输出的 np.ndarray 大小
