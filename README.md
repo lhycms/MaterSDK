@@ -62,7 +62,7 @@ Using following algorithm to handle the periodic boundary conditions (Take an 2D
 # 2. Installation
 ## 2.1. Online
 ```shell
-$ git clone git@github.com:LonxunQuantum/pwkit.git
+$ git clone git@github.com:lhycms/MaterSDK.git
 $ cd matersdk
 $ pip install .
 ```
