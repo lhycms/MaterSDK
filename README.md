@@ -1,7 +1,7 @@
 # Material Software Development Kit (MaterSDK)
 A python library for computational materials science. You can use it to:
 1. Process structure file (For PWmat, VASP, ATAT, ...)
-2. Process Kohn-Sham state (For PWmat, VASP, ...)
+2. Process Kohn-Sham state (For PWmat)
 3. Process periodic boundary condition
 
 # 1. Brief introduction
