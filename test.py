@@ -1,15 +1,17 @@
 import numpy as np
+import multiprocessing as mp
 
-# Create example array
-arr = np.array([[1, 0, 3],
-                [0, 0, 0],
-                [4, 0, 6]])
+# define the save function to be run in parallel
+def save_array(filename):
+    array = np.array([1, 2, 3])
+    np.save(filename, array)
 
-# Find columns where all values are 0
-all_zeros = np.all(arr == 0, axis=0)
-print(all_zeros)
 
-# Remove columns where all values are 0
-arr = arr[:, ~all_zeros]
+if __name__ == '__main__':
+    # create a list of (array, filename) tuples
+    filenames = [(f"array_{i}.npy", ) for i in range(5)]
 
-print(arr)
+    # create a Pool with 4 worker processes
+    with mp.Pool(processes=4) as pool:
+        # map the save function to the data and execute it in parallel
+        pool.starmap(save_array, filenames)

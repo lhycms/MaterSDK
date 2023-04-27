@@ -2,6 +2,7 @@ import os
 import shutil
 import numpy as np
 from typing import List
+import multiprocessing as mp
 from ...io.publicLayer.traj import Trajectory
 from ...io.publicLayer.structure import DStructure
 from ...io.publicLayer.neigh import StructureNeighborsDescriptor
@@ -197,23 +198,59 @@ class DeepmdDataSystem(object):
                     file=os.path.join(tmp_image_dir_path, "atomic_number.npy"),
                     arr=np.array(self.atomic_numbers_lst)
             )
-            # 10. nbr_info.npy
-            struct_nbr = StructureNeighborsDescriptor.create(
-                        'v2',
-                        structure=self.structures_lst[tmp_idx],
-                        scaling_matrix=scaling_matrix,
-                        reformat_mark=True,
-                        n_neighbors=self.num_atoms*scaling_matrix[0]*scaling_matrix[1]*scaling_matrix[2]
-            )
-            np.save(
-                    file=os.path.join(tmp_image_dir_path, "nbrs_atomic_numbers.npy"),
-                    arr=struct_nbr.key_nbr_atomic_numbers
-            )
-            np.save(
-                    file=os.path.join(tmp_image_dir_path, "nbrs_distances.npy"),
-                    arr=struct_nbr.key_nbr_distances
-            )
-            np.save(
-                    file=os.path.join(tmp_image_dir_path, "nbrs_coords.npy"),
-                    arr=struct_nbr.key_nbr_coords
-            )
+        
+        # 10. nbr_info.npy: 存储 nbr_info 的部分多进程并行
+        parameters_lst = [(
+                        os.path.join(dir_path, f"%0{num_bits}d" % tmp_idx),
+                        self.structures_lst[tmp_idx],
+                        scaling_matrix) for tmp_idx in range(self.num_structures)]
+        with mp.Pool(os.cpu_count()-2) as pool:
+            pool.starmap(ParallelFunction.save_struct_nbr, parameters_lst)
+            
+            
+
+class ParallelFunction(object):
+    '''
+    Description
+    -----------
+        1. 一些需要多进程并行的函数
+    '''
+    @staticmethod
+    def save_struct_nbr(
+                    tmp_image_dir_path:int,
+                    structure:DStructure,
+                    scaling_matrix:List[int]):
+        '''
+        Description
+        -----------
+            1. 存储 `struct_nbr` 的信息，在 `DeepmdDataSystem.save()` 中调用
+
+        Parameters
+        ----------
+            1. tmp_image_dir_path: str
+                - Image文件夹的路径
+            2. structure: DStructure
+                - 结构
+            3. scaling_matrix: List[int]
+                - 扩包倍数
+        '''
+        # 10. nbr_info.npy
+        struct_nbr = StructureNeighborsDescriptor.create(
+                    'v2',
+                    structure=structure,
+                    scaling_matrix=scaling_matrix,
+                    reformat_mark=True,
+                    n_neighbors=structure.num_sites*scaling_matrix[0]*scaling_matrix[1]*scaling_matrix[2]
+        )
+        np.save(
+                file=os.path.join(tmp_image_dir_path, "nbrs_atomic_numbers.npy"),
+                arr=struct_nbr.key_nbr_atomic_numbers
+        )
+        np.save(
+                file=os.path.join(tmp_image_dir_path, "nbrs_distances.npy"),
+                arr=struct_nbr.key_nbr_distances
+        )
+        np.save(
+                file=os.path.join(tmp_image_dir_path, "nbrs_coords.npy"),
+                arr=struct_nbr.key_nbr_coords
+        )
