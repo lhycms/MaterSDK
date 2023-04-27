@@ -9,8 +9,7 @@ class MovementTest(unittest.TestCase):
     def test_all(self):
         #movement_path = "/data/home/liuhanyu/hyliu/code/mlff/test/demo1/PWdata/data1/MOVEMENT"
         movement_path = "/data/home/liuhanyu/hyliu/code/mlff/test/demo2/PWdata/data1/MOVEMENT"
-        movement = Movement(
-                                movement_path=movement_path)
+        movement = Movement(movement_path=movement_path)
         idx_frame = 100 # 帧数从 0 开始计数
         
         # 1. get_chunksize()
