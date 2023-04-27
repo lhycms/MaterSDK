@@ -9,6 +9,7 @@ class DeepmdDataSystemTest(unittest.TestCase):
     def test_from_trajectory(self):
         movement = Movement(movement_path="/data/home/liuhanyu/hyliu/code/mlff/test/demo2/PWdata/data1/MOVEMENT")
         dp_data_system = DeepmdDataSystem.from_trajectory(trajectory_object=movement)
+        dir_path = "/data/home/liuhanyu/hyliu/code/test"
         
         ### Step 1.
         print()
@@ -23,8 +24,13 @@ class DeepmdDataSystemTest(unittest.TestCase):
         ### Step 3. 
         print()
         print("Step 3. DeepDataSystem.total_energys_lst:")
-        print(dp_data_system.total_energys_array)
+        #print(dp_data_system.total_energys_array)
         
+        
+        ### Step 4.
+        print()
+        print("Step 4. ")
+        dp_data_system.save(dir_path=dir_path)
 
 
 if __name__ == "__main__":

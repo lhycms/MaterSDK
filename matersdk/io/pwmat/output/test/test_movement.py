@@ -54,6 +54,20 @@ class MovementTest(unittest.TestCase):
         print("Step 7. Volume of {0}th frame:`".format(idx_frame), end="\t")
         volume = movement.get_frame_volume(idx_frame=idx_frame)
         print(volume)
+        
+        
+        # 8.
+        print()
+        print("Step 8. Force of {0}th frame:`".format(idx_frame), end="\t")
+        forces_array = movement.get_frame_structure(idx_frame=idx_frame).get_atomic_force()
+        print(forces_array)
+        
+        # 9.
+        print()
+        print("Step 9. Atomic energy of {0}th frame:`".format(idx_frame), end="\t")
+        forces_array = movement.get_frame_structure(idx_frame=idx_frame).get_atomic_energy()
+        print(forces_array)
+        
     
         
         

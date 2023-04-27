@@ -474,3 +474,35 @@ class DStructure(Structure):
             supercell.reformat_elements_()
             
         return supercell
+    
+    
+    def get_atomic_force(self):
+        '''
+        Description
+        -----------
+            1. 得到一个 num_atoms*3 的 np.ndarray -- 单个原子的受力
+        
+        Return 
+        ------
+            1. forces_array: np.ndarray
+        '''
+        forces_lst = []
+        for tmp_site in self.sites:
+            forces_lst.append(tmp_site.atomic_force)
+        return np.array(forces_lst)
+    
+    
+    def get_atomic_energy(self):
+        '''
+        Description
+        -----------
+            1. 得到一个 num_atoms 的 np.ndarray -- 单个原子的能量
+            
+        Return
+        ------
+            1. energies_array: np.ndarray
+        '''
+        energyes_lst = []
+        for tmp_site in self.sites:
+            energyes_lst.append(tmp_site.atomic_energy[0])
+        return np.array(energyes_lst)

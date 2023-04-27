@@ -154,7 +154,7 @@ class StructureTest(unittest.TestCase):
                         coords_are_cartesian=coords_are_cartesian
                         )
         bidx2aidx = structure._get_bidx2aidx_supercell(scaling_matrix=scaling_matrix)
-        print(bidx2aidx)
+        #print(bidx2aidx)
 
     def test_get_key_idxs(self):
         file_format = "pwmat"
@@ -169,10 +169,10 @@ class StructureTest(unittest.TestCase):
                         )
         
         key_idxs = structure.get_key_idxs(scaling_matrix=scaling_matrix)
-        print(key_idxs)
+        #print(key_idxs)
         
           
-
+    
 
 
 if __name__ == "__main__":

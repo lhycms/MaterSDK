@@ -21,6 +21,11 @@ matersdk/calculation/kpoints/test/test_kpointsSampler.py
 matersdk/click/__init__.py
 matersdk/click/addMag.py
 matersdk/click/convertFormat.py
+matersdk/data/__init__.py
+matersdk/data/deepmd/__init__.py
+matersdk/data/deepmd/data_system.py
+matersdk/data/deepmd/test/__init__.py
+matersdk/data/deepmd/test/test_data_system.py
 matersdk/feature/__init__.py
 matersdk/feature/deepmd/__init__.py
 matersdk/feature/deepmd/premise.py
@@ -43,6 +48,7 @@ matersdk/io/publicLayer/__init__.py
 matersdk/io/publicLayer/atom.py
 matersdk/io/publicLayer/neigh.py
 matersdk/io/publicLayer/structure.py
+matersdk/io/publicLayer/traj.py
 matersdk/io/publicLayer/test/__init__.py
 matersdk/io/publicLayer/test/test_Structure.py
 matersdk/io/publicLayer/test/test_neigh.py
