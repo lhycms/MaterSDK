@@ -4,9 +4,10 @@ import numpy as np
 from ..utils.lineLocator import LineLocator
 from ..utils.parameters import atomic_number2specie
 from ...publicLayer.structure import DStructure
+from ...publicLayer.traj import Trajectory
 
 
-class Movement(object):
+class Movement(Trajectory):
     def __init__(self,
                 movement_path:str
                 ):
