@@ -59,6 +59,9 @@ Using following algorithm to handle the periodic boundary conditions (Take an 2D
 1. Demo url: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/graph/adjacent_matrix.ipynb
 
 
+## 1.6. Use `DeepmdDataSystem` to store some neighbor information in Image folder
+1. Demo url: 
+
 # 2. Installation
 ## 2.1. Online
 ```shell
