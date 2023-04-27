@@ -4,6 +4,7 @@ import numpy as np
 from typing import List
 from ...io.publicLayer.traj import Trajectory
 from ...io.publicLayer.structure import DStructure
+from ...io.publicLayer.neigh import StructureNeighborsDescriptor
 
 
 class DeepmdDataSystem(object):
@@ -36,6 +37,30 @@ class DeepmdDataSystem(object):
         self.kinetic_energys_array = kinetic_energys_array
         self.potential_energys_array = potential_energys_array
         self.virial_tensors_array = virial_tensors_array
+        
+        self.atomic_numbers_lst = self._get_atomic_numbers()    # 不重复
+        self.num_atoms = self._get_num_atoms()
+    
+    
+    def _get_num_atoms(self):
+        '''
+        Description
+        -----------
+            1. 得到每个system中原子的数目
+        '''
+        num_atoms = self.structures_lst[0].num_sites
+        return num_atoms
+    
+    def _get_atomic_numbers(self):
+        '''
+        Description
+        -----------
+            1. 得到体系内的原子序数
+                - e.g. [3, 14]
+        '''
+        atomic_numbers_lst = [tmp_specie.Z for tmp_specie in self.structures_lst[0].species]
+        atomic_numbers_lst = list(dict.fromkeys(atomic_numbers_lst))
+        return atomic_numbers_lst
     
     
     @staticmethod
@@ -56,30 +81,31 @@ class DeepmdDataSystem(object):
         ### Step 0. `DeepmdDataSystem` 所含的构型数目
         num_structures = len(trajectory_object.get_chunksize())
          
-        ### Step 1. 设置 `structures_lst`
+        ### Step 1. 设置
         structures_lst = []
-        for tmp_idx in range(num_structures):
-            tmp_structure = trajectory_object.get_frame_structure(idx_frame=tmp_idx)
-            structures_lst.append(tmp_structure)
-        
-        ### Step 2. 设置 `total_energys_lst`
         total_energys_lst = []
         kinetic_energys_lst = []
         potential_energys_lst = []
+        virial_tensors_lst = []
+        
         for tmp_idx in range(num_structures):
+            # Step 1.1.
+            tmp_structure = trajectory_object.get_frame_structure(idx_frame=tmp_idx)
+            structures_lst.append(tmp_structure)
+            
+            # Step 1.2. 
             tmp_total_energy, tmp_kinetic_energy, tmp_potential_energy = \
                                             trajectory_object.get_frame_energy(idx_frame=tmp_idx)
             total_energys_lst.append(tmp_total_energy)
             kinetic_energys_lst.append(tmp_kinetic_energy)
             potential_energys_lst.append(tmp_potential_energy)
-        
-        ### Step 3. 设置 `virial_tensor`
-        virial_tensors_lst = []
-        for tmp_idx in range(num_structures):
-            tmp_virial_tensor = trajectory_object.get_frame_virial(idx_frame=tmp_idx)
-            virial_tensors_lst.append(tmp_virial_tensor)
             
-        ### Step 4. 初始化
+            # Step 1.3. 
+            tmp_virial_tensor = trajectory_object.get_frame_virial(idx_frame=tmp_idx)
+            virial_tensors_lst.append(tmp_virial_tensor)            
+            
+            
+        ### Step 2. 初始化
         dp_data_system = DeepmdDataSystem(
                         structures_lst=structures_lst,
                         total_energys_array=np.array(total_energys_lst),
@@ -91,11 +117,15 @@ class DeepmdDataSystem(object):
         return dp_data_system
     
     
-    def save(self, dir_path:str):
+    def save(
+            self,
+            dir_path:str,
+            scaling_matrix:List[int]=[3,3,3]):
         '''
         Description
         -----------
-            1. 
+            1. 将初始化的信息存入对应image文件夹下 (以npy形式)。
+            2. 存储近邻原子信息 -- `nbr_info.npy`
             
         Parameters
         ----------
@@ -161,4 +191,29 @@ class DeepmdDataSystem(object):
             np.save(
                     file=os.path.join(tmp_image_dir_path, "virial.npy"),
                     arr=self.virial_tensors_array[tmp_idx]
+            )
+            # 9. atomic_number
+            np.save(
+                    file=os.path.join(tmp_image_dir_path, "atomic_number.npy"),
+                    arr=np.array(self.atomic_numbers_lst)
+            )
+            # 10. nbr_info.npy
+            struct_nbr = StructureNeighborsDescriptor.create(
+                        'v2',
+                        structure=self.structures_lst[tmp_idx],
+                        scaling_matrix=scaling_matrix,
+                        reformat_mark=True,
+                        n_neighbors=self.num_atoms*scaling_matrix[0]*scaling_matrix[1]*scaling_matrix[2]
+            )
+            np.save(
+                    file=os.path.join(tmp_image_dir_path, "nbrs_atomic_numbers.npy"),
+                    arr=struct_nbr.key_nbr_atomic_numbers
+            )
+            np.save(
+                    file=os.path.join(tmp_image_dir_path, "nbrs_distances.npy"),
+                    arr=struct_nbr.key_nbr_distances
+            )
+            np.save(
+                    file=os.path.join(tmp_image_dir_path, "nbrs_coords.npy"),
+                    arr=struct_nbr.key_nbr_coords
             )

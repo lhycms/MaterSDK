@@ -31,6 +31,18 @@ class DeepmdDataSystemTest(unittest.TestCase):
         print()
         print("Step 4. ")
         dp_data_system.save(dir_path=dir_path)
+        
+        
+        ### Step 5.
+        print()
+        print("Step 5. The atomic number in system:", end='\t')
+        print(dp_data_system.atomic_numbers_lst)
+        
+        
+        ### Step 6.
+        print()
+        print("Step 6. The number of atoms in system:", end='\t')
+        print(dp_data_system.num_atoms)
 
 
 if __name__ == "__main__":
