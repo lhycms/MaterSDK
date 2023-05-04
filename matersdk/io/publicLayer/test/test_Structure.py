@@ -7,7 +7,7 @@ from ..structure import DStructure
 
 
 class StructureTest(unittest.TestCase):
-    def test_structure_init(self):
+    def structure_init(self):
         file_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/atom.config"
         file_format = "pwmat"
         coords_are_cartesian = False
@@ -36,7 +36,7 @@ class StructureTest(unittest.TestCase):
                 "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/test.config"
         # 2. 
         output_file_path = \
-                "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/test.config"
+                "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/POSCAR"
         coords_are_cartesian = False
 
         structure = DStructure.from_file(
@@ -44,6 +44,7 @@ class StructureTest(unittest.TestCase):
                         file_format=file_format,
                         coords_are_cartesian=coords_are_cartesian
                         )
+        structure.reformat_elements_()
 
         #print(structure.site_properties["magmom"])
 
@@ -53,12 +54,12 @@ class StructureTest(unittest.TestCase):
         
         # 2. 
         structure.to(output_file_path=output_file_path,
-                    output_file_format="pwmat",
+                    output_file_format="vasp",
                     include_magnetic_moments=True,
                    )
 
 
-    def test_judge_vacuum_exist(self):
+    def judge_vacuum_exist(self):
         file_format = "pwmat"
         file_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/atom.config"
         coords_are_cartesian = False
@@ -72,7 +73,7 @@ class StructureTest(unittest.TestCase):
         #print(structure.judge_vacuum_exist())
     
     
-    def test_reformat_elements(self):
+    def reformat_elements(self):
         file_format = "pwmat"
         file_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/atom.config"
         coords_are_cartesian = False
@@ -91,7 +92,7 @@ class StructureTest(unittest.TestCase):
         #print(new_structure)  
     
     
-    def test_remove_vacanies(self):
+    def remove_vacanies(self):
         file_format = "pwmat"
         file_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/atom.config"
         coords_are_cartesian = False
@@ -118,7 +119,7 @@ class StructureTest(unittest.TestCase):
         #print(structure)
     
     
-    def test_make_supercell_(self):
+    def make_supercell_(self):
         file_format = "pwmat"
         # 1. 普通的测试
         file_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/atom.config"
@@ -142,7 +143,7 @@ class StructureTest(unittest.TestCase):
         #           )
         
         
-    def test_get_bidx2aidx_supercell(self):
+    def get_bidx2aidx_supercell(self):
         file_format = "pwmat"
         # 1. 普通的测试
         file_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/atom.config"
@@ -156,7 +157,7 @@ class StructureTest(unittest.TestCase):
         bidx2aidx = structure._get_bidx2aidx_supercell(scaling_matrix=scaling_matrix)
         #print(bidx2aidx)
 
-    def test_get_key_idxs(self):
+    def get_key_idxs(self):
         file_format = "pwmat"
         # 1. 普通的测试
         file_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/atom.config"

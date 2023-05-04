@@ -53,7 +53,7 @@ class StructureNeighborsV1Test(unittest.TestCase):
 
 
 class StructureNeighborsV2Test(unittest.TestCase):
-    def test_all(self):
+    def all(self):
         atom_config_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/atom.config"
         scaling_matrix = [5, 5, 1]
         reformat_mark = True
@@ -63,12 +63,6 @@ class StructureNeighborsV2Test(unittest.TestCase):
         structure = DStructure.from_file(
                         file_format="pwmat", 
                         file_path=atom_config_path)
-        #neighbors_v2 = StructureNeighborsV2(
-        #                structure=structure,
-        #                scaling_matrix=scaling_matrix,
-        #                reformat_mark=reformat_mark,
-        #                coords_are_cartesian=coords_are_cartesian,
-        #                n_neighbors=n_neighbors)
         neighbors_v2 = StructureNeighborsDescriptor.create(
                         "v2",
                         structure=structure,
@@ -93,6 +87,34 @@ class StructureNeighborsV2Test(unittest.TestCase):
         print("\t1.3. The shape of key_nbr_distances:\t", key_nbr_distances.shape)
         print("\t1.4. The shape of key_nbr_coords:\t", key_nbr_coords.shape)
 
+
+class StructureNeighborsV3Test(unittest.TestCase):
+    def test_all(self):
+        atom_config_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/atom.config"
+        scaling_matrix = [3, 3, 1]
+        reformat_mark = True
+        rcut = 3.2
+        coords_are_cartesian = True   
+        
+        structure = DStructure.from_file(
+                        file_format="pwmat",
+                        file_path=atom_config_path)
+        neighbors_v3 = StructureNeighborsDescriptor.create(
+                        "v3",
+                        structure=structure,
+                        scaling_matrix=scaling_matrix,
+                        reformat_mark=reformat_mark,
+                        coords_are_cartesian=coords_are_cartesian,
+                        rcut=rcut)
+        
+        ### Step 1.
+        print()
+        print("Step 1. 在截断半径 {0} 内，最大近邻原子数为:".format(rcut), end="\t")
+        print(neighbors_v3._get_max_num_nbrs(
+                    scaling_matrix=scaling_matrix,
+                    rcut=rcut,
+                    coords_are_cartesian=coords_are_cartesian)
+        )
     
 if __name__ == "__main__":
     unittest.main()

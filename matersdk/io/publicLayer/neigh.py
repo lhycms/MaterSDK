@@ -56,7 +56,7 @@ class StructureNeighborsBase(ABC):
         '''
         pass
     
-    @abstractmethod
+    #@abstractmethod
     def _judge_rationality(self):
         pass
     
@@ -234,7 +234,7 @@ class StructureNeighborsV2(StructureNeighborsBase):
     '''
     Description
     -----------
-        1. Work as `StructureNeighborsV2`, but rewrite myself.
+        1. Work as `StructureNeighborsV1`, but rewrite KNN myself.
     '''
     def __init__(
                 self,
@@ -368,3 +368,153 @@ class StructureNeighborsV2(StructureNeighborsBase):
             1. 判断经过 `scaling_matrix`
         '''
         return (self.supercell.num_sites < n_neighbors)
+    
+
+
+@StructureNeighborsDescriptor.register("v3")
+class StructureNeighborsV3(StructureNeighborsBase):
+    '''
+    Description
+    -----------
+        1. Work as `StructureNeighborsV3`, but set `rcut` not `n_neighbors`.
+    '''
+    def __init__(
+                self,
+                structure:DStructure,
+                scaling_matrix:List[int]=[3,3,1],
+                reformat_mark:bool=True,
+                coords_are_cartesian:bool=True,
+                rcut:float=6.5):
+        '''
+        Parameters
+        ----------
+            1. structure: DStructure
+                - 结构
+            2. scaling_matrix: List[int]
+                - 扩胞系数
+            3. reformat_mark: bool
+                - 是否按照原子序数排序。
+                - 这个参数一定要设置为 `True`
+            4. coords_are_cartesian: bool
+                - 是否使用笛卡尔坐标
+            5. rcut: float:
+                - 截断半径
+        '''
+        ### Step 1. 
+        self.structure = structure
+        self.supercell = self.structure.make_supercell_(
+                                scaling_matrix=scaling_matrix,
+                                reformat_mark=reformat_mark)
+
+        ### Step 2. 
+        # key 代指 primitive 中的原子
+    
+    
+    def _get_key_neighs_info(
+                self,
+                scaling_matrix:List[int],
+                rcut:float,
+                coords_are_cartesian:bool):
+        '''
+        Description
+        -----------
+            1. 
+        
+        Parameters
+        ----------
+            1. scaling_matrix: List[int]
+                -
+            2. rcut: float 截断半径
+                -
+            3. coords_are_cartesian: bool
+                - 
+        
+        Return
+        ------
+            1. nbr_atomic_numbers: np.ndarray, shape = (num_center, n_neighbors)
+                - 
+            2. nbr_distances: np.ndarray, shape = (num_center, n_neighbors)
+                - 
+            3. nbr_coords: np.ndarray, shape = (num_center, n_neighbors, 3)
+                - 
+        '''
+        ### Step 0. 获取 primitive_cell 中的原子在 supercell 中的 index
+        key_idxs = self.structure.get_key_idxs(scaling_matrix=scaling_matrix)
+        
+        ### Step 1. 获取 supercell 的各种信息 (sites的原子序数、坐标)，便于后边直接从其中抽取信息
+        ###         1) supercell_atomic_numbers     2) supercell_coords
+        ### Step 1.1. 获取 supercell 的各位点的原子序数 -- `supercell_atomic_numbers`
+        supercell_atomic_numbers = np.array([tmp_site.specie.Z for tmp_site in self.supercell.sites])
+        
+        ### Step 1.2. 获取 supercell 的 (笛卡尔) 坐标 -- `supercell_coords`
+        if coords_are_cartesian:
+            supercell_coords = self.supercell.cart_coords
+        else:
+            supercell_coords = self.supercell.frac_coords
+        
+        ### Step 2. 初始化需要返回的三个 np.ndarray
+        #   nbr_atomic_numbers: 
+        #   nbr_distances: 
+        #   nbr_coords: 
+    
+    
+    def _get_max_num_nbrs(
+                        self,
+                        scaling_matrix:List[int],
+                        rcut:float,
+                        coords_are_cartesian:bool=True):
+        '''
+        Description
+        -----------
+            1. 得到在一定的截断半径内，各中心原子的最大近邻原子数
+        
+        Parameters
+        ----------
+            1. scaling_matrix: List[int]
+                - 扩胞倍数
+            2. rcut: float
+                - 截断半径
+            3. coords_are_cartesian: bool
+                - 是否使用笛卡尔坐标
+        
+        Note
+        ----
+            1. 包含原子自身，因此近邻原子数其实应该在此基础上 `-1`
+        '''
+        ### Step 0. 获取 primitive_cell 中原子在 supercell 中的 index
+        key_idxs = self.structure.get_key_idxs(scaling_matrix=scaling_matrix)
+        
+        ### Step 1. 获取 supercell 的各种信息(sites的原子序数、坐标)，便于后边直接提取
+        #               1) supercell_atomic_numbers, supercell_coords
+        ### Step 1.1. 获取 supercell 的各位点的原子序数 -- `supercell_atomic_numbers`
+        #supercell_atomic_numbers = np.array([tmp_site.specie.Z for tmp_site in self.supercell.sites])
+        
+        ### Step 1.2. 获取 supercell 的(笛卡尔)坐标 -- `supercell_coords`
+        if coords_are_cartesian:
+            supercell_coords = self.supercell.cart_coords
+        else:
+            supercell_coords = self.supercell.frac_coords
+        
+        ### Step 2. 计算在截断半径内的最大原子数
+        max_num_nbrs = 0
+        for tmp_i, tmp_center_idx in enumerate(key_idxs):
+            ### Step 2.1. 计算该中心原子与近邻原子的距离
+            # shape = (3,) -> (1,3)
+            tmp_center_coord = supercell_coords[tmp_center_idx].reshape(1, 3)
+            # shape = (num_supercell, 3)
+            tmp_relative_coords = supercell_coords - tmp_center_coord
+            # shape = (num_supercell)
+            distances = np.linalg.norm(tmp_relative_coords, axis=1)
+
+            ### Step 2.2. 判断哪些近邻原子在截断半径内
+            tmp_mark_rcut = np.where(distances<rcut, True, False)
+            #print(tmp_mark_rcut)
+            
+            ### Step 2.3. 计算在截断半径内的近邻原子数目
+            tmp_num_nbrs = np.count_nonzero(tmp_mark_rcut)
+            
+            ### Step 2.4. 判断
+            if tmp_num_nbrs > max_num_nbrs:
+                max_num_nbrs = tmp_num_nbrs
+        
+        return max_num_nbrs
