@@ -58,6 +58,15 @@ class StructureNeighborsBase(ABC):
     
     #@abstractmethod
     def _judge_rationality(self):
+        '''
+        v1, v2
+        '''
+        pass
+    
+    def _get_max_num_nbrs(self):
+        '''
+        v3
+        '''
         pass
     
     
@@ -406,7 +415,13 @@ class StructureNeighborsV3(StructureNeighborsBase):
                                 scaling_matrix=scaling_matrix,
                                 reformat_mark=reformat_mark)
 
-        ### Step 2. 
+        ### Step 2.
+        #self.max_num_nbrs = self.get_max_num_nbrs(
+        #                            scaling_matrix=scaling_matrix,
+        #                            rcut=rcut,
+        #                            coords_are_cartesian=coords_are_cartesian)
+
+        ### Step 3. 
         # key 代指 primitive 中的原子
     
     
@@ -453,12 +468,55 @@ class StructureNeighborsV3(StructureNeighborsBase):
             supercell_coords = self.supercell.frac_coords
         
         ### Step 2. 初始化需要返回的三个 np.ndarray
-        #   nbr_atomic_numbers: 
-        #   nbr_distances: 
-        #   nbr_coords: 
+        #   nbr_atomic_numbers: 近邻原子的元素种类 (原子序数)
+        #   nbr_distances: 近邻原子距中心原子的距离
+        #   nbr_coords: 近邻原子的坐标
+        # shape = (num_center, n_neighbors)
+        nbr_atomic_numbers = np.zeros((len(key_idxs), supercell_atomic_numbers.shape[0]))
+        # shape = (num_center, n_neighbors)
+        nbr_distances = np.zeros((len(key_idxs), supercell_atomic_numbers.shape[0]))
+        # shape = (num_center, n_neighbors, 3)
+        nbr_coords = np.zeros((len(key_idxs), supercell_atomic_numbers.shape[0], 3))
+        
+        
+        ### Step 2.1. 每个 primitiv_cell 中的原子，循环一次
+        max_num_nbrs = 0
+        for tmp_i, tmp_center_idx in enumerate(key_idxs):
+            '''
+            Note
+            ----
+                1. `tmp_i`: 从 0 开始
+                2. `tmp_center_idx`: primitive_cell 的原子在 supercell 中的 index
+                3. `tmp_nbr_idxs`: 将 `supercell 中所有原子的索引`按照距中心原子距离的远近排序
+            '''
+            ### Step 2.1.1. 计算所有原子距该中心原子的距离
+            # shape = (3,) -> (1, 3)
+            tmp_center_coord = supercell_coords[tmp_center_idx].reshape(1, 3)
+            # shape = (num_supercell, 3)
+            tmp_relative_coords = supercell_coords - tmp_center_coord
+            # shape = (num_supercell,)
+            tmp_distances = np.linalg.norm(tmp_relative_coords, axis=1)
+            
+            ### Step 2.1.2. 将 `supercell 中所有原子的索引`按照距中心原子距离的远近排序（这个索引指的是在supercell中的索引）
+            tmp_num_nbrs = np.count_nonzero(tmp_distances<=rcut)    # 该中心原子在截断半径内的近邻原子数 (包括自身)
+            if tmp_num_nbrs > max_num_nbrs:
+                max_num_nbrs = tmp_num_nbrs
+            tmp_sorted_nbr_idxs = np.argsort(tmp_distances)[:tmp_num_nbrs]
+            
+            ### Step 2.1.3.
+            nbr_atomic_numbers[tmp_i, :tmp_num_nbrs] = supercell_atomic_numbers[tmp_sorted_nbr_idxs]
+            nbr_distances[tmp_i, :tmp_num_nbrs] = tmp_distances[tmp_sorted_nbr_idxs]
+            nbr_coords[tmp_i, :tmp_num_nbrs, :] = supercell_coords[tmp_sorted_nbr_idxs, :]
+        
+        ### Step 3. 
+        nbr_atomic_numbers = nbr_atomic_numbers[:, :max_num_nbrs]
+        nbr_distances = nbr_distances[:, :max_num_nbrs]
+        nbr_coords = nbr_coords[:, :max_num_nbrs, :]
+        
+        return nbr_atomic_numbers, nbr_distances, nbr_coords
+            
     
-    
-    def _get_max_num_nbrs(
+    def get_max_num_nbrs(
                         self,
                         scaling_matrix:List[int],
                         rcut:float,

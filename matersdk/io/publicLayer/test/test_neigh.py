@@ -110,11 +110,23 @@ class StructureNeighborsV3Test(unittest.TestCase):
         ### Step 1.
         print()
         print("Step 1. 在截断半径 {0} 内，最大近邻原子数为:".format(rcut), end="\t")
-        print(neighbors_v3._get_max_num_nbrs(
+        print(neighbors_v3.get_max_num_nbrs(
                     scaling_matrix=scaling_matrix,
                     rcut=rcut,
                     coords_are_cartesian=coords_are_cartesian)
         )
+        
+        print()
+        print("Step 2. primitive_cell 中原子的近邻原子情况:")
+        key_nbr_species, key_nbr_distances, key_nbr_coords = \
+                    neighbors_v3._get_key_neighs_info(
+                                    scaling_matrix=scaling_matrix,
+                                    rcut=rcut,
+                                    coords_are_cartesian=coords_are_cartesian)
+        #print("\t1.1. The number of atoms in primitive cell:\t", len(neighbors_v3.structure.species))
+        #print("\t1.2. The shape of key_nbr_species:\t", key_nbr_species.shape)
+        #print("\t1.3. The shape of key_nbr_distances:\t", key_nbr_distances.shape)
+        #print("\t1.4. The shape of key_nbr_coords:\t", key_nbr_coords.shape)
     
 if __name__ == "__main__":
     unittest.main()
