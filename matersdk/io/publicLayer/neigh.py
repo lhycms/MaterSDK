@@ -497,9 +497,11 @@ class StructureNeighborsV3(StructureNeighborsBase):
             
             ### Step 2.1.2. 将 `supercell 中所有原子的索引`按照距中心原子距离的远近排序（这个索引指的是在supercell中的索引）
             tmp_num_nbrs = np.count_nonzero(tmp_distances<=rcut)    # 该中心原子在截断半径内的近邻原子数 (包括自身)
+            
             if tmp_num_nbrs > max_num_nbrs:
                 max_num_nbrs = tmp_num_nbrs
             tmp_sorted_nbr_idxs = np.argsort(tmp_distances)[:tmp_num_nbrs]
+            #print(tmp_sorted_nbr[1000:1050])
             
             ### Step 2.1.3.
             nbr_atomic_numbers[tmp_i, :tmp_num_nbrs] = supercell_atomic_numbers[tmp_sorted_nbr_idxs]

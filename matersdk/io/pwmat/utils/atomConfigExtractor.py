@@ -82,6 +82,7 @@ class AtomConfigExtractor(object):
         ### Step 2. 获取基矢向量
         for row_idx in [idx_row+1, idx_row+2, idx_row+3]:
             row_content = linecache.getline(self.atom_config_path, row_idx).split()[:3]
+            
             single_direction_vector = [float(value) for value in row_content]
             basis_vectors_lst.append(single_direction_vector)
                 
@@ -268,7 +269,7 @@ class AtomConfigExtractor(object):
             idx_row = LineLocator.locate_all_lines(
                                     file_path=self.atom_config_path,
                                     content=content)[-1]
-            #print(idx_row)
+
             with open(self.atom_config_path, "r") as f:
                 atom_config_content = f.readlines()
             

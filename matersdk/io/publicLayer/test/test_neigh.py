@@ -90,10 +90,13 @@ class StructureNeighborsV2Test(unittest.TestCase):
 
 class StructureNeighborsV3Test(unittest.TestCase):
     def test_all(self):
-        atom_config_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/atom.config"
-        scaling_matrix = [5, 5, 1]
+        #atom_config_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/atom.config"
+        atom_config_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/feature/movement/LiSi.config"
+        #scaling_matrix = [5, 5, 1]
+        scaling_matrix = [3, 3, 3]
+        #rcut = 3.2
+        rcut = 6.5
         reformat_mark = True
-        rcut = 3.2
         coords_are_cartesian = True   
         
         structure = DStructure.from_file(
@@ -127,6 +130,7 @@ class StructureNeighborsV3Test(unittest.TestCase):
         print("\t1.2. The shape of key_nbr_species:\t", key_nbr_species.shape)
         print("\t1.3. The shape of key_nbr_distances:\t", key_nbr_distances.shape)
         print("\t1.4. The shape of key_nbr_coords:\t", key_nbr_coords.shape)
+    
     
 if __name__ == "__main__":
     unittest.main()

@@ -3,6 +3,7 @@ import shutil
 import numpy as np
 from typing import List
 import multiprocessing as mp
+
 from ...io.publicLayer.traj import Trajectory
 from ...io.publicLayer.structure import DStructure
 from ...io.publicLayer.neigh import StructureNeighborsDescriptor
@@ -12,7 +13,7 @@ class DeepmdDataSystem(object):
     '''
     Description
     -----------
-        1. `DeepDataSystem` 中包含很多frame的DStructure对象
+        1. `DeepDataSystem` 中包含很多frame的DStructure对象 (所有frame的原子数相同!!!)
         2. 这个类用于....?
         
     Attributions
@@ -23,6 +24,8 @@ class DeepmdDataSystem(object):
         4. self.kinetic_energys_lst: List[float]
         5. self.potential_energys_lst: List[float]
         6. self.virial_tensors_lst: List[np.ndarray]
+        7. self.atomic_numbers_lst: List[int]
+        8. self.num_atoms
     '''
     def __init__(
                 self,
@@ -30,8 +33,10 @@ class DeepmdDataSystem(object):
                 total_energys_array: np.ndarray,
                 kinetic_energys_array: np.ndarray,
                 potential_energys_array: np.ndarray,
-                virial_tensors_array: np.ndarray
-                ):
+                virial_tensors_array: np.ndarray,
+                rcut:float):
+        self.rcut = rcut
+        
         self.num_structures = len(structures_lst)
         self.structures_lst = structures_lst
         self.total_energys_array = total_energys_array
@@ -67,6 +72,7 @@ class DeepmdDataSystem(object):
     @staticmethod
     def from_trajectory(
                 trajectory_object:Trajectory,
+                rcut:float,
                 ):
         '''
         Description
@@ -90,6 +96,7 @@ class DeepmdDataSystem(object):
         virial_tensors_lst = []
         
         for tmp_idx in range(num_structures):
+        #for tmp_idx in range(0, 10):
             # Step 1.1.
             tmp_structure = trajectory_object.get_frame_structure(idx_frame=tmp_idx)
             structures_lst.append(tmp_structure)
@@ -112,7 +119,8 @@ class DeepmdDataSystem(object):
                         total_energys_array=np.array(total_energys_lst),
                         kinetic_energys_array=np.array(kinetic_energys_lst),
                         potential_energys_array=np.array(potential_energys_lst),
-                        virial_tensors_array=np.array(virial_tensors_lst)
+                        virial_tensors_array=np.array(virial_tensors_lst),
+                        rcut=rcut
         )
         
         return dp_data_system
@@ -198,12 +206,22 @@ class DeepmdDataSystem(object):
                     file=os.path.join(tmp_image_dir_path, "atomic_number.npy"),
                     arr=np.array(self.atomic_numbers_lst)
             )
+            # 10. num_atoms
+            #num_atoms_dict = dict.fromkeys(self.atomic_numbers_lst, 0)
+            #for tmp_atomic_number in self.atomic_numbers_lst:
+            #    num_atoms_dict[tmp_atomic_number] += 1
+            #np.save(
+            #        file=os.path.join(tmp_image_dir_path, "num_atoms.npy"),
+            #        arr=np.array(list(num_atoms_dict.values()))
+            #)
         
-        # 10. nbr_info.npy: 存储 nbr_info 的部分多进程并行
+        # 11. nbr_info.npy: 存储 nbr_info 的部分多进程并行
         parameters_lst = [(
                         os.path.join(dir_path, f"%0{num_bits}d" % tmp_idx),
                         self.structures_lst[tmp_idx],
-                        scaling_matrix) for tmp_idx in range(self.num_structures)]
+                        scaling_matrix,
+                        self.rcut) for tmp_idx in range(self.num_structures)]
+        
         with mp.Pool(os.cpu_count()-2) as pool:
             pool.starmap(ParallelFunction.save_struct_nbr, parameters_lst)
             
@@ -219,7 +237,8 @@ class ParallelFunction(object):
     def save_struct_nbr(
                     tmp_image_dir_path:int,
                     structure:DStructure,
-                    scaling_matrix:List[int]):
+                    scaling_matrix:List[int],
+                    rcut:float):
         '''
         Description
         -----------
@@ -236,12 +255,14 @@ class ParallelFunction(object):
         '''
         # 10. nbr_info.npy
         struct_nbr = StructureNeighborsDescriptor.create(
-                    'v2',
+                    'v3',
                     structure=structure,
                     scaling_matrix=scaling_matrix,
                     reformat_mark=True,
-                    n_neighbors=structure.num_sites*scaling_matrix[0]*scaling_matrix[1]*scaling_matrix[2]
+                    coords_are_cartesian=True,
+                    rcut=rcut,
         )
+
         np.save(
                 file=os.path.join(tmp_image_dir_path, "nbrs_atomic_numbers.npy"),
                 arr=struct_nbr.key_nbr_atomic_numbers
