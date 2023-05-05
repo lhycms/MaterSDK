@@ -416,13 +416,11 @@ class StructureNeighborsV3(StructureNeighborsBase):
                                 reformat_mark=reformat_mark)
 
         ### Step 2.
-        #self.max_num_nbrs = self.get_max_num_nbrs(
-        #                            scaling_matrix=scaling_matrix,
-        #                            rcut=rcut,
-        #                            coords_are_cartesian=coords_are_cartesian)
-
-        ### Step 3. 
-        # key 代指 primitive 中的原子
+        self.key_nbr_atomic_numbers, self.key_nbr_distances, self.key_nbr_coords = \
+                self._get_key_neighs_info(
+                        scaling_matrix=scaling_matrix,
+                        rcut=rcut,
+                        coords_are_cartesian=coords_are_cartesian)
     
     
     def _get_key_neighs_info(
