@@ -41,22 +41,28 @@ Using following algorithm to handle the periodic boundary conditions (Take an 2D
 2. The element in `scaling matrix` must be odd number.
 
 
-### 1.4.1. Use `matersdk.io.publicLayer.neigh.StructureNeighborsV1` to analyse the surrouing environment for specific atom.
+### 1.4.1. `matersdk.io.publicLayer.neigh.StructureNeighborsBase`: Get information of neighbors atom for center atom.
+#### 1.4.1.1. Use `matersdk.io.publicLayer.neigh.StructureNeighborsV1` to analyse the surrouing environment for specific atom.
 1. `matersdk.io.publicLayer.neigh.StructureNeighborsV2` is much faster than `matersdk.io.publicLayer.neigh.StructureNeighbors`.
 2. Demo url: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/neighs/SturtureNeighbors.ipynb
 
-### 1.4.2. Use `matersdk.io.publicLayer.neigh.StructureNeighborsV2` to analyse the surrouing environment for specific atom.
+#### 1.4.1.2. Use `matersdk.io.publicLayer.neigh.StructureNeighborsV2` to analyse the surrouing environment for specific atom.
 1. `matersdk.io.publicLayer.neigh.StructureNeighborsV2` is much faster than `matersdk.io.publicLayer.neigh.StructureNeighbors`.
 2. Demo url: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/neighs/SturtureNeighbors.ipynb
 
-### 1.4.3. Use `matersdk.io.publicLayer.neigh.StructureNeighborsV3` to analyse the surrouing environment for specific atom.
+#### 1.4.1.3. Use `matersdk.io.publicLayer.neigh.StructureNeighborsV3` to analyse the surrouing environment for specific atom.
 1. `matersdk.io.publicLayer.neigh.StructureNeighborsV3` is much faster than `matersdk.io.publicLayer.neigh.StructureNeighborsV1`. And save more space than `StrcutureNeighborsV2`
 2. Demo url: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/neighs/SturtureNeighbors.ipynb
 
-### 1.4.4. Premise for Deepmd feature pair
+### 1.4.2. `matersdk.feature.deepmd.premise.DpFeaturePairPremiseBase`: Get pair information of neighbor atoms for center atom
+#### 1.4.2.1. `matersdk.feature.deepmd.premise.DpFeaturePairPremiseV1`
 1. Demo url: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/deepmd/premise.ipynb
 
-### 1.4.5. Smooth edition $\widetilde{R}$ of Deepmd feature pair 
+#### 1.4.2.2. `matersdk.feature.deepmd.premise.DpFeaturePairPremiseV2`
+1. Demo url: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/deepmd/premise.ipynb
+
+### 1.4.3. `matersdk.feature.deepmd.`
+#### 1.4.3.1. Smooth edition $\widetilde{R}$ of Deepmd feature pair 
 1. Demo url: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/deepmd/deepmdTileR_3d.ipynb
 
 ## 1.5. Adjacent Matrix
