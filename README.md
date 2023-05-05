@@ -64,10 +64,10 @@ Using following algorithm to handle the periodic boundary conditions (Take an 2D
 ### 1.4.3. Smooth edition $\widetilde{R}$ of Deepmd feature pair
 #### 1.4.3.1. `matersdk.feature.deepmd.se.DeepmdSeTildeRV1`
 1. Demo url: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/deepmd/deepmdTileR_3d.ipynb
-2. https://github.com/lhycms/MaterSDK/blob/main/demo/feature/neighs/SturtureNeighbors.ipynb
+2. https://github.com/lhycms/MaterSDK/blob/main/demo/feature/deepmd/deepmdTileR.ipynb
 
 #### 1.4.3.2. `matersdk.feature.deepmd.se.DeepmdSeTildeRV2` -- Don't need to specify `n_neighbors` at first.
-1. https://github.com/lhycms/MaterSDK/blob/main/demo/feature/neighs/SturtureNeighbors.ipynb
+1. https://github.com/lhycms/MaterSDK/blob/main/demo/feature/deepmd/deepmdTileR.ipynb
 
 ## 1.5. Adjacent Matrix
 1. Demo url: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/graph/adjacent_matrix.ipynb
