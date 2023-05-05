@@ -1,9 +1,45 @@
 import numpy as np
+from abc import ABC, abstractclassmethod
 
 from ...io.publicLayer.neigh import StructureNeighborsBase
-from .premise import DpFeaturePairPremise
+from .premise import DpFeaturePairPremiseDescriptor
 
-class DeepmdSeTildeR(object):
+
+
+class DeepmdSeTildeRBase(ABC):
+    @abstractclassmethod
+    def _get_premise(self):
+        pass
+    
+    @abstractclassmethod
+    def _get_s(self):
+        pass
+    
+    @abstractclassmethod
+    def _get_tildeR(self):
+        pass
+    
+
+
+class DeepmdSeTildeRDescriptor(object):
+    registry = {}
+    
+    @classmethod
+    def register(cls, name:str):
+        def wrapper(subclass:DeepmdSeTildeRBase):
+            cls.registry[name] = subclass
+        return wrapper
+
+    @classmethod
+    def create(cls, name:str, *args, **kwargs):
+        subclass = cls.registry[name]
+        if subclass is None:
+            raise ValueError(f"No DeepmdSeTildeR registered with name '{name}'")
+        return subclass(*args, **kwargs)
+
+
+@DeepmdSeTildeRDescriptor.register("v1")
+class DeepmdSeTildeRV1(DeepmdSeTildeRBase):
     '''
     Description
     -----------
@@ -76,14 +112,17 @@ class DeepmdSeTildeR(object):
             3. dp_feature_pair_rc: np.ndarray, shape = (num_center, max_num_nbrs, 3)
                 - 近邻原子距中心原子的相对坐标 (在笛卡尔坐标系下)
         '''
-        dp_feature_pair_premise = DpFeaturePairPremise(structure_neighbors=structure_neighbors)
+        dp_feature_pair_premise = DpFeaturePairPremiseDescriptor.create(
+                                        "v1",
+                                        structure_neighbors=structure_neighbors
+        )
         dp_feature_pair_an, dp_feature_pair_d, dp_feature_pair_rc = \
                         dp_feature_pair_premise.extract_feature_pair(
                             center_atomic_number=center_atomic_number,
                             nbr_atomic_number=nbr_atomic_number,
                             rcut=rcut,
                             max_num_nbrs=max_num_nbrs
-                        )
+        )
         return dp_feature_pair_an, dp_feature_pair_d, dp_feature_pair_rc
     
     

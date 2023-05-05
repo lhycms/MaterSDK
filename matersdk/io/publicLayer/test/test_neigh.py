@@ -91,7 +91,7 @@ class StructureNeighborsV2Test(unittest.TestCase):
 class StructureNeighborsV3Test(unittest.TestCase):
     def test_all(self):
         atom_config_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/atom.config"
-        scaling_matrix = [3, 3, 1]
+        scaling_matrix = [5, 5, 1]
         reformat_mark = True
         rcut = 3.2
         coords_are_cartesian = True   
@@ -123,10 +123,10 @@ class StructureNeighborsV3Test(unittest.TestCase):
                                     scaling_matrix=scaling_matrix,
                                     rcut=rcut,
                                     coords_are_cartesian=coords_are_cartesian)
-        #print("\t1.1. The number of atoms in primitive cell:\t", len(neighbors_v3.structure.species))
-        #print("\t1.2. The shape of key_nbr_species:\t", key_nbr_species.shape)
-        #print("\t1.3. The shape of key_nbr_distances:\t", key_nbr_distances.shape)
-        #print("\t1.4. The shape of key_nbr_coords:\t", key_nbr_coords.shape)
+        print("\t1.1. The number of atoms in primitive cell:\t", len(neighbors_v3.structure.species))
+        print("\t1.2. The shape of key_nbr_species:\t", key_nbr_species.shape)
+        print("\t1.3. The shape of key_nbr_distances:\t", key_nbr_distances.shape)
+        print("\t1.4. The shape of key_nbr_coords:\t", key_nbr_coords.shape)
     
 if __name__ == "__main__":
     unittest.main()

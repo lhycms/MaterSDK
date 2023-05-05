@@ -1,8 +1,53 @@
+from abc import ABC, abstractclassmethod
 import numpy as np
 from ...io.publicLayer.neigh import StructureNeighborsBase
 
+
+class DpFeaturePairPremiseDescriptor(object):
+    '''
+    Description
+    -----------
+        1. Map str to Derived class of `StructureNeighborBase`.
     
-class DpFeaturePairPremise(object):
+    Usage
+    -----
+        1. Demo 1.
+            ```python
+            dppd = DpFeaturePairPremiseDescription("v1")
+            ```
+    
+    ----
+        1. 'v1': `DpFeaturePairPremise`
+            - for `StructureNeighborsV1`, `StructureNeighborsV2`
+        2. 'v2': 
+            - for `StructureNeighborsV3`
+    '''
+    registry = {}
+
+    @classmethod
+    def register(cls, name:str):
+        def wrapper(subclass:DpFeaturePairPremiseBase):
+            cls.registry[name] = subclass
+        return wrapper
+    
+    
+    @classmethod
+    def create(cls, name:str, *args, **kwargs):
+        subclass = cls.registry[name]
+        if subclass is None:
+            raise ValueError(f"No DpFeaturePairPremise registered with name '{name}'")
+        return subclass(*args, **kwargs)
+    
+
+
+class DpFeaturePairPremiseBase(ABC):
+    @abstractclassmethod
+    def extract_feature_pair(self):
+        pass
+
+
+@DpFeaturePairPremiseDescriptor.register("v1")
+class DpFeaturePairPremise(DpFeaturePairPremiseBase):
     def __init__(
                 self,
                 structure_neighbors:StructureNeighborsBase,
@@ -156,10 +201,18 @@ class DpFeaturePairPremise(object):
         ### 4.2. 删除全为 0 的entry
         # shape = (12,)
         tmp_rm_zeros = ~np.all(selected_knan == 0, axis=1)
+        '''
+        selected_knan
+        -------------
+            [[ 0.  0.  0.  0.  0.  0.  0. 42. 42. 42. 42. 42. 42.  0.  0.  0.]
+            [ 0.  0.  0.  0.  0.  0.  0. 42. 42. 42. 42. 42. 42.  0.  0.  0.]
+            [ 0.  0.  0.  0.  0.  0.  0. 42. 42. 42. 42. 42. 42.  0.  0.  0.]
+            [ 0.  0.  0.  0.  0.  0.  0. 42. 42. 42. 42. 42. 42.  0.  0.  0.]]
+        '''
         selected_knan = selected_knan[tmp_rm_zeros]
         selected_knd = selected_knd[tmp_rm_zeros]
         # shape = (num_centers, n_neighbors, 3)
-        selected_knrc = selected_knrc[tmp_rm_zeros]        
+        selected_knrc = selected_knrc[tmp_rm_zeros]
         
         ### Step 5. 从下面这种稀疏矩阵中筛选有效信息
         for tmp_i, tmp_center_idx in enumerate(range(self.num_centers)):

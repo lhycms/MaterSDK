@@ -30,7 +30,7 @@ class StructureNeighborsDescriptor(object):
     
     @classmethod
     def register(cls, name:str):
-        def wrapper(subclass):
+        def wrapper(subclass:StructureNeighborsBase):
             cls.registry[name] = subclass
         return wrapper
     
@@ -575,4 +575,4 @@ class StructureNeighborsV3(StructureNeighborsBase):
             if tmp_num_nbrs > max_num_nbrs:
                 max_num_nbrs = tmp_num_nbrs
         
-        return max_num_nbrs
+        return max_num_nbrs - 1

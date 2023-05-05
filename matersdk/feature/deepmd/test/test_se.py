@@ -3,7 +3,7 @@ import unittest
 # python3 -m matersdk.feature.deepmd.test.test_se
 from ....io.publicLayer.structure import DStructure
 from ....io.publicLayer.neigh import StructureNeighborsDescriptor
-from ..se import DeepmdSeTildeR
+from ..se import DeepmdSeTildeRDescriptor
 
 
 class DeepmdSeTildeRTest(unittest.TestCase):
@@ -34,7 +34,8 @@ class DeepmdSeTildeRTest(unittest.TestCase):
         rcut_smooth = 3.1
         max_num_nbrs = 10
         
-        deepmd_se_r = DeepmdSeTildeR(
+        deepmd_se_r = DeepmdSeTildeRDescriptor.create(
+                        'v1',
                         structure_neighbors=neighbors,
                         center_atomic_number=center_atomic_number,
                         nbr_atomic_number=nbr_atomic_number,

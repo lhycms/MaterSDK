@@ -3,12 +3,12 @@ import unittest
 # python3 -m matersdk.feature.deepmd.test.test_premise
 from ....io.publicLayer.structure import DStructure
 from ....io.publicLayer.neigh import StructureNeighborsDescriptor
-from ..premise import DpFeaturePairPremise
+from ..premise import DpFeaturePairPremiseDescriptor
 
 
 
 class DpFeatureTest(unittest.TestCase):
-    def test_all(self):
+    def test_all_v1(self):
         ### Step 0.1. 
         atom_config_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/atom.config"
         #atom_config_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/feature/movement/LiSi.config"
@@ -36,7 +36,9 @@ class DpFeatureTest(unittest.TestCase):
         #                reformat_mark=reformat_mark,
         #                n_neighbors=n_neighbors,
         #                coords_are_cartesian=coords_are_cartesian)
-        dp_feature = DpFeaturePairPremise(structure_neighbors=neighbors)        
+        dp_feature = DpFeaturePairPremiseDescriptor.create(
+                        "v1",
+                        structure_neighbors=neighbors)
         
         
         ### Step 1. 抽取一对 "中心原子-近邻原子" 的 DpFeaturePairPremise
