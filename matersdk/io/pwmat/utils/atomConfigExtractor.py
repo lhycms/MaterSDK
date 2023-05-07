@@ -1,12 +1,57 @@
 import linecache
 import numpy as np
+from abc import ABC, abstractmethod
 
 from .lineLocator import LineLocator
 from ...publicLayer.atom import Atom
 from .parameters import atomic_number2specie
 
 
-class AtomConfigExtractor(object):
+
+class AtomConfigExtractorBase(ABC):
+    @abstractmethod
+    def get_num_atoms(self):
+        pass
+    
+    @abstractmethod
+    def get_basis_vectors_lst(self):
+        pass
+    
+    @abstractmethod
+    def get_virial_tensor(self):
+        pass
+    
+    @abstractmethod
+    def get_atomic_numbers_lst(self):
+        pass
+    
+    @abstractmethod
+    def get_coords_lst(self):
+        pass
+    
+    @abstractmethod
+    def get_atomic_forces_lst(self):
+        pass
+    
+    @abstractmethod
+    def get_atomic_velocitys_lst(self):
+        pass
+    
+    @abstractmethod
+    def get_atomic_energys_lst(self):
+        pass
+    
+    @abstractmethod
+    def get_magnetic_moments(self):
+        pass
+    
+    #@abstractmethod
+    def get_atoms_lst(self):
+        pass
+    
+    
+    
+class AtomConfigExtractor(AtomConfigExtractorBase):
     '''
     Description
     -----------
@@ -342,3 +387,50 @@ class AtomConfigExtractor(object):
             atoms_lst.append(tmp_atom)
 
         return atoms_lst
+    
+    
+class AtomConfigStrExtractor(AtomConfigExtractorBase):
+    '''
+    Description
+    -----------
+        1. 从 str 中提取 atom.config 的信息
+    '''
+    def __init__(self, atom_config_str:str):
+        self.atom_config_str = atom_config_str
+        
+    
+    def get_num_atoms(self):
+        pass
+    
+    
+    def get_basis_vectors_lst(self):
+        return super().get_basis_vectors_lst()
+    
+    
+    def get_virial_tensor(self):
+        return super().get_virial_tensor()
+    
+    
+    def get_atomic_numbers_lst(self):
+        return super().get_atomic_numbers_lst()
+    
+    
+    def get_coords_lst(self):
+        return super().get_coords_lst()
+    
+    
+    def get_atomic_forces_lst(self):
+        return super().get_atomic_forces_lst()
+    
+    
+    def get_atomic_velocitys_lst(self):
+        return super().get_atomic_velocitys_lst()
+    
+    
+    def get_atomic_energys_lst(self):
+        return super().get_atomic_energys_lst()
+    
+    
+    def get_magnetic_moments(self):
+        return super().get_magnetic_moments()
+        

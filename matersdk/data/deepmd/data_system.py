@@ -96,7 +96,6 @@ class DeepmdDataSystem(object):
         virial_tensors_lst = []
         
         for tmp_idx in range(num_structures):
-        #for tmp_idx in range(0, 10):
             # Step 1.1.
             tmp_structure = trajectory_object.get_frame_structure(idx_frame=tmp_idx)
             structures_lst.append(tmp_structure)

@@ -1,4 +1,5 @@
 import os 
+import warnings
 import numpy as np
 
 from ..utils.lineLocator import LineLocator
@@ -115,6 +116,8 @@ class Movement(Trajectory):
             1. structure: DStructure
                 - 
         '''
+        warnings.warn("This function will be deprecated and will be removed in the future.")
+        
         str_frame = self._get_frame_str(idx_frame=idx_frame)
         structure = None
         
@@ -128,6 +131,25 @@ class Movement(Trajectory):
                             coords_are_cartesian=False
                             )
         return structure
+    
+    
+    def get_frame_structure_(self, idx_frame:int):
+        '''
+        Description
+        -----------
+            1. 将某一帧的结构取出来，构建成 DStructure 对象
+        
+        Parameters
+        ----------
+            1. idx_frame: int
+                - 第几帧 (从 0 开始计数)
+        
+        Return
+        ------
+            1. structure: DStructure
+                - 
+        '''
+        pass
     
     
     def get_frame_energy(self, idx_frame:int):
@@ -241,7 +263,7 @@ class Movement(Trajectory):
         return volume
 
 
-
+count = -1
 class CreateAndRemove(object):
     '''
     Descripion
@@ -251,8 +273,11 @@ class CreateAndRemove(object):
         3. Exit: 删除文件
     '''
     def __init__(self):
+        global count
+        count += 1
+        
         current_path = os.getcwd()
-        self.tmp_struct_file = os.path.join(current_path, "tmp_structure_file")
+        self.tmp_struct_file = os.path.join(current_path, "tmp_structure_file_{0}".format(count))
     
     
     def __enter__(self):
@@ -266,3 +291,4 @@ class CreateAndRemove(object):
         
     def __exit__(self, exc_type, exc_value, traceback):
         os.remove(self.tmp_struct_file)
+        #pass

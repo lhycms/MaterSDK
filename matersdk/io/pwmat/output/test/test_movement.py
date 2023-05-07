@@ -10,7 +10,7 @@ class MovementTest(unittest.TestCase):
         #movement_path = "/data/home/liuhanyu/hyliu/code/mlff/test/demo1/PWdata/data1/MOVEMENT"
         movement_path = "/data/home/liuhanyu/hyliu/code/mlff/test/demo2/PWdata/data1/MOVEMENT"
         movement = Movement(movement_path=movement_path)
-        idx_frame = 11 # 帧数从 0 开始计数
+        idx_frame = 0 # 帧数从 0 开始计数
         
         # 1. get_chunksize()
         print()
@@ -20,13 +20,15 @@ class MovementTest(unittest.TestCase):
         # 2. Get chunk of specific frame structure
         print()
         print("Step 2. String for structure:")
-        print(movement._get_frame_str(idx_frame=idx_frame))
+        atom_config_string = movement._get_frame_str(idx_frame=idx_frame)
+        print(atom_config_string)
         
         # 3. 
         print()
         print("Step 3. Structure from {0}th frame:".format(idx_frame))
         print(movement.get_frame_structure(idx_frame=idx_frame))
         
+        '''
         # 4. 
         print()
         print("Step 4. Virial tensor of {0}th frame:".format(idx_frame)) 
@@ -67,7 +69,7 @@ class MovementTest(unittest.TestCase):
         print("Step 9. Atomic energy of {0}th frame:`".format(idx_frame), end="\t")
         forces_array = movement.get_frame_structure(idx_frame=idx_frame).get_atomic_energy()
         print(forces_array)
-        
+        '''
     
         
         
