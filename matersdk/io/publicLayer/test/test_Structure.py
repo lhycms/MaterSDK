@@ -3,6 +3,7 @@ import numpy as np
 
 # python3 -m matersdk.io.publicLayer.test.test_Structure
 from ..structure import DStructure
+from ...pwmat.output.movement import Movement
 
 
 
@@ -23,8 +24,25 @@ class StructureTest(unittest.TestCase):
         #print(structure.atoms_lst)
         #print(structure.atomic_numbers_lst)
     
+    
+    def test_from_str(self):
+        #movement_path = "/data/home/liuhanyu/hyliu/code/mlff/test/demo1/PWdata/data1/MOVEMENT"
+        movement_path = "/data/home/liuhanyu/hyliu/code/mlff/test/demo2/PWdata/data1/MOVEMENT"
+        movement = Movement(movement_path=movement_path)
+        idx_frame = 2 # 帧数从 0 开始计数
+        
+        ### Step 0. 得到某 frame 的 string
+        atom_config_string = movement._get_frame_str(idx_frame=idx_frame)
+       
+        ### Step 1. 
+        structure = DStructure.from_str(
+                            str_content=atom_config_string,
+                            str_format="pwmat",
+                            coords_are_cartesian=False)
+        print(structure)
+    
 
-    def test_structure_to_(self):
+    def structure_to_(self):
         file_format = "pwmat"
         # 1. 普通的测试
         file_path = "/Users/mac/我的文件/Mycode/new/new2/matersdk/test_data/atom_config/atom.config"

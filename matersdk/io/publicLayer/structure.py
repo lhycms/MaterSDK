@@ -1,7 +1,9 @@
 import numpy as np
 from pymatgen.core import Structure
 
-from ..pwmat.utils.atomConfigExtractor import AtomConfigExtractor
+from ..pwmat.utils.atomConfigExtractor import (
+                                            AtomConfigExtractor,
+                                            AtomConfigStrExtractor)
 from ..pwmat.utils.parameters import specie2atomic_number
 
 
@@ -71,7 +73,54 @@ class DStructure(Structure):
 
         structure.__class__ = cls
         return structure
+    
+    
+    @classmethod
+    def from_str(
+                cls,
+                str_content:str,
+                str_format:str,
+                coords_are_cartesian:bool=False):
+        '''
+        Parameters
+        ----------
+            1. str_content: str
+            2. str_format: str
+                1. "pwmat"
+                2. "vasp"
+                3. "cif"
+                4. ...
+            3. coords_are_cartesian: bool
+                1. 坐标是否是笛卡尔形式，默认是分数形式
+                2. Note: `AtomConfigStrExtractor` 提取的是分数坐标
         
+        Note
+        ----
+            1. 
+        '''
+        if (str_format == "pwmat"):
+            atom_config_str_extractor = AtomConfigStrExtractor(atom_config_str=str_content)
+            structure = Structure(
+                            lattice=atom_config_str_extractor.basis_vectors_array,
+                            species=atom_config_str_extractor.species_array,
+                            coords=atom_config_str_extractor.coords_array,
+                            coords_are_cartesian=coords_are_cartesian,
+                            site_properties={
+                                "magmom": atom_config_str_extractor.magnetic_moments,
+                                "atomic_force": list(atom_config_str_extractor.get_atomic_forces_lst()),
+                                "atomic_velocity": list(atom_config_str_extractor.get_atomic_velocitys_lst()),
+                                "atomic_energy": list(atom_config_str_extractor.get_atomic_energys_lst())
+                            }
+                        )
+            
+            ### 以下性质，只有在运行AIMD时才会输出
+            structure.virial_tensor = atom_config_str_extractor.get_virial_tensor()
+        else:
+            raise ValueError("Note: Other format besides pwmat can't read now!!!")
+        
+        structure.__class__ = cls
+        return structure
+    
 
     def to(self,
             output_file_path:str,
