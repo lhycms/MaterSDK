@@ -70,14 +70,14 @@ class DeepmdDataSystem(object):
     
     
     @staticmethod
-    def from_trajectory(
+    def from_trajectory_s(
                 trajectory_object:Trajectory,
                 rcut:float,
                 ):
         '''
         Description
         -----------
-            1. pass
+            1. 串行提取信息
         
         Parameters
         ----------
@@ -231,7 +231,7 @@ class ParallelFunction(object):
     Description
     -----------
         1. 一些需要多进程并行的函数
-    '''
+    '''    
     @staticmethod
     def save_struct_nbr(
                     tmp_image_dir_path:int,

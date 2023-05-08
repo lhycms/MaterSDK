@@ -79,28 +79,27 @@ class Movement(Trajectory):
         tmp_idx_frame = 0
         with open(self.movement_path, 'r') as f_mvt:
             while True: # 循环读取文件，直至文件末尾
+                ### Step 1.0. 当处理到对应的帧数时，返回对应的 tmp_chunk
+                if (tmp_idx_frame != idx_frame):
+                    tmp_idx_frame += 1 
+                    continue
+                
                 ### Step 1.1. 帧数从 0 开始计数；每次开始新的一帧都要用空的str
                 tmp_chunk = ""
                 tmp_chunksize = self.chunksizes_lst[tmp_idx_frame]
                 
                 ### Step 1.2. 收集这个 frame 对应的行数，组成 tmp_chunk
-                for tmp_row_idx in range(tmp_chunksize):
+                for _ in range(tmp_chunksize):
                     tmp_row = f_mvt.readline()  # Read the next row from the file
                     if not tmp_row: 
                         break   # End of file reached
                     tmp_chunk += tmp_row
-                    
-                ### Step 1.3. 当处理到对应的帧数时，返回对应的 tmp_chunk
-                if (tmp_idx_frame == idx_frame):
-                    break
-                
-                ### Step 1.4. 将读取下一帧的 chunk
-                tmp_idx_frame += 1 
+                break   # 这一 frame 读取完毕
                         
         return tmp_chunk
         
     
-    def get_frame_structure(self, idx_frame:int):
+    def get_frame_structure_(self, idx_frame:int):
         '''
         Description
         -----------
@@ -133,7 +132,7 @@ class Movement(Trajectory):
         return structure
     
     
-    def get_frame_structure_(self, idx_frame:int):
+    def get_frame_structure(self, idx_frame:int):
         '''
         Description
         -----------
@@ -149,7 +148,13 @@ class Movement(Trajectory):
             1. structure: DStructure
                 - 
         '''
-        pass
+        str_frame = self._get_frame_str(idx_frame=idx_frame)
+        structure = None
+        structure = DStructure.from_str(
+                                str_content=str_frame,
+                                str_format="pwmat",
+                                coords_are_cartesian=False)
+        return structure
     
     
     def get_frame_energy(self, idx_frame:int):
