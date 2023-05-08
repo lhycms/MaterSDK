@@ -1,8 +1,9 @@
+import re
 import linecache
 import numpy as np
 from abc import ABC, abstractmethod
 
-from .lineLocator import LineLocator
+from .lineLocator import LineLocator, ListLocator
 from ...publicLayer.atom import Atom
 from .parameters import atomic_number2specie
 
@@ -398,39 +399,206 @@ class AtomConfigStrExtractor(AtomConfigExtractorBase):
     def __init__(self, atom_config_str:str):
         self.atom_config_str = atom_config_str
         
+        self.num_atoms = self.get_num_atoms()
+        self.basis_vectors_array = self.get_basis_vectors_lst()
+        self.species_array = [atomic_number2specie[atomic_number] for atomic_number in self.get_atomic_numbers_lst() ]
+        self.coords_array = self.get_coords_lst()
+        self.magnetic_moments = self.get_magnetic_moments()
+        
     
     def get_num_atoms(self):
-        pass
+        match_object = re.search(r"(\d+) atoms", self.atom_config_str, re.IGNORECASE)
+        num_atoms = int(match_object.group(1))
+        return num_atoms
     
     
     def get_basis_vectors_lst(self):
-        return super().get_basis_vectors_lst()
-    
+        '''
+        Description
+        -----------
+            1. 得到材料的基矢
+
+        Return
+        ------
+            1. basis_vectors_lst: list, 是一个二维列表
+            e.g. [ [14.376087, 0.0, 0.0],
+                    [0.0, 12.357182, 0.0], 
+                    [0.0, 0.0, 10.594184]
+                ]
+            
+        '''
+        basis_vectors_lst = []
+        ### Step 1. 得到 `LATTICE` 在列表中的索引
+        strs_lst = self.atom_config_str.split('\n')
+        aim_content = "LATTICE"
+        aim_idx = ListLocator.locate_all_lines(strs_lst=strs_lst, content=aim_content)[0]
+
+        ### Step 2. 
+        for tmp_idx in [aim_idx+1, aim_idx+2, aim_idx+3]:
+            # ['0.8759519000E+01', '0.0000000000E+00', '0.0000000000E+00']
+            tmp_str_lst = strs_lst[tmp_idx].split()[:3]
+
+            single_direction_vector = [float(value) for value in tmp_str_lst]
+            basis_vectors_lst.append(single_direction_vector)
+
+        return np.array(basis_vectors_lst)
+        
     
     def get_virial_tensor(self):
-        return super().get_virial_tensor()
+        '''
+        Description
+        -----------
+            1. 得到材料的维里张量 (virial tensor)
+
+        Return
+        ------
+            1. virial_tensor: np.array, 是一个二维 np.ndarray            
+        '''
+        virial_tensor = []
+        
+        ### Step 1. 得到所有原子的原子序数、坐标
+        strs_lst = self.atom_config_str.split("\n")
+        aim_content = "LATTICE"
+        aim_idx = ListLocator.locate_all_lines(strs_lst=strs_lst, content=aim_content)[0]
+        
+        ### Step 2. 获取维里张量
+        for tmp_idx in [aim_idx+1, aim_idx+2, aim_idx+3]:
+            # ['0.120972E+02', '0.483925E+01', '0.242063E+01']
+            tmp_str_lst = strs_lst[tmp_idx].split()[-3:]
+
+            single_direction_vector = [float(value) for value in tmp_str_lst]
+            virial_tensor.append(single_direction_vector)
+        
+        return np.array(virial_tensor)
     
     
     def get_atomic_numbers_lst(self):
-        return super().get_atomic_numbers_lst()
+        '''
+        Description
+        -----------
+            1. 得到体系内所有的原子序数 (各个原子的 atomic_numbers)
+
+        Note
+        ----
+            1. 重复
+        '''
+        ### Step 1. 获取 `POSITION` 所在的行数
+        strs_lst = self.atom_config_str.split('\n')
+        aim_content = "POSITION"
+        aim_idx = ListLocator.locate_all_lines(strs_lst=strs_lst, content=aim_content)[0]
+
+        ### Step 2. 得到所有原子的原子序数（注意将 str 转换为 int）        
+        atomic_numbers_strs = strs_lst[aim_idx+1 : aim_idx + self.num_atoms + 1]
+        atomic_numbers_lst = [int(entry.split()[0]) for entry in atomic_numbers_strs]
+        
+        return np.array(atomic_numbers_lst)
     
     
     def get_coords_lst(self):
-        return super().get_coords_lst()
+        '''
+        Description
+        -----------
+            1. 得到体系内所有的坐标
+        '''
+        coords_lst = []
+        strs_lst = self.atom_config_str.split('\n')
+        aim_content = "POSITION"    # 此处需要大写
+        aim_idx = ListLocator.locate_all_lines(
+                                strs_lst=strs_lst,
+                                content=aim_content)[0]
+
+        for tmp_str in strs_lst[aim_idx+1: aim_idx+self.num_atoms+1]:
+            # ['14', '0.751401861790384', '0.501653718883189', '0.938307102003243', '1', '1', '1']
+            tmp_strs_lst = tmp_str.split()
+            tmp_coord = [float(value) for value in tmp_strs_lst[1:4]]
+            coords_lst.append(tmp_coord)
+        
+        return np.array(coords_lst)
     
     
     def get_atomic_forces_lst(self):
-        return super().get_atomic_forces_lst()
-    
-    
+        '''
+        Description
+        -----------
+            1. 得到体系内所有原子的受力
+        '''
+        try:
+            forces_lst = []
+            strs_lst = self.atom_config_str.split('\n')
+            aim_content = "Force".upper()
+            aim_idx = ListLocator.locate_all_lines(strs_lst=strs_lst, content=aim_content)[0]
+            
+            for tmp_str in strs_lst[aim_idx+1: aim_idx+self.num_atoms+1]:
+                # ['14', '0.089910342901203', '0.077164252174742', '0.254144099204679']
+                tmp_str_lst = tmp_str.split()
+                tmp_forces = [float(value) for value in tmp_str_lst[1:4]]
+                forces_lst.append(tmp_forces)
+            return np.array(forces_lst)
+        except: # atom_config_str 中没有关于原子受力的信息
+            return np.zeros((self.num_atoms, 3))
+
+
     def get_atomic_velocitys_lst(self):
-        return super().get_atomic_velocitys_lst()
+        '''
+        Description
+        -----------
+            1. 得到体系内所有原子的速度
+        '''
+        try:
+            velocitys_lst = []
+            strs_lst = self.atom_config_str.split('\n')
+            aim_content = "Velocity (bohr/fs)".upper()
+            aim_idx = ListLocator.locate_all_lines(strs_lst=strs_lst, content=aim_content)[0]
+            
+            for tmp_str in strs_lst[aim_idx+1: aim_idx+self.num_atoms+1]:
+                # ['14', '0.003912993871218', '0.017095718414286', '0.017902199076100']
+                tmp_str_lst = tmp_str.split()
+                tmp_velocitys = [float(value) for value in tmp_str_lst[1:4]]
+                velocitys_lst.append(tmp_velocitys)
+            
+            return np.array(velocitys_lst)
+        except:
+            return np.zeros((self.num_atoms, 3))
     
     
     def get_atomic_energys_lst(self):
-        return super().get_atomic_energys_lst()
+        '''
+        Description
+        -----------
+            1. 得到体系内所有原子的能量
+        '''
+        try:
+            energys_lst = []
+            strs_lst = self.atom_config_str.split('\n')
+            aim_content = "Atomic-Energy, ".upper()
+            aim_idx = ListLocator.locate_all_lines(strs_lst=strs_lst, content=aim_content)[0]
+            
+            for tmp_str in strs_lst[aim_idx+1: aim_idx+self.num_atoms+1]:
+                tmp_str_lst = tmp_str.split()
+                tmp_energy = [float(value) for value in tmp_str_lst[1:4]]
+                energys_lst.append(tmp_energy)
+            return np.array(energys_lst)
+        
+        except:
+            return np.zeros((self.num_atoms, 3))
     
     
     def get_magnetic_moments(self):
-        return super().get_magnetic_moments()
+        '''
+        Description
+        -----------
+            1. 得到所有原子的磁矩，顺序与 `坐标` 的顺序一致
+        '''
+        magnetic_moments_lst = []
+        try:
+            strs_lst = self.atom_config_str.split('\n')
+            aim_content = "MAGNETIC"
+            aim_idx = ListLocator.locate_all_lines(strs_lst=strs_lst, content=aim_content)
+            
+            magnetic_moments_content = strs_lst[aim_idx+1: aim_idx+self.num_atoms+1]
+            magnetic_moments_lst = [float(tmp_magnetic_moment.split()[-1]) for tmp_magnetic_moment in magnetic_moments_content]
+
+        except:
+            magnetic_moments_lst = [0 for _ in range(self.num_atoms)]
         
+        return np.array(magnetic_moments_lst)
