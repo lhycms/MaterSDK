@@ -142,6 +142,25 @@ class Movement(Trajectory):
         return structure
     
     
+    def get_all_frame_structures(self):
+        '''
+        Description
+        -----------
+            1. 返回 Movement 中的所有结构(DStructure)
+        '''
+        structures_lst = []
+        with open(self.movement_path, "r") as mvt:
+            for idx_chunk in range(len(self.chunksizes_lst)):
+                tmp_chunk = ""
+                for idx_line in range(self.chunksizes_lst[idx_chunk]):
+                    tmp_chunk += mvt.readline()
+                structures_lst.append(
+                        DStructure.from_str(str_content=tmp_chunk, str_format="pwmat")
+                )
+        return structures_lst
+                    
+    
+    
     def get_frame_structure(self, idx_frame:int):
         '''
         Description

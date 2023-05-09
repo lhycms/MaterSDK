@@ -4,7 +4,6 @@ import unittest
 from ..movement import Movement
 
 
-
 class MovementTest(unittest.TestCase):
     def test_all(self):
         #movement_path = "/data/home/liuhanyu/hyliu/code/mlff/test/demo1/PWdata/data1/MOVEMENT"
@@ -13,16 +12,16 @@ class MovementTest(unittest.TestCase):
         idx_frame = 300 # 帧数从 0 开始计数
         
         # 1. get_chunksize()
-        print()
-        print("Step 1. The chunksize of each frame:", end="\t")
-        print(movement.get_chunksize())
+        #print()
+        #print("Step 1. The chunksize of each frame:", end="\t")
+        #print(movement.get_chunksize())
         #print(movement.get_chunkslice())
         
         # 2. Get chunk of specific frame structure
-        print()
-        print("Step 2. String for structure:")
-        atom_config_string = movement._get_frame_str(idx_frame=idx_frame)
-        print(atom_config_string)
+        #print()
+        #print("Step 2. String for structure:")
+        #atom_config_string = movement._get_frame_str(idx_frame=idx_frame)
+        #print(atom_config_string)
         
         # 3. 
         #print()
@@ -71,6 +70,12 @@ class MovementTest(unittest.TestCase):
         forces_array = movement.get_frame_structure(idx_frame=idx_frame).get_atomic_energy()
         print(forces_array)
         '''
+        
+        # 10.
+        print()
+        print("Step 10.")
+        structures_lst = movement.get_all_frame_structures()
+        print(structures_lst)
     
         
         

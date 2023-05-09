@@ -95,6 +95,7 @@ class DeepmdDataSystem(object):
         potential_energys_lst = []
         virial_tensors_lst = []
         
+        #structures_lst = trajectory_object.get_all_frame_structures()
         for tmp_idx in range(num_structures):
             # Step 1.1.
             tmp_structure = trajectory_object.get_frame_structure(idx_frame=tmp_idx)
