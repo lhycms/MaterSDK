@@ -10,12 +10,13 @@ class MovementTest(unittest.TestCase):
         #movement_path = "/data/home/liuhanyu/hyliu/code/mlff/test/demo1/PWdata/data1/MOVEMENT"
         movement_path = "/data/home/liuhanyu/hyliu/code/mlff/test/demo2/PWdata/data1/MOVEMENT"
         movement = Movement(movement_path=movement_path)
-        idx_frame = 435 # 帧数从 0 开始计数
+        idx_frame = 300 # 帧数从 0 开始计数
         
         # 1. get_chunksize()
         print()
         print("Step 1. The chunksize of each frame:", end="\t")
         print(movement.get_chunksize())
+        #print(movement.get_chunkslice())
         
         # 2. Get chunk of specific frame structure
         print()
@@ -24,9 +25,9 @@ class MovementTest(unittest.TestCase):
         print(atom_config_string)
         
         # 3. 
-        print()
-        print("Step 3. Structure from {0}th frame:".format(idx_frame))
-        print(movement.get_frame_structure(idx_frame=idx_frame))
+        #print()
+        #print("Step 3. Structure from {0}th frame:".format(idx_frame))
+        #print(movement.get_frame_structure(idx_frame=idx_frame))
         
         '''
         # 4. 

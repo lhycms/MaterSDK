@@ -1,6 +1,7 @@
 import os 
 import warnings
 import numpy as np
+import copy
 
 from ..utils.lineLocator import LineLocator
 from ..utils.parameters import atomic_number2specie
@@ -25,6 +26,7 @@ class Movement(Trajectory):
         '''
         self.movement_path = movement_path
         self.chunksizes_lst = self.get_chunksize()
+        self.chunkslices_lst = self.get_chunkslice()
         
         
     def get_chunksize(self,
@@ -58,6 +60,25 @@ class Movement(Trajectory):
         return chunksizes_lst
     
     
+    def get_chunkslice(self):
+        '''
+        Description
+        -----------
+            1. 
+        
+        Return
+        ------
+            1. chunslice: List[int]
+                - e.g. `[     0    225    607    989   1371 ...]`
+                - chunkslice[idx_frame: idx_frame+1] -- 某个frame的起始行: 终止行
+        '''
+        chunksizes_lst = copy.deepcopy(self.chunksizes_lst)
+        chunksizes_lst.insert(0, 0)    
+        chunkslice = np.cumsum(chunksizes_lst)
+        
+        return chunkslice
+
+    
     def _get_frame_str(self, idx_frame:int):
         '''
         Description
@@ -74,28 +95,17 @@ class Movement(Trajectory):
         ------
             1. str_frame: str
                 - 某一帧的 str
-        '''        
-        ### Step 1. 得到对应的行数并组成str形式
-        tmp_idx_frame = 0
-        with open(self.movement_path, 'r') as f_mvt:
-            while True: # 循环读取文件，直至文件末尾
-                ### Step 1.0. 当处理到对应的帧数时，返回对应的 tmp_chunk
-                if (tmp_idx_frame != idx_frame):
-                    tmp_idx_frame += 1 
-                    continue
+        '''      
+        ### Step 1. 
+        tmp_chunk = ""
+        with open(self.movement_path, "r") as mvt:
+            for idx_line, line in enumerate(mvt):
+                #print(idx_line, self.chunkslices_lst[idx_frame], self.chunkslices_lst[idx_frame+1])
+                if idx_line in range(self.chunkslices_lst[idx_frame], self.chunkslices_lst[idx_frame+1]):
+                    tmp_chunk += line
+                elif idx_line >= self.chunkslices_lst[idx_frame+1]:
+                    break
                 
-                ### Step 1.1. 帧数从 0 开始计数；每次开始新的一帧都要用空的str
-                tmp_chunk = ""
-                tmp_chunksize = self.chunksizes_lst[tmp_idx_frame]
-                
-                ### Step 1.2. 收集这个 frame 对应的行数，组成 tmp_chunk
-                for _ in range(tmp_chunksize):
-                    tmp_row = f_mvt.readline()  # Read the next row from the file
-                    if not tmp_row: 
-                        break   # End of file reached
-                    tmp_chunk += tmp_row
-                break   # 这一 frame 读取完毕
-                        
         return tmp_chunk
         
     
