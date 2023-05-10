@@ -3,7 +3,8 @@ import warnings
 import numpy as np
 import copy
 
-from ..utils.lineLocator import LineLocator
+from ..utils.lineLocator import (LineLocator,
+                                 ListLocator)
 from ..utils.parameters import atomic_number2specie
 from ...publicLayer.structure import DStructure
 from ...publicLayer.traj import Trajectory
@@ -142,22 +143,74 @@ class Movement(Trajectory):
         return structure
     
     
-    def get_all_frame_structures(self):
+    def get_all_frame_structures_info(self):
         '''
         Description
         -----------
-            1. 返回 Movement 中的所有结构(DStructure)
+            1. 返回 Movement 中的所有:
+                1. 结构(DStructure)
+                2. 能量 (总能、动能、势能)
+                3. virial tensor
+                
+        Return
+        ------
+            1. structures_lst: List[DStructure]
+                - (num_frames,)
+            2. np.array(total_energys_lst) : np.array
+                - (num_frames,)
+            3. np.array(potential_energys_lst) : np.array
+                - (num_frames,)
+            4. np.array(kinetic_energys_lst) : np.array 
+                - (num_frames,)
+            5. np.array(virial_tensors_lst) : np.array
+                - (num_frames, 3, 3)
         '''
         structures_lst = []
+        total_energys_lst = []
+        potential_energys_lst = []
+        kinetic_energys_lst = []
+        virial_tensors_lst = []
+        
         with open(self.movement_path, "r") as mvt:
             for idx_chunk in range(len(self.chunksizes_lst)):
                 tmp_chunk = ""
                 for idx_line in range(self.chunksizes_lst[idx_chunk]):
                     tmp_chunk += mvt.readline()
+                ### Step 1. 得到 DStructure object
                 structures_lst.append(
-                        DStructure.from_str(str_content=tmp_chunk, str_format="pwmat")
+                        DStructure.from_str(
+                                    str_content=tmp_chunk, 
+                                    str_format="pwmat")
                 )
-        return structures_lst
+                
+                ### Step 2. Energy (Etot, Ep, Ek)
+                first_row_lst = tmp_chunk.split('\n')[0].split()
+                energy_tot = float( first_row_lst[8].strip() )
+                energy_p = float( first_row_lst[9].strip() )
+                energy_k = float( first_row_lst[10][:-1].strip() )
+                
+                total_energys_lst.append(energy_tot)
+                potential_energys_lst.append(energy_p)
+                kinetic_energys_lst.append(energy_k)
+                
+                ### Step 4. Virial Tensor
+                chunk_rows_lst = tmp_chunk.split("\n")
+                aim_idx = ListLocator.locate_all_lines(strs_lst=chunk_rows_lst,
+                                                    content="LATTICE VECTOR")[0]
+                virial_tensor_x = np.array([float(tmp_value.strip()) for tmp_value in chunk_rows_lst[aim_idx+1].split()[-3:]])
+                virial_tensor_y = np.array([float(tmp_value.strip()) for tmp_value in chunk_rows_lst[aim_idx+2].split()[-3:]])
+                virial_tensor_z = np.array([float(tmp_value.strip()) for tmp_value in chunk_rows_lst[aim_idx+3].split()[-3:]])
+                virial_tensor = np.vstack([virial_tensor_x, virial_tensor_y, virial_tensor_z])
+                
+                virial_tensors_lst.append(virial_tensor)
+        
+        return (
+                structures_lst,
+                np.array(total_energys_lst),
+                np.array(potential_energys_lst),
+                np.array(kinetic_energys_lst),
+                np.array(virial_tensors_lst)
+        )
                     
     
     

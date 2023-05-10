@@ -31,8 +31,8 @@ class DeepmdDataSystem(object):
                 self,
                 structures_lst: List[DStructure],
                 total_energys_array: np.ndarray,
-                kinetic_energys_array: np.ndarray,
                 potential_energys_array: np.ndarray,
+                kinetic_energys_array: np.ndarray,
                 virial_tensors_array: np.ndarray,
                 rcut:float):
         self.rcut = rcut
@@ -40,8 +40,8 @@ class DeepmdDataSystem(object):
         self.num_structures = len(structures_lst)
         self.structures_lst = structures_lst
         self.total_energys_array = total_energys_array
-        self.kinetic_energys_array = kinetic_energys_array
         self.potential_energys_array = potential_energys_array
+        self.kinetic_energys_array = kinetic_energys_array
         self.virial_tensors_array = virial_tensors_array
         
         self.atomic_numbers_lst = self._get_atomic_numbers()    # 不重复
@@ -84,42 +84,23 @@ class DeepmdDataSystem(object):
             1. trajectory_object: Trajectory
                 - 轨迹对象
                 - e.g. `matersdk.io.pwmat.output.movement.Movement`
-        '''
-        ### Step 0. `DeepmdDataSystem` 所含的构型数目
-        num_structures = len(trajectory_object.get_chunksize())
-         
-        ### Step 1. 设置
-        structures_lst = []
-        total_energys_lst = []
-        kinetic_energys_lst = []
-        potential_energys_lst = []
-        virial_tensors_lst = []
-        
-        #structures_lst = trajectory_object.get_all_frame_structures()
-        for tmp_idx in range(num_structures):
-            # Step 1.1.
-            tmp_structure = trajectory_object.get_frame_structure(idx_frame=tmp_idx)
-            structures_lst.append(tmp_structure)
-            
-            # Step 1.2. 
-            tmp_total_energy, tmp_kinetic_energy, tmp_potential_energy = \
-                                            trajectory_object.get_frame_energy(idx_frame=tmp_idx)
-            total_energys_lst.append(tmp_total_energy)
-            kinetic_energys_lst.append(tmp_kinetic_energy)
-            potential_energys_lst.append(tmp_potential_energy)
-            
-            # Step 1.3. 
-            tmp_virial_tensor = trajectory_object.get_frame_virial(idx_frame=tmp_idx)
-            virial_tensors_lst.append(tmp_virial_tensor)            
+        '''         
+        ### Step 1. 得到 Movement 中所有构型的相关信息
+        (structures_lst, 
+        total_energys_array,
+        potential_energys_array,
+        kinetic_energys_array,
+        virial_tensors_array) = \
+                trajectory_object.get_all_frame_structures_info()
             
             
         ### Step 2. 初始化
         dp_data_system = DeepmdDataSystem(
                         structures_lst=structures_lst,
-                        total_energys_array=np.array(total_energys_lst),
-                        kinetic_energys_array=np.array(kinetic_energys_lst),
-                        potential_energys_array=np.array(potential_energys_lst),
-                        virial_tensors_array=np.array(virial_tensors_lst),
+                        total_energys_array=total_energys_array,
+                        potential_energys_array=potential_energys_array,
+                        kinetic_energys_array=kinetic_energys_array,
+                        virial_tensors_array=virial_tensors_array,
                         rcut=rcut
         )
         

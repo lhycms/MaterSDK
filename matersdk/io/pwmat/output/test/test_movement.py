@@ -73,9 +73,20 @@ class MovementTest(unittest.TestCase):
         
         # 10.
         print()
-        print("Step 10.")
-        structures_lst = movement.get_all_frame_structures()
-        print(structures_lst)
+        print("Step 10. Movement.get_all_frame_structure_info():")
+        (structures_lst,
+         total_energys_array,
+         potential_energys_array,
+         kinetic_energys_array,
+         virial_tensors_array) = \
+            movement.get_all_frame_structures_info()
+        #print(structures_lst)
+        print("\t1. len(structures_lst) =\t", len(structures_lst))
+        print("\t2. total_energys_array.shape =\t", total_energys_array.shape)
+        print("\t3. potential_energys_array.shape =\t", potential_energys_array.shape)
+        print("\t4. kinetic_energys_arary.shape =\t", kinetic_energys_array.shape)
+        print("\t5. virial_tensors_array.shape =\t", virial_tensors_array.shape)
+
     
         
         
