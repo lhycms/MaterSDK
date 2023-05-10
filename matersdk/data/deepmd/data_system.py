@@ -160,8 +160,8 @@ class DeepmdDataSystem(object):
                     file=os.path.join(tmp_image_dir_path, "energy.npy"), 
                     arr=np.array([
                             self.total_energys_array[tmp_idx],
-                            self.kinetic_energys_array[tmp_idx],
-                            self.potential_energys_array[tmp_idx]
+                            self.potential_energys_array[tmp_idx],
+                            self.kinetic_energys_array[tmp_idx]
                     ])
             )
             # 6. atomic_energy
