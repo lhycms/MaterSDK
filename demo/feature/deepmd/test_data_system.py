@@ -8,14 +8,16 @@ movement_path = "/data/home/liuhanyu/hyliu/code/mlff/test/demo2/PWdata/data1/MOV
 rcut = 6.5
 output_dir = "/data/home/liuhanyu/hyliu/code/test"
 
+
 start = timer()
+### Step 1. Read Movement
 movement = Movement(movement_path=movement_path)
 dp_data_system = DeepmdDataSystem.from_trajectory_s(
                                 trajectory_object=movement,
                                 rcut=rcut)
 dir_path = output_dir
 
-### Step 1.
+### Step 2. Calculate neighbors information and save
 dp_data_system.save(dir_path=dir_path)
 end = timer()
 
