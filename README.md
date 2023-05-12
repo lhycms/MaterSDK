@@ -52,7 +52,8 @@ Using following algorithm to handle the periodic boundary conditions (Take an 2D
 2. Demo url: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/neighs/SturtureNeighbors.ipynb
 
 #### 1.4.1.3. Use `matersdk.io.publicLayer.neigh.StructureNeighborsV3` to analyse the surrouing environment for specific atom.
-1. `matersdk.io.publicLayer.neigh.StructureNeighborsV3` is much faster than `matersdk.io.publicLayer.neigh.StructureNeighborsV1`. And save more space than `StrcutureNeighborsV2`
+1. `matersdk.io.publicLayer.neigh.StructureNeighborsV3` is much faster than `matersdk.io.publicLayer.neigh.StructureNeighborsV1`. And save more space than `StrcutureNeighborsV3`
+   - Note: If not set `max_nbrs_num`, `max_nbrs_num = max_nbrs_num_real + 1` !!!
 2. Demo url: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/neighs/SturtureNeighbors.ipynb
 
 ### 1.4.2. `matersdk.feature.deepmd.premise.DpFeaturePairPremiseBase`: Get pair information of neighbor atoms for center atom
