@@ -213,7 +213,6 @@ class Movement(Trajectory):
         )
                     
     
-    
     def get_frame_structure(self, idx_frame:int):
         '''
         Description

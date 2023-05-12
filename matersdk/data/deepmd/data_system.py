@@ -92,8 +92,8 @@ class DeepmdDataSystem(object):
         kinetic_energys_array,
         virial_tensors_array) = \
                 trajectory_object.get_all_frame_structures_info()
-            
-            
+        
+        
         ### Step 2. 初始化
         dp_data_system = DeepmdDataSystem(
                         structures_lst=structures_lst,

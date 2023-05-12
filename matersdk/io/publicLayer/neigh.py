@@ -6,6 +6,52 @@ from abc import ABC, abstractmethod
 from .structure import DStructure
 
 
+class StructureNeighborUtils(object):
+    @staticmethod
+    def get_max_num_nbrs_real(
+                    structure:DStructure,
+                    scaling_matrix:List[int],
+                    rcut:float,
+                    coords_are_cartesian:bool=True):
+        ### Step 0. 获取 primitive_cell 中原子在 supercell 中的 index
+        key_idxs = structure.get_key_idxs(scaling_matrix=scaling_matrix)
+        supercell = structure.make_supercell_(
+                                scaling_matrix=scaling_matrix,
+                                reformat_mark=True)
+        
+        ### Step 1. 获取supercell所有原子的(笛卡尔)坐标 -- `supercell_coords`
+        if coords_are_cartesian:
+            supercell_coords = supercell.cart_coords
+        else:
+            supercell_coords = supercell.frac_coords
+        
+        
+        ### Step 2. 计算在截断半径内的最大原子数
+        max_num_nbrs = 0
+        for tmp_i, tmp_center_idx in enumerate(key_idxs):
+            ### Step 2.1. 计算该中心原子与近邻原子的距离
+            # shape = (3,) -> (1, 3)
+            tmp_center_coord = supercell_coords[tmp_center_idx].reshape(1, 3)
+            # shape = (num_supercell, 3)
+            tmp_relative_coords = supercell_coords - tmp_center_coord
+            # shape = (num_supercell,)
+            tmp_distances = np.linalg.norm(tmp_relative_coords, axis=1)
+            
+            ### Step 2.2. 判断哪些近邻原子在截断半径内
+            tmp_mark_rcut = np.where(tmp_distances<rcut, True, False)
+            
+            ### Step 2.3. 计算在截断半径内的原子数目
+            tmp_num_nbrs = np.count_nonzero(tmp_mark_rcut)
+            
+            ### Step 2.4. 判断
+            if tmp_num_nbrs > max_num_nbrs:
+                max_num_nbrs = tmp_num_nbrs
+        
+        return max_num_nbrs - 1
+            
+            
+
+
 class StructureNeighborsDescriptor(object):
     '''
     Description
@@ -436,9 +482,9 @@ class StructureNeighborsV3(StructureNeighborsBase):
         Parameters
         ----------
             1. scaling_matrix: List[int]
-                -
+                - 
             2. rcut: float 截断半径
-                -
+                - 
             3. coords_are_cartesian: bool
                 - 
         
