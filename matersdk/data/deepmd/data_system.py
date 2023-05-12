@@ -2,6 +2,7 @@ import os
 import shutil
 import numpy as np
 from typing import List, Union
+from operator import itemgetter
 import multiprocessing as mp
 
 from ...io.publicLayer.traj import Trajectory
@@ -48,6 +49,33 @@ class DeepmdDataSystem(object):
         
         self.atomic_numbers_lst = self._get_atomic_numbers()    # 不重复
         self.num_atoms = self._get_num_atoms()
+    
+    
+
+    def __getitem__(self, index:int):
+        return_structures_lst = self.structures_lst[index]
+        return_total_energys_array = self.total_energys_array[index]
+        return_potential_energys_array = self.potential_energys_array[index]
+        return_kinetic_energys_array = self.kinetic_energys_array[index]
+        return_virial_tensors_array = self.virial_tensors_array[index]
+        
+        return_rcut = self.rcut
+        return_max_nbrs_num = self.max_nbrs_num
+        
+        return_object = SubDeepmdDataSystem(
+                            structures_lst=return_structures_lst,
+                            total_energys_array=return_total_energys_array,
+                            potential_energys_array=return_potential_energys_array,
+                            kinetic_energys_array=return_kinetic_energys_array,
+                            virial_tensors_array=return_virial_tensors_array,
+                            rcut=return_rcut,
+                            max_nbrs_num=return_max_nbrs_num)
+
+        return return_object
+    
+    
+    def __len__(self):
+        return self.num_structures
     
     
     def _get_num_atoms(self):
@@ -270,3 +298,44 @@ class ParallelFunction(object):
                 file=os.path.join(tmp_image_dir_path, "nbrs_coords.npy"),
                 arr=struct_nbr.key_nbr_coords
         )
+        
+
+
+class SubDeepmdDataSystem(DeepmdDataSystem):
+    @staticmethod
+    def from_indices(
+                deepmd_data_system:DeepmdDataSystem,
+                indices_lst:List[int]
+                ):
+        '''
+        Description
+        -----------
+            1. 根据索引(`indices_lst`)从 deepmd_data_system 中抽取结构作为 sub_deepmd_data_system
+        
+        Parameters
+        ----------
+            1. deepmd_data_system: DeepmdDataSystem
+                - 
+            2. indices_lst: List[int]
+                - 索引
+        '''
+        if max(indices_lst) > len(deepmd_data_system):
+            raise IndexError("index in indices_lst is larger than len(DeepmdDataSystem)!!!")
+        
+        structures_lst = [deepmd_data_system.structures_lst[tmp_index] for tmp_index in indices_lst]
+        total_energys_array = np.array([deepmd_data_system.total_energys_array[tmp_index] for tmp_index in indices_lst])
+        potential_energys_array = np.array([deepmd_data_system.potential_energys_array[tmp_index] for tmp_index in indices_lst])
+        kinetic_energys_array = np.array([deepmd_data_system.kinetic_energys_array[tmp_index] for tmp_index in indices_lst])
+        virial_tensors_array = np.array([deepmd_data_system.virial_tensors_array[tmp_index] for tmp_index in indices_lst])
+        
+        rcut = deepmd_data_system.rcut
+        max_nbrs_num = deepmd_data_system.max_nbrs_num
+        
+        return SubDeepmdDataSystem(
+                    structures_lst=structures_lst,
+                    total_energys_array=total_energys_array,
+                    potential_energys_array=potential_energys_array,
+                    kinetic_energys_array=kinetic_energys_array,
+                    virial_tensors_array=virial_tensors_array,
+                    rcut=rcut,
+                    max_nbrs_num=max_nbrs_num)
