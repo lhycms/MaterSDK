@@ -90,7 +90,7 @@ class StructureNeighborsV2Test(unittest.TestCase):
 
 
 class StructureNeighborsV3Test(unittest.TestCase):
-    def all(self):
+    def test_all(self):
         #atom_config_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/atom.config"
         atom_config_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/feature/movement/LiSi.config"
         #scaling_matrix = [5, 5, 1]
@@ -109,19 +109,12 @@ class StructureNeighborsV3Test(unittest.TestCase):
                         scaling_matrix=scaling_matrix,
                         reformat_mark=reformat_mark,
                         coords_are_cartesian=coords_are_cartesian,
-                        rcut=rcut)
-        
-        ### Step 1.
-        print()
-        print("Step 1. 在截断半径 {0} 内，最大近邻原子数为:".format(rcut), end="\t")
-        print(neighbors_v3.get_max_num_nbrs(
-                    scaling_matrix=scaling_matrix,
-                    rcut=rcut,
-                    coords_are_cartesian=coords_are_cartesian)
-        )
+                        rcut=rcut,
+                        #max_nbrs_num=100,
+                        )
         
         print()
-        print("Step 2. primitive_cell 中原子的近邻原子情况:")
+        print("Step 1. primitive_cell 中原子的近邻原子情况:")
         key_nbr_species, key_nbr_distances, key_nbr_coords = \
                     neighbors_v3._get_key_neighs_info(
                                     scaling_matrix=scaling_matrix,
@@ -135,7 +128,7 @@ class StructureNeighborsV3Test(unittest.TestCase):
 
 
 class StructureNeighborUtilsTest(unittest.TestCase):
-    def test_all(self):
+    def all(self):
         #atom_config_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/atom.config"
         atom_config_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/feature/movement/LiSi.config"
         #scaling_matrix = [5, 5, 1]

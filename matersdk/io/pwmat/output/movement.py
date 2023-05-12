@@ -450,4 +450,4 @@ class CreateAndRemove(object):
         
     def __exit__(self, exc_type, exc_value, traceback):
         os.remove(self.tmp_struct_file)
-        #pass
+        pass

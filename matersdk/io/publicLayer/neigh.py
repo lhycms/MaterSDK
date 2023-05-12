@@ -1,6 +1,6 @@
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
-from typing import List
+from typing import List, Union
 from abc import ABC, abstractmethod
 
 from .structure import DStructure
@@ -440,7 +440,8 @@ class StructureNeighborsV3(StructureNeighborsBase):
                 scaling_matrix:List[int]=[3,3,1],
                 reformat_mark:bool=True,
                 coords_are_cartesian:bool=True,
-                rcut:float=6.5):
+                rcut:float=6.5,
+                max_nbrs_num:Union[bool, int]=False):
         '''
         Parameters
         ----------
@@ -455,12 +456,16 @@ class StructureNeighborsV3(StructureNeighborsBase):
                 - 是否使用笛卡尔坐标
             5. rcut: float:
                 - 截断半径
+            6. max_nbrs_num: 
+                - False: 若不设置 `max_nbrs_num`, 则 `max_nbrs_num = max_nbrs_num_real + 1`
+                - int: 超出 `max_nbrs_num_real` 的部分用 `zero padding` 填充。
         '''
         ### Step 1. 
         self.structure = structure
         self.supercell = self.structure.make_supercell_(
                                 scaling_matrix=scaling_matrix,
                                 reformat_mark=reformat_mark)
+        self.max_nbrs_num:Union[False, int] = max_nbrs_num
 
         ### Step 2.
         self.key_nbr_atomic_numbers, self.key_nbr_distances, self.key_nbr_coords = \
@@ -556,8 +561,13 @@ class StructureNeighborsV3(StructureNeighborsBase):
             nbr_coords[tmp_i, :tmp_num_nbrs, :] = supercell_coords[tmp_sorted_nbr_idxs, :]
         
         ### Step 3. 
-        nbr_atomic_numbers = nbr_atomic_numbers[:, :max_num_nbrs]
-        nbr_distances = nbr_distances[:, :max_num_nbrs]
-        nbr_coords = nbr_coords[:, :max_num_nbrs, :]
+        if self.max_nbrs_num:
+            nbr_atomic_numbers = nbr_atomic_numbers[:, :self.max_nbrs_num]
+            nbr_distances = nbr_distances[:, :self.max_nbrs_num]
+            nbr_coords = nbr_coords[:, :self.max_nbrs_num, :]
+        else:
+            nbr_atomic_numbers = nbr_atomic_numbers[:, :max_num_nbrs]
+            nbr_distances = nbr_distances[:, :max_num_nbrs]
+            nbr_coords = nbr_coords[:, :max_num_nbrs, :]
         
         return nbr_atomic_numbers, nbr_distances, nbr_coords

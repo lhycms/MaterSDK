@@ -1,7 +1,7 @@
 import os
 import shutil
 import numpy as np
-from typing import List
+from typing import List, Union
 import multiprocessing as mp
 
 from ...io.publicLayer.traj import Trajectory
@@ -34,8 +34,10 @@ class DeepmdDataSystem(object):
                 potential_energys_array: np.ndarray,
                 kinetic_energys_array: np.ndarray,
                 virial_tensors_array: np.ndarray,
-                rcut:float):
+                rcut:float,
+                max_nbrs_num:Union[bool, int]=False):
         self.rcut = rcut
+        self.max_nbrs_num = max_nbrs_num
         
         self.num_structures = len(structures_lst)
         self.structures_lst = structures_lst
@@ -73,6 +75,7 @@ class DeepmdDataSystem(object):
     def from_trajectory_s(
                 trajectory_object:Trajectory,
                 rcut:float,
+                max_nbrs_num:Union[bool, int]=False,
                 ):
         '''
         Description
@@ -101,13 +104,14 @@ class DeepmdDataSystem(object):
                         potential_energys_array=potential_energys_array,
                         kinetic_energys_array=kinetic_energys_array,
                         virial_tensors_array=virial_tensors_array,
-                        rcut=rcut
+                        rcut=rcut,
+                        max_nbrs_num=max_nbrs_num,
         )
         
         return dp_data_system
     
     
-    def save(
+    def save_all_info(
             self,
             dir_path:str,
             scaling_matrix:List[int]=[3,3,3]):
@@ -123,6 +127,13 @@ class DeepmdDataSystem(object):
                 - 输出的文件夹路径
                 - 各个frame的存储路径为 `<dir_path>/IMAGE_000`
         '''
+        ### Step 0. 如果 `dir_path文件夹` 不存在的话，则建立该文件夹
+        if not os.path.exists(dir_path):
+            os.makedirs(dir_path)
+            print(f"Folder created: {dir_path}")
+        else:
+            print(f"Folder already exists: {dir_path}")
+        
         ### Step 1. 存储:
         #               1. box.npy
         #               2. coord.npy
@@ -201,7 +212,8 @@ class DeepmdDataSystem(object):
                         os.path.join(dir_path, f"%0{num_bits}d" % tmp_idx),
                         self.structures_lst[tmp_idx],
                         scaling_matrix,
-                        self.rcut) for tmp_idx in range(self.num_structures)]
+                        self.rcut,
+                        self.max_nbrs_num) for tmp_idx in range(self.num_structures)]
         
         with mp.Pool(os.cpu_count()-2) as pool:
             pool.starmap(ParallelFunction.save_struct_nbr, parameters_lst)
@@ -219,7 +231,8 @@ class ParallelFunction(object):
                     tmp_image_dir_path:int,
                     structure:DStructure,
                     scaling_matrix:List[int],
-                    rcut:float):
+                    rcut:float,
+                    max_nbrs_num:Union[bool, int]=False):
         '''
         Description
         -----------
@@ -242,6 +255,7 @@ class ParallelFunction(object):
                     reformat_mark=True,
                     coords_are_cartesian=True,
                     rcut=rcut,
+                    max_nbrs_num=max_nbrs_num,
         )
 
         np.save(

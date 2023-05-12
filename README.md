@@ -24,15 +24,16 @@ You can:
 
 
 ## 1.3. Pick out specific frame from `MOVEMENT`
-1. Demo url: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/movement/movement.ipynb
-2. Extract a `DStructure` object
-   1. `atomic_energy`
-   2. `atomic_force`
-   3. `atomic_velocity`
-   4. `magmom`
-3. Extract `virial tensor` of specific frame
-4. Extract `volume` of specific frame
-5. Extract `energy` of specific frame
+1. Demo url: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/movement/movement.ipynb;
+2. Extract a `DStructure` object:
+   1. `atomic_energy`;
+   2. `atomic_force`;
+   3. `atomic_velocity`;
+   4. `magmom`;
+3. Extract `virial tensor` of specific frame;
+4. Extract `volume` of specific frame;
+5. Extract `energy` of specific frame;
+6. Calculate the max number of neighbors among all `DStructrue` in `Movement`.
 
 
 ## 1.4. Generate feature for structure. (For DeepPot-SE, GNN and so on)
