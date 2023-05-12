@@ -2,12 +2,15 @@ import os
 import warnings
 import numpy as np
 import copy
+from typing import List
+import multiprocessing as mp
 
 from ..utils.lineLocator import (LineLocator,
                                  ListLocator)
 from ..utils.parameters import atomic_number2specie
 from ...publicLayer.structure import DStructure
 from ...publicLayer.traj import Trajectory
+from ...publicLayer.neigh import StructureNeighborUtils
 
 
 class Movement(Trajectory):
@@ -141,6 +144,29 @@ class Movement(Trajectory):
                             coords_are_cartesian=False
                             )
         return structure
+    
+    
+    def get_all_frame_structures(self):
+        '''
+        Description
+        -----------
+            1. 返回 Movement 中的所有结构: List[DStructure]
+        '''
+        structures_lst = []
+        
+        with open(self.movement_path, "r") as mvt:
+            for idx_chunk in range( len(self.chunksizes_lst) ):
+                tmp_chunk = ""
+                for idx_line in range(self.chunksizes_lst[idx_chunk]):
+                    tmp_chunk += mvt.readline()
+                ### Step 1. 得到 DStructure object
+                structures_lst.append(
+                        DStructure.from_str(
+                                str_content=tmp_chunk,
+                                str_format="pwmat")
+                )
+                
+        return structures_lst
     
     
     def get_all_frame_structures_info(self):
@@ -347,6 +373,53 @@ class Movement(Trajectory):
         volume = np.linalg.det(basis_vector)
         
         return volume
+
+
+    def get_max_nbrs_num_real(
+                            self,
+                            scaling_matrix:List[int],
+                            rcut:float):
+        '''
+        Description
+        -----------
+            1. 得到该 MOVEMENT 中所有 atom.config 中原子的`最大近邻原子数目`
+        '''
+        structures_lst = self.get_all_frame_structures()
+        parameters_lst = [(
+                            tmp_structure,
+                            scaling_matrix,
+                            rcut) for tmp_structure in structures_lst]
+        
+        with mp.Pool(os.cpu_count()-2) as pool:
+            max_nbrs_num_real_lst = pool.starmap(
+                                        ParallelFunction.get_max_nbrs_num4struct,
+                                        parameters_lst)
+            
+        return np.max(max_nbrs_num_real_lst)
+
+
+
+class ParallelFunction(object):
+    '''
+    Description
+    -----------
+        1. 一些需要进程并行的函数
+    '''
+    @staticmethod
+    def get_max_nbrs_num4struct(
+                structure:DStructure,
+                scaling_matrix:List[int],
+                rcut:float):
+        '''
+        Description
+        -----------
+            1. 得到单个结构的 `max_nbrs_num_real`
+        '''
+        max_nbrs_num_real = StructureNeighborUtils.get_max_num_nbrs_real(
+                                                    structure=structure,
+                                                    scaling_matrix=scaling_matrix,
+                                                    rcut=rcut)
+        return max_nbrs_num_real
 
 
 count = -1

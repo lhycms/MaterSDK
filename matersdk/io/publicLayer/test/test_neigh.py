@@ -142,7 +142,6 @@ class StructureNeighborUtilsTest(unittest.TestCase):
         scaling_matrix = [3, 3, 3]
         #rcut = 3.2
         rcut = 6.5
-        reformat_mark = True
         coords_are_cartesian = True   
         
         structure = DStructure.from_file(
@@ -155,8 +154,8 @@ class StructureNeighborUtilsTest(unittest.TestCase):
                                     scaling_matrix=scaling_matrix,
                                     rcut=rcut,
                                     coords_are_cartesian=coords_are_cartesian)
-        print("max_num_nbrs_real (excluding center atom self) = {0}".format(max_num_nbrs_real))
-
+        print("Step 1. 此 atom.config 在截断半径 {0} 内，最大近邻原子数（不包括中心原子自身）为:".format(rcut), end="\t")
+        print(max_num_nbrs_real)
 
     
 if __name__ == "__main__":

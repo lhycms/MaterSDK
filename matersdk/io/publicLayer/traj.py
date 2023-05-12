@@ -13,7 +13,21 @@ class Trajectory(ABC):
     
     
     @abstractmethod
+    def get_chunkslice(self):
+        pass
+    
+    @abstractmethod
     def _get_frame_str(self, idx_frame:int):
+        pass
+    
+    
+    @abstractmethod
+    def get_all_frame_structures(self):
+        pass
+    
+    
+    @abstractmethod
+    def get_all_frame_structures_info(self):
         pass
     
     
@@ -31,6 +45,12 @@ class Trajectory(ABC):
     def get_frame_virial(self, idx_frame:int):
         pass
     
+    
     @abstractmethod
     def get_frame_volume(self, idx_frame:int):
+        pass
+    
+    
+    @abstractmethod
+    def get_max_nbrs_num_real(self):
         pass

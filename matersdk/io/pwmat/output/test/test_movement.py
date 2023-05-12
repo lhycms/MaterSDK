@@ -69,7 +69,7 @@ class MovementTest(unittest.TestCase):
         print("Step 9. Atomic energy of {0}th frame:`".format(idx_frame), end="\t")
         forces_array = movement.get_frame_structure(idx_frame=idx_frame).get_atomic_energy()
         print(forces_array)
-        '''
+
         
         # 10.
         print()
@@ -86,6 +86,21 @@ class MovementTest(unittest.TestCase):
         print("\t3. potential_energys_array.shape =\t", potential_energys_array.shape)
         print("\t4. kinetic_energys_arary.shape =\t", kinetic_energys_array.shape)
         print("\t5. virial_tensors_array.shape =\t", virial_tensors_array.shape)
+        
+        
+        
+        ### 11. 
+        print("Step 11. 得到 movement 的所有 DStructure 对象")
+        structures_lst = movement.get_all_frame_structures()
+        print(structures_lst[0])
+        '''
+        
+        
+        ### 12. 
+        print("Step 12. MOVEMENT中所有atom.config中，所有原子中近邻原子数(不包括自身)最大为:\t", end='\t')
+        scaling_matrix = [3, 3, 3]
+        rcut = 6.5
+        print(movement.get_max_nbrs_num_real(scaling_matrix=scaling_matrix, rcut=rcut))
 
     
         

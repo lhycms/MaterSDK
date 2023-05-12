@@ -432,6 +432,7 @@ class StructureNeighborsV3(StructureNeighborsBase):
     Description
     -----------
         1. Work as `StructureNeighborsV3`, but set `rcut` not `n_neighbors`.
+        2. Save images(frames) in different folders, and their neighbors' size are different.
     '''
     def __init__(
                 self,
@@ -560,65 +561,3 @@ class StructureNeighborsV3(StructureNeighborsBase):
         nbr_coords = nbr_coords[:, :max_num_nbrs, :]
         
         return nbr_atomic_numbers, nbr_distances, nbr_coords
-            
-    
-    def get_max_num_nbrs(
-                        self,
-                        scaling_matrix:List[int],
-                        rcut:float,
-                        coords_are_cartesian:bool=True):
-        '''
-        Description
-        -----------
-            1. 得到在一定的截断半径内，各中心原子的最大近邻原子数
-        
-        Parameters
-        ----------
-            1. scaling_matrix: List[int]
-                - 扩胞倍数
-            2. rcut: float
-                - 截断半径
-            3. coords_are_cartesian: bool
-                - 是否使用笛卡尔坐标
-        
-        Note
-        ----
-            1. 包含原子自身，因此近邻原子数其实应该在此基础上 `-1`
-        '''
-        ### Step 0. 获取 primitive_cell 中原子在 supercell 中的 index
-        key_idxs = self.structure.get_key_idxs(scaling_matrix=scaling_matrix)
-        
-        ### Step 1. 获取 supercell 的各种信息(sites的原子序数、坐标)，便于后边直接提取
-        #               1) supercell_atomic_numbers, supercell_coords
-        ### Step 1.1. 获取 supercell 的各位点的原子序数 -- `supercell_atomic_numbers`
-        #supercell_atomic_numbers = np.array([tmp_site.specie.Z for tmp_site in self.supercell.sites])
-        
-        ### Step 1.2. 获取 supercell 的(笛卡尔)坐标 -- `supercell_coords`
-        if coords_are_cartesian:
-            supercell_coords = self.supercell.cart_coords
-        else:
-            supercell_coords = self.supercell.frac_coords
-        
-        ### Step 2. 计算在截断半径内的最大原子数
-        max_num_nbrs = 0
-        for tmp_i, tmp_center_idx in enumerate(key_idxs):
-            ### Step 2.1. 计算该中心原子与近邻原子的距离
-            # shape = (3,) -> (1,3)
-            tmp_center_coord = supercell_coords[tmp_center_idx].reshape(1, 3)
-            # shape = (num_supercell, 3)
-            tmp_relative_coords = supercell_coords - tmp_center_coord
-            # shape = (num_supercell)
-            distances = np.linalg.norm(tmp_relative_coords, axis=1)
-
-            ### Step 2.2. 判断哪些近邻原子在截断半径内
-            tmp_mark_rcut = np.where(distances<rcut, True, False)
-            #print(tmp_mark_rcut)
-            
-            ### Step 2.3. 计算在截断半径内的近邻原子数目
-            tmp_num_nbrs = np.count_nonzero(tmp_mark_rcut)
-            
-            ### Step 2.4. 判断
-            if tmp_num_nbrs > max_num_nbrs:
-                max_num_nbrs = tmp_num_nbrs
-        
-        return max_num_nbrs - 1
