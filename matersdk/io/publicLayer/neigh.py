@@ -48,8 +48,7 @@ class StructureNeighborUtils(object):
                 max_num_nbrs = tmp_num_nbrs
         
         return max_num_nbrs - 1
-            
-            
+                       
 
 
 class StructureNeighborsDescriptor(object):
@@ -115,7 +114,7 @@ class StructureNeighborsBase(ABC):
         '''
         pass
     
-    
+ 
     
 @StructureNeighborsDescriptor.register("v1")
 class StructureNeighborsV1(StructureNeighborsBase):
