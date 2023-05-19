@@ -196,6 +196,8 @@ class Movement(Trajectory):
         potential_energys_lst = []
         kinetic_energys_lst = []
         virial_tensors_lst = []
+        atomic_forces_lst = []
+        atomic_energys_lst = []
         
         with open(self.movement_path, "r") as mvt:
             for idx_chunk in range(len(self.chunksizes_lst)):
@@ -221,6 +223,7 @@ class Movement(Trajectory):
                 
                 ### Step 4. Virial Tensor
                 chunk_rows_lst = tmp_chunk.split("\n")
+                num_atoms = int(chunk_rows_lst[0].split()[0])   # 每个 frame 的原子数目
                 aim_idx = ListLocator.locate_all_lines(strs_lst=chunk_rows_lst,
                                                     content="LATTICE VECTOR")[0]
                 virial_tensor_x = np.array([float(tmp_value.strip()) for tmp_value in chunk_rows_lst[aim_idx+1].split()[-3:]])
@@ -229,6 +232,7 @@ class Movement(Trajectory):
                 virial_tensor = np.vstack([virial_tensor_x, virial_tensor_y, virial_tensor_z])
                 
                 virial_tensors_lst.append(virial_tensor)
+                
         
         return (
                 structures_lst,

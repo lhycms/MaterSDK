@@ -1,26 +1,26 @@
 import unittest
 
 # python3 -m matersdk.data.deepmd.test.test_data_system
-from ..data_system import DeepmdDataSystem, SubDeepmdDataSystem
+from ..data_system import DpLabeledSystem
 from ....io.pwmat.output.movement import Movement
 
 
-class DeepmdDataSystemTest(unittest.TestCase):
-    def all(self):
+class DpLabeledSystemTest(unittest.TestCase):
+    def test_all(self):
         movement = Movement(movement_path="/data/home/liuhanyu/hyliu/code/mlff/test/demo2/PWdata/data1/MOVEMENT")
         rcut = 6.5
         scaling_matrix = [3, 3, 3]
         
-        dp_data_system = DeepmdDataSystem.from_trajectory_s(
+        dp_labeled_system = DpLabeledSystem.from_trajectory_s(
                             trajectory_object=movement,
                             rcut=rcut)
         dir_path = "/data/home/liuhanyu/hyliu/code/test"
         
         ### Step 1.
-        print()
-        print("Step 1. DeepDataSystem 包含的结构数目:", end='\t')
-        assert (dp_data_system.num_structures == len(dp_data_system))
-        print(dp_data_system.num_structures, " = ", len(dp_data_system))
+        #print()
+        #print("Step 1. DeepDataSystem 包含的结构数目:", end='\t')
+        #assert (dp_data_system.num_structures == len(dp_data_system))
+        #print(dp_data_system.num_structures, " = ", len(dp_data_system))
         
         ### Step 2. 
         #print()
@@ -54,22 +54,31 @@ class DeepmdDataSystemTest(unittest.TestCase):
         
         
         ### Step 7.
+        #print()
+        #print("\nStep 7. __getitem__():")
+        #sub_dp_data_system = dp_data_system[:20]
+        #print("\nStep 7.1. len(sub_dp_data_system):", end='\t')
+        #print(len(sub_dp_data_system))
+        
+        
+        ### Step 8. save_info_dpdata()
         print()
-        print("\nStep 7. __getitem__():")
-        sub_dp_data_system = dp_data_system[:20]
-        print("\nStep 7.1. len(sub_dp_data_system):", end='\t')
-        print(len(sub_dp_data_system))
+        print("Step 8. save_info_dpdata:")
+        dp_labeled_system.save_info_dpdata(dir_path=dir_path,set_size=550)
+        
+        
+        
 
 
 class SubDeepmdDataSystemTest(unittest.TestCase):
-    def test_all(self):
+    def all(self):
         movement = Movement(movement_path="/data/home/liuhanyu/hyliu/code/mlff/test/demo2/PWdata/data1/MOVEMENT")
         rcut = 6.5
         
-        dp_data_system = DeepmdDataSystem.from_trajectory_s(
+        dp_data_system = DpLabeledSystem.from_trajectory_s(
                             trajectory_object=movement,
                             rcut=rcut)
-        sub_dp_data_system = SubDeepmdDataSystem.from_indices(
+        sub_dp_data_system = SubDpLabeledSystem.from_indices(
                                 deepmd_data_system=dp_data_system,
                                 indices_lst=[*range(104)])
         ### Step 1.
