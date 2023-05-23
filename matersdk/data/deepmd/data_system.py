@@ -91,7 +91,7 @@ class DpLabeledSystem(object):
         return_rcut = self.rcut
         return_max_nbrs_num = self.max_nbrs_num
         
-        return_object = SubDpLabeledSystem(
+        return_object = DpLabeledSystem(
                             structures_lst=return_structures_lst,
                             total_energys_array=return_total_energys_array,
                             potential_energys_array=return_potential_energys_array,
@@ -153,7 +153,7 @@ class DpLabeledSystem(object):
     @staticmethod
     def from_trajectory_s(
                 trajectory_object:Trajectory,
-                rcut:float=None,
+                rcut:float,
                 max_nbrs_num:Union[bool, int]=False,
                 ):
         '''
@@ -166,6 +166,11 @@ class DpLabeledSystem(object):
             1. trajectory_object: Trajectory
                 - 轨迹对象
                 - e.g. `matersdk.io.pwmat.output.movement.Movement`
+            
+            2. rcut
+            
+            3. max_nbrs_num: 
+                - note: 使用 `StructureNeighborsV3` 时可以设置为False
         '''         
         ### Step 1. 得到 Movement 中所有构型的相关信息
         (structures_lst, 
@@ -401,6 +406,25 @@ class DpLabeledSystem(object):
             pool.starmap(ParallelFunction.save_struct_nbr, parameters_lst)
 
 
+    def get_max_nbr_num_real(
+                self,
+                scaling_matrix:List[int]=[3, 3, 3]):
+        ### Step 1. 得到每个 structure 的 max_nbrs_num_real
+        max_nbrs_num_real_lst = []
+        parameters_lst = [(
+                        self.structures_lst[tmp_idx],
+                        scaling_matrix,
+                        self.rcut,
+                        self.max_nbrs_num) for tmp_idx in range(self.num_structures)]
+        
+        with mp.Pool(os.cpu_count()-2) as pool:
+            max_nbrs_num_real_lst = pool.starmap(ParallelFunction.get_max_nbrs_num_real_s, parameters_lst)
+                
+        ### Step 2. 
+        return max(max_nbrs_num_real_lst)
+        
+            
+
     @staticmethod
     def from_indices(
                 dp_labeled_system,
@@ -491,5 +515,20 @@ class ParallelFunction(object):
                 arr=struct_nbr.key_nbr_coords
         )
         
-
-
+    
+    @staticmethod
+    def get_max_nbrs_num_real_s(
+                structure:DStructure,
+                scaling_matrix:List[int],
+                rcut:float,
+                max_nbrs_num:Union[bool, int]=False):
+        struct_nbr = StructureNeighborsDescriptor.create(
+                    'v3',
+                    structure=structure,
+                    scaling_matrix=scaling_matrix,
+                    reformat_mark=True,
+                    coords_are_cartesian=True,
+                    rcut=rcut,
+                    max_nbrs_num=max_nbrs_num,
+        )
+        return struct_nbr.key_nbr_atomic_numbers.shape[1]

@@ -213,9 +213,17 @@ class Movement(Trajectory):
                 
                 ### Step 2. Energy (Etot, Ep, Ek)
                 first_row_lst = tmp_chunk.split('\n')[0].split()
-                energy_tot = float( first_row_lst[8].strip() )
-                energy_p = float( first_row_lst[9].strip() )
-                energy_k = float( first_row_lst[10][:-1].strip() )
+                # 第二个等号前面是Etot,Ep,Ek，后面三个数分别是 Etot, Ep, Ek
+                equal_1_idx = ListLocator.locate_all_lines(strs_lst=first_row_lst, content="=")[1]
+                energy_tot = float( first_row_lst[equal_1_idx+1].strip() )
+                energy_p = float( first_row_lst[equal_1_idx+2].strip() )
+                # 54 atoms,Iteration=    0.0000000000E+00, Etot,Ep,Ek=   -0.1062748168E+05  -0.1062748168E+05   0.0000000000E+00
+                # 72 atoms,Iteration (fs) =   -0.1000000000E+01, Etot,Ep,Ek (eV) =   -0.1188642969E+05  -0.1188642969E+05   0.0000000000E+00, SCF =    16
+                energy_k = first_row_lst[equal_1_idx+3].strip()
+                if energy_k[-1] == ',':
+                    energy_k = float(energy_k[:-1])
+                else:
+                    energy_k = float(energy_k)
                 
                 total_energys_lst.append(energy_tot)
                 potential_energys_lst.append(energy_p)
@@ -226,20 +234,23 @@ class Movement(Trajectory):
                 num_atoms = int(chunk_rows_lst[0].split()[0])   # 每个 frame 的原子数目
                 aim_idx = ListLocator.locate_all_lines(strs_lst=chunk_rows_lst,
                                                     content="LATTICE VECTOR")[0]
-                virial_tensor_x = np.array([float(tmp_value.strip()) for tmp_value in chunk_rows_lst[aim_idx+1].split()[-3:]])
-                virial_tensor_y = np.array([float(tmp_value.strip()) for tmp_value in chunk_rows_lst[aim_idx+2].split()[-3:]])
-                virial_tensor_z = np.array([float(tmp_value.strip()) for tmp_value in chunk_rows_lst[aim_idx+3].split()[-3:]])
-                virial_tensor = np.vstack([virial_tensor_x, virial_tensor_y, virial_tensor_z])
                 
-                virial_tensors_lst.append(virial_tensor)
+                if len(chunk_rows_lst[aim_idx+1].split()) == 3:
+                    pass
+                else:
+                    virial_tensor_x = np.array([float(tmp_value.strip()) for tmp_value in chunk_rows_lst[aim_idx+1].split()[-3:]])
+                    virial_tensor_y = np.array([float(tmp_value.strip()) for tmp_value in chunk_rows_lst[aim_idx+2].split()[-3:]])
+                    virial_tensor_z = np.array([float(tmp_value.strip()) for tmp_value in chunk_rows_lst[aim_idx+3].split()[-3:]])
+                    virial_tensor = np.vstack([virial_tensor_x, virial_tensor_y, virial_tensor_z])
                 
+                    virial_tensors_lst.append(virial_tensor)
         
         return (
                 structures_lst,
                 np.array(total_energys_lst),
                 np.array(potential_energys_lst),
                 np.array(kinetic_energys_lst),
-                np.array(virial_tensors_lst)
+                np.array(virial_tensors_lst)    # 若没有virial tensor信息，则为np.array([])
         )
                     
     
