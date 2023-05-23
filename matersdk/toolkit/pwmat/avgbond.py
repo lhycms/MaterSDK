@@ -10,7 +10,7 @@ from ...io.pwmat.utils.parameters import specie2atomic_number
 
 
 
-class Bondfft(object):
+class AvgBond(object):
     def __init__(self,
                 movement_path:str,
                 element_1:str,
@@ -87,7 +87,7 @@ class Bondfft(object):
         '''
         Description
         -----------
-            1. 根据 `StructureNeighborVX` 的信息计算平均键长
+            1. 根据 `StructureNeighborVX` 的信息计算平均键长 (e.g. 所有 `Ge-Te` 对的长度)
 
         Parameters
         ----------
@@ -130,3 +130,57 @@ class Bondfft(object):
         sumlength_bonds = np.sum(effective_bonds_array)
         
         return sumlength_bonds / num_bonds
+
+    
+    def get_avg_bond_length_pair(self):
+        pass
+
+
+
+class PairBond(object):
+    def __init__(
+                self,
+                movement_path:str,
+                atom1_idx:int,
+                atom2_idx:int,
+                ):
+        '''
+        Description
+        -----------
+            1. 
+        
+        Parameters
+        ----------
+            1. movement_path: str
+            2. atom1_idx: int 
+            3. atom2_idx: int
+        '''
+        self.frames_lst = Movement(movement_path=movement_path).get_all_frame_structures_info()[0]
+        self.atom1_idx = atom1_idx
+        self.atom2_idx = atom2_idx
+    
+    
+    def get_frames_pair_bond(self):
+        pair_bond_lengths_lst = []
+        for tmp_struct in self.frames_lst:
+            tmp_coords = tmp_struct.cart_coords
+            tmp_atom1_coord = tmp_coords[self.atom1_idx]
+            tmp_atom2_coord = tmp_coords[self.atom2_idx]
+            tmp_pair_bond = self._get_pair_bond_length(tmp_atom1_coord, tmp_atom2_coord)
+            pair_bond_lengths_lst.append(tmp_pair_bond)
+        
+        return pair_bond_lengths_lst
+            
+    
+    
+    def _get_pair_bond_length(
+                            self,
+                            atom1_coord:np.ndarray,
+                            atom2_coord:np.ndarray
+                            ):
+        '''
+        Description
+        -----------
+            1. 计算两个坐标之间的距离
+        '''
+        return np.linalg.norm(atom2_coord - atom1_coord)
