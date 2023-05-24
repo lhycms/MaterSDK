@@ -52,6 +52,15 @@ Using following algorithm to handle the periodic boundary conditions (Take an 2D
 1. Get `max_num_nbrs_real`: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/neighs/SturtureNeighbors.ipynb
 
 ### 1.4.1. `matersdk.io.publicLayer.neigh.StructureNeighborsBase`: Get information of neighbors atom for center atom.
+
+<font color="#73DB90" size="4">
+
+Note
+----
+1. `StructureNeighborsV1` and `StructureNeighborsV2` will be deprecated! Please use `StructureNeighborsV3`.
+
+</font>
+
 #### 1.4.1.1. Use `matersdk.io.publicLayer.neigh.StructureNeighborsV1` to analyse the surrouing environment for specific atom.
 1. `matersdk.io.publicLayer.neigh.StructureNeighborsV2` is much faster than `matersdk.io.publicLayer.neigh.StructureNeighbors`.
 2. Demo url: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/neighs/SturtureNeighbors.ipynb
@@ -66,6 +75,15 @@ Using following algorithm to handle the periodic boundary conditions (Take an 2D
 2. Demo url: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/neighs/SturtureNeighbors.ipynb
 
 ### 1.4.2. `matersdk.feature.deepmd.premise.DpFeaturePairPremiseBase`: Get pair information of neighbor atoms for center atom
+
+<font color="#73DB90" size="4">
+
+Note
+----
+1. `DpFeaturePairPremiseV1` will be deprecated! Please use `DpFeaturePairPremiseV2`.
+
+</font>
+
 #### 1.4.2.1. `matersdk.feature.deepmd.premise.DpFeaturePairPremiseV1`
 1. Demo url: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/deepmd/premise.ipynb
 

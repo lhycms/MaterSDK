@@ -169,7 +169,6 @@ class DpFeaturePairPremiseV1(DpFeaturePairPremiseBase):
         setattr(self, "max_num_nbrs_real", max_num_nbrs_real)
         setattr(self, "num_centers", np.count_nonzero(np.count_nonzero(mask_total==True, axis=1)) )
         
-        
         ### Step 3. 根据输入的 `max_num_nbrs` 和 `num_centers` 规定输出的 np.ndarray 大小
         # shape = (4, 10)   4: 四个Mo原子 (作为中心原子)； 10: `max_num_nbr`: 根据输入设置的最大近邻原子数
         dp_feature_pair_an = np.zeros((self.num_centers, max_num_nbrs))
@@ -202,7 +201,7 @@ class DpFeaturePairPremiseV1(DpFeaturePairPremiseBase):
         knrc = self.structure_neighbors.key_nbr_coords - center_coords
         mask_total4c = np.repeat(mask_total[:, :, np.newaxis], 3, axis=2)
         selected_knrc = np.where(mask_total4c, knrc, 0)
-        
+
         ### 4.2. 删除全为 0 的entry
         # shape = (12,)
         tmp_rm_zeros = ~np.all(selected_knan == 0, axis=1)
@@ -224,8 +223,6 @@ class DpFeaturePairPremiseV1(DpFeaturePairPremiseBase):
             # tmp_num_nbrs: tmp_center_idx原子的 `近邻原子的原子序数`
             tmp_mask = (selected_knan[tmp_center_idx, :] != 0)
             tmp_num_nbrs = np.sum(tmp_mask, axis=0)
-            if tmp_num_nbrs == 0:
-                continue
             dp_feature_pair_an[tmp_i, :tmp_num_nbrs] = selected_knan[tmp_center_idx][tmp_mask]
             dp_feature_pair_d[tmp_i, :tmp_num_nbrs] = selected_knd[tmp_center_idx][tmp_mask]
             dp_feature_pair_rc[tmp_i, :tmp_num_nbrs, :] = selected_knrc[tmp_center_idx][tmp_mask].reshape(-1, 3)
@@ -247,8 +244,7 @@ class DpFeaturePairPremiseV2(DpFeaturePairPremiseBase):
     def extract_feature_pair(
                 self,
                 center_atomic_number:int,
-                nbr_atomic_number:int,
-                max_num_nbrs:int):
+                nbr_atomic_number:int):
         '''
         Description
         -----------
@@ -264,9 +260,6 @@ class DpFeaturePairPremiseV2(DpFeaturePairPremiseBase):
                 - 中心原子的原子序数
             2. nbr_atomic_number: int
                 - 近邻原子的原子序数
-            3. max_num_nbrs: int
-                - 最大近邻原子的数目 (决定了 `zero_padding` 的尺寸)
-                - 要稍大一些
         '''
         ### Step 1. 根据中心原子的原子序数，设置筛选条件 -- `mask_center`
         ### Step 1.1. 根据中心原子的原子序数的筛选条件
@@ -298,15 +291,16 @@ class DpFeaturePairPremiseV2(DpFeaturePairPremiseBase):
         
         ### Step 2.
         setattr( self, "num_centers", np.count_nonzero(np.count_nonzero(mask_total, axis=1)) )
+        setattr( self, "max_num_nbrs_real_element", np.max(np.count_nonzero(mask_total, axis=1)))
         
         ### Step 3. 初始化返回的数组 (这些数组都不包括中心原子自身)
         #       1. `dp_feature_pair_an`:
         #       2. `dp_feature_pair_d`:
         #       3. `dp_feature_pair_rc`:
-        dp_feature_pair_an = np.zeros((self.num_centers, max_num_nbrs))
-        dp_feature_pair_d = np.zeros((self.num_centers, max_num_nbrs))
-        dp_feature_pair_rc = np.zeros((self.num_centers, max_num_nbrs, 3))
-        
+        dp_feature_pair_an = np.zeros((self.num_centers, self.max_num_nbrs_real_element))
+        dp_feature_pair_d = np.zeros((self.num_centers, self.max_num_nbrs_real_element))
+        dp_feature_pair_rc = np.zeros((self.num_centers, self.max_num_nbrs_real_element, 3))
+
         ### Step 4. 计算相对坐标
         center_coords = self.structure_neighbors.key_nbr_coords[:, 0, :]
         center_coords = np.repeat(
@@ -317,6 +311,7 @@ class DpFeaturePairPremiseV2(DpFeaturePairPremiseBase):
         relative_coords = self.structure_neighbors.key_nbr_coords - center_coords
         
         ### Step 5. 根据筛选条件 `mask_total` 填充 Step 3 的三个数组
+        real_center_i = 0
         for tmp_i in range(mask_total.shape[0]):
             tmp_num_nbrs = np.count_nonzero(mask_total[tmp_i, :])
             if tmp_num_nbrs == 0:
@@ -324,11 +319,9 @@ class DpFeaturePairPremiseV2(DpFeaturePairPremiseBase):
                 0; 0; 0; 0; 0; 0; 0; 0; 6; 6; 6; 6
                 '''
                 continue
-            dp_feature_pair_an[:, :tmp_num_nbrs] = self.structure_neighbors.key_nbr_atomic_numbers[tmp_i][mask_total[tmp_i, :]]
-            dp_feature_pair_d[:, :tmp_num_nbrs] = self.structure_neighbors.key_nbr_distances[tmp_i][mask_total[tmp_i, :]]
-            dp_feature_pair_rc[:, :tmp_num_nbrs, :] = relative_coords[tmp_i][mask_total[tmp_i, :]]
-        #print(dp_feature_pair_an)
-        #print(dp_feature_pair_d)
-        #print(dp_feature_pair_rc)
+            dp_feature_pair_an[real_center_i, :tmp_num_nbrs] = self.structure_neighbors.key_nbr_atomic_numbers[tmp_i][mask_total[tmp_i, :]]
+            dp_feature_pair_d[real_center_i, :tmp_num_nbrs] = self.structure_neighbors.key_nbr_distances[tmp_i][mask_total[tmp_i, :]]
+            dp_feature_pair_rc[real_center_i, :tmp_num_nbrs, :] = relative_coords[tmp_i][mask_total[tmp_i, :]]
+            real_center_i += 1
         
         return dp_feature_pair_an, dp_feature_pair_d, dp_feature_pair_rc

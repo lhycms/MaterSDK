@@ -255,8 +255,7 @@ class DeepmdSeTildeRV2(DeepmdSeTildeRBase):
                 center_atomic_number:int,
                 nbr_atomic_number:int,
                 rcut:float,
-                rcut_smooth:float,
-                max_num_nbrs:int):
+                rcut_smooth:float):
         '''
         Parameters
         ----------
@@ -266,8 +265,7 @@ class DeepmdSeTildeRV2(DeepmdSeTildeRBase):
                     self._get_premise(
                             structure_neighbors=structure_neighbors,
                             center_atomic_number=center_atomic_number,
-                            nbr_atomic_number=nbr_atomic_number,
-                            max_num_nbrs=max_num_nbrs)
+                            nbr_atomic_number=nbr_atomic_number)
         self.dp_feature_pair_tildeR = self._get_tildeR(rcut=rcut, rcut_smooth=rcut_smooth)
         
     
@@ -275,8 +273,7 @@ class DeepmdSeTildeRV2(DeepmdSeTildeRBase):
                     self,
                     structure_neighbors:StructureNeighborsV3,
                     center_atomic_number:int,
-                    nbr_atomic_number:int,
-                    max_num_nbrs:int):
+                    nbr_atomic_number:int):
         '''
         Description
         -----------
@@ -294,16 +291,14 @@ class DeepmdSeTildeRV2(DeepmdSeTildeRBase):
                 - 中心原子的原子序数
             3. nbr_atomic_number: int
                 - 近邻原子的原子序数 
-            4. max_num_nbrs: int 
-                - 最大近邻原子数，仅针对此`Pair`
                 
         Return 
         ------
-            1. dp_feature_pair_an: np.ndarray, shape = (num_center, max_num_nbrs)
+            1. dp_feature_pair_an: np.ndarray, shape = (num_center, max_num_nbrs_real_element)
                 - 近邻原子的元素种类
-            2. dp_feature_pair_d: np.ndarray, shape = (num_center, max_num_nbrs)
+            2. dp_feature_pair_d: np.ndarray, shape = (num_center, max_num_nbrs_real_element)
                 - 近邻原子距中心原子的欧式距离 (在笛卡尔坐标系下)
-            3. dp_feature_pair_rc: np.ndarray, shape = (num_center, max_num_nbrs, 3)
+            3. dp_feature_pair_rc: np.ndarray, shape = (num_center, max_num_nbrs_real_element, 3)
                 - 近邻原子距中心原子的相对坐标 (在笛卡尔坐标系下)
         '''
         dp_feature_pair_premise = DpFeaturePairPremiseDescriptor.create(
@@ -312,8 +307,7 @@ class DeepmdSeTildeRV2(DeepmdSeTildeRBase):
         dp_feature_pair_an, dp_feature_pair_d, dp_feature_pair_rc = \
                 dp_feature_pair_premise.extract_feature_pair(
                     center_atomic_number=center_atomic_number,
-                    nbr_atomic_number=nbr_atomic_number,
-                    max_num_nbrs=max_num_nbrs)
+                    nbr_atomic_number=nbr_atomic_number)
                 
         return dp_feature_pair_an, dp_feature_pair_d, dp_feature_pair_rc
     
@@ -336,7 +330,7 @@ class DeepmdSeTildeRV2(DeepmdSeTildeRBase):
                 
         Return
         ------
-            1. dp_feature_pair_s: np.ndarray, shape=(num_center, max_num_nbrs)
+            1. dp_feature_pair_s: np.ndarray, shape=(num_center, max_num_nbrs_real_element)
                 - s 是根据 `近邻原子距中心原子的距离` 计算得出的，是一个分段函数形式
             
         Note
@@ -346,7 +340,7 @@ class DeepmdSeTildeRV2(DeepmdSeTildeRBase):
         ### Step 1. 距离大于 `rcut` 的已经在 `DpFeaturePairPremise` 中被设置为 0 了
         
         ### Step 2. 获取 `dp_feature_pair_d_reciprocal` -- $\frac{1}{rji}$
-        # (num_center, max_num_nbrs)
+        # (num_center, max_num_nbrs_real_element)
         dp_feature_pair_d_reciprocal = np.where(
                     self.dp_feature_pair_d==0,
                     0,
@@ -354,7 +348,7 @@ class DeepmdSeTildeRV2(DeepmdSeTildeRBase):
         )
         
         ### Step 3. 把`self.dp_feature_pair_d`全部转换为 rcut_smooth < r < rcut 时的形式
-        # (num_center, max_num_nbrs)
+        # (num_center, max_num_nbrs_real_element)
         dp_feature_pair_d_scaled = np.where(
                     self.dp_feature_pair_d==0,
                     0,
@@ -362,7 +356,7 @@ class DeepmdSeTildeRV2(DeepmdSeTildeRBase):
         )
         
         ### Step 4. 根据 Step2. 和 Step3. 的结果筛选 
-        # (num_center, max_num_nbrs)
+        # (num_center, max_num_nbrs_real_element)
         dp_feature_pair_s = np.where(
                                 (self.dp_feature_pair_d>rcut_smooth) & (self.dp_feature_pair_d<rcut),
                                 dp_feature_pair_d_scaled,
@@ -386,13 +380,13 @@ class DeepmdSeTildeRV2(DeepmdSeTildeRBase):
             
         Return
         ------
-            1. dp_feature_pair_tildeR: np.ndarray, shape=(num_center, max_num_nbrs, 4)
+            1. dp_feature_pair_tildeR: np.ndarray, shape=(num_center, max_num_nbrs_real_element, 4)
                 - $\widetilde{R}$ in Zhang L, Han J, Wang H, et al. End-to-end symmetry preserving inter-atomic potential energy model for finite and extended systems[J]. Advances in neural information processing systems, 2018, 31.
         '''
         ### Step 1. 调用 `self._get_s()` 得到 `dp_feature_pair_s`
-        # shape = (num_center, max_num_nbrs)
+        # shape = (num_center, max_num_nbrs_real_element)
         dp_feature_pair_s = self._get_s(rcut=rcut, rcut_smooth=rcut_smooth)
-        # shape = (num_center, max_num_nbrs, 1)
+        # shape = (num_center, max_num_nbrs_real_element, 1)
         dp_feature_pair_s = np.repeat(
                                 dp_feature_pair_s[:, :, np.newaxis],
                                 1,
@@ -400,24 +394,24 @@ class DeepmdSeTildeRV2(DeepmdSeTildeRBase):
         
         ### Step 2. 利用 `self.dp_feature_pair_rc` 计算 $\widetilde{R}$ 的后三列
         ### Step 2.1.
-        # shape = (num_center, max_num_nbrs)
+        # shape = (num_center, max_num_nbrs_real_element)
         dp_feature_pair_d_reciprocal = np.where(
                                 self.dp_feature_pair_d == 0,
                                 0,
                                 np.reciprocal(self.dp_feature_pair_d)
         ) 
-        # shape = (num_center, max_num_nbrs, 1)
+        # shape = (num_center, max_num_nbrs_real_element, 1)
         dp_feature_pair_d_reciprocal = np.repeat(
                                 dp_feature_pair_d_reciprocal[:, :, np.newaxis],
                                 1,
                                 axis=2)
         
         ### Step 2.2.
-        # shape = (num_center, max_num_nbrs, 3)
+        # shape = (num_center, max_num_nbrs_real_element, 3)
         tildeR_last3 = dp_feature_pair_s * dp_feature_pair_d_reciprocal * self.dp_feature_pair_rc
         
         ### Step 3. 合并 `dp_feature_pair` 和 `tildeR_last3`
-        # shape = (num_center, max_num_nbrs, 4)
+        # shape = (num_center, max_num_nbrs_real_element, 4)
         dp_feature_pair_tildeR = np.concatenate(
                                         [dp_feature_pair_s, tildeR_last3],
                                         axis=2)

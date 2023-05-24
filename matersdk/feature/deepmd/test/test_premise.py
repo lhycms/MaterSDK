@@ -101,8 +101,7 @@ class DpFeatureTest(unittest.TestCase):
         dp_feature_pair_an, dp_feature_pair_d, dp_feature_pair_rc = \
             dp_feature.extract_feature_pair(
                         center_atomic_number=center_atomic_number,
-                        nbr_atomic_number=nbr_atomic_number,
-                        max_num_nbrs=max_num_nbrs
+                        nbr_atomic_number=nbr_atomic_number
             )
         
         print("1.1. Atomic number -- dp_feature_pair_an:")
