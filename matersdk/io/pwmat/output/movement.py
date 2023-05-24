@@ -335,8 +335,7 @@ class Movement(Trajectory):
         frame_str = self._get_frame_str(idx_frame=idx_frame)
         rows_lst = frame_str.split("\n")
 
-        ### 2. 找到 Lattice vector 对应的行的索引 -- `tmp_idx`
-        tmp_idx = 0
+        ### 2. 找到 Lattice vector 对应的行的索引 -- `aim_idx`
         aim_content = "LATTICE VECTOR"
         aim_idx = ListLocator.locate_all_lines(strs_lst=rows_lst, content=aim_content)[0]
         
