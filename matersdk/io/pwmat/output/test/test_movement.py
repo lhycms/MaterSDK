@@ -42,7 +42,7 @@ class MovementTest(unittest.TestCase):
         print( "\t1. Total energy: {0} eV".format(energy_tot) )
         print( "\t2. Potential energy: {0} eV".format(energy_p) )
         print( "\t3. Kenitic energy: {0} eV".format(energy_k) )
-        
+        '''
         
         # 6. 
         print()
@@ -50,7 +50,7 @@ class MovementTest(unittest.TestCase):
         virial_tensor = movement.get_frame_virial(idx_frame=idx_frame)
         print(virial_tensor)
         
-
+        '''
         # 7. 
         print()
         print("Step 7. Volume of {0}th frame:`".format(idx_frame), end="\t")
@@ -71,7 +71,7 @@ class MovementTest(unittest.TestCase):
         print(forces_array)
         '''
         
-        # 10.
+        # 10. Especially for MLFF.
         print()
         print("Step 10. Movement.get_all_frame_structure_info():")
         (structures_lst,
@@ -79,7 +79,7 @@ class MovementTest(unittest.TestCase):
          potential_energys_array,
          kinetic_energys_array,
          virial_tensors_array) = \
-            movement.get_all_frame_structures_info()
+                    movement.get_all_frame_structures_info()
         #print(structures_lst)
         print("\t1. len(structures_lst) =\t", len(structures_lst))
         print("\t2. total_energys_array.shape =\t", total_energys_array.shape)

@@ -196,8 +196,6 @@ class Movement(Trajectory):
         potential_energys_lst = []
         kinetic_energys_lst = []
         virial_tensors_lst = []
-        atomic_forces_lst = []
-        atomic_energys_lst = []
         
         with open(self.movement_path, "r") as mvt:
             for idx_chunk in range(len(self.chunksizes_lst)):
@@ -336,19 +334,20 @@ class Movement(Trajectory):
         ### 1. 获取 `idx_frame` 对应的 chunk，并以 `\n` 为分裂标志将其分成列表
         frame_str = self._get_frame_str(idx_frame=idx_frame)
         rows_lst = frame_str.split("\n")
-        
+
         ### 2. 找到 Lattice vector 对应的行的索引 -- `tmp_idx`
         tmp_idx = 0
-        content = "Lattice vector"
-        for tmp_idx, tmp_row in enumerate(rows_lst):   # 找到 Lattice vector 对应的行的索引
-            if content in tmp_row:
-                break
+        aim_content = "LATTICE VECTOR"
+        aim_idx = ListLocator.locate_all_lines(strs_lst=rows_lst, content=aim_content)[0]
         
         ### 3. 将 virial tensor 转换成 3*3 的 np.ndarray
-        virial_tensor_x = np.array([float(tmp_value.strip()) for tmp_value in rows_lst[tmp_idx+1].split()[-3:]])
-        virial_tensor_y = np.array([float(tmp_value.strip()) for tmp_value in rows_lst[tmp_idx+2].split()[-3:]])
-        virial_tensor_z = np.array([float(tmp_value.strip()) for tmp_value in rows_lst[tmp_idx+3].split()[-3:]])
-        virial_tensor = np.vstack([virial_tensor_x, virial_tensor_y, virial_tensor_z])
+        if ( len(rows_lst[aim_idx+1].split()) == 3 ):   # 没有virial信息，只有lattice信息
+            virial_tensor = np.zeros((3, 3))
+        else:
+            virial_tensor_x = np.array([float(tmp_value.strip()) for tmp_value in rows_lst[aim_idx+1].split()[-3:]])
+            virial_tensor_y = np.array([float(tmp_value.strip()) for tmp_value in rows_lst[aim_idx+2].split()[-3:]])
+            virial_tensor_z = np.array([float(tmp_value.strip()) for tmp_value in rows_lst[aim_idx+3].split()[-3:]])
+            virial_tensor = np.vstack([virial_tensor_x, virial_tensor_y, virial_tensor_z])
         
         return virial_tensor
             
