@@ -26,15 +26,15 @@ You can:
 ## 1.3. Pick out specific frame from `MOVEMENT`
 1. Demo url: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/movement/movement.ipynb;
 2. Extract information from specific frame:
-   1. Extract a `DStructure` object:
-   2. `atomic_energy`;
-   3. `atomic_force`;
-   4. `atomic_velocity`;
-   5. `magmom`;
-   6. Extract `virial tensor` of specific frame;
-   7. Extract `volume` of specific frame;
-   8. Extract `energy` of specific frame;
-3. Calculate the `max number of neighbors (max_nbrs_num_real)` among all `DStructrue` in `Movement`.
+   1. Extract a `DStructure` object;
+      1. `atomic_energy`;
+      2. `atomic_force`;
+      3. `atomic_velocity`;
+      4. `magmom`;
+   2. Extract `virial tensor` of specific frame;
+   3. Extract `volume` of specific frame;
+   4. Extract `energy` of specific frame;
+3. Calculate the `max number of neighbors (max_num_nbrs_real)` among all `DStructrue` in `Movement`.
 4. `Movement.get_all_frame_structures_info()`:
    1. `structures_lst:List[DStructure]`
    2. `total_energys_array`
@@ -48,6 +48,8 @@ Using following algorithm to handle the periodic boundary conditions (Take an 2D
 1. The corresponding surfaces of structure to be parallel.
 2. The element in `scaling matrix` must be odd number.
 
+### 1.4.0. `matersdk.io.publicLayer.neigh.StructureNeighborUtils`
+1. Get `max_num_nbrs_real`: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/neighs/SturtureNeighbors.ipynb
 
 ### 1.4.1. `matersdk.io.publicLayer.neigh.StructureNeighborsBase`: Get information of neighbors atom for center atom.
 #### 1.4.1.1. Use `matersdk.io.publicLayer.neigh.StructureNeighborsV1` to analyse the surrouing environment for specific atom.
@@ -60,7 +62,7 @@ Using following algorithm to handle the periodic boundary conditions (Take an 2D
 
 #### 1.4.1.3. Use `matersdk.io.publicLayer.neigh.StructureNeighborsV3` to analyse the surrouing environment for specific atom.
 1. `matersdk.io.publicLayer.neigh.StructureNeighborsV3` is much faster than `matersdk.io.publicLayer.neigh.StructureNeighborsV1`. And save more space than `StrcutureNeighborsV3`
-   - Note: If not set `max_nbrs_num`, `max_nbrs_num = max_nbrs_num_real + 1` !!!
+   - Note: If not set `max_num_nbrs`, `max_num_nbrs = max_num_nbrs_real + 1` !!!
 2. Demo url: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/neighs/SturtureNeighbors.ipynb
 
 ### 1.4.2. `matersdk.feature.deepmd.premise.DpFeaturePairPremiseBase`: Get pair information of neighbor atoms for center atom
