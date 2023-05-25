@@ -1,10 +1,9 @@
 import os
 import shutil
 import numpy as np
-from typing import List, Union
+from typing import List
 import multiprocessing as mp
 
-from ...io.pwmat.utils.lineLocator import LineLocator
 from ...io.pwmat.utils.parameters import atomic_number2specie
 from ...io.publicLayer.traj import Trajectory
 from ...io.publicLayer.structure import DStructure
@@ -36,10 +35,8 @@ class DpLabeledSystem(object):
                 potential_energys_array: np.ndarray,
                 kinetic_energys_array: np.ndarray,
                 virial_tensors_array: np.ndarray,
-                rcut:float=None,
-                max_nbrs_num:Union[bool, int]=False):
+                rcut:float=None):
         self.rcut = rcut
-        self.max_nbrs_num = max_nbrs_num
         
         self.num_structures = len(structures_lst)
         self.structures_lst = structures_lst
@@ -89,7 +86,6 @@ class DpLabeledSystem(object):
         return_virial_tensors_array = self.virial_tensors_array[index]
         
         return_rcut = self.rcut
-        return_max_nbrs_num = self.max_nbrs_num
         
         return_object = DpLabeledSystem(
                             structures_lst=return_structures_lst,
@@ -97,8 +93,7 @@ class DpLabeledSystem(object):
                             potential_energys_array=return_potential_energys_array,
                             kinetic_energys_array=return_kinetic_energys_array,
                             virial_tensors_array=return_virial_tensors_array,
-                            rcut=return_rcut,
-                            max_nbrs_num=return_max_nbrs_num)
+                            rcut=return_rcut)
 
         return return_object
     
@@ -153,9 +148,7 @@ class DpLabeledSystem(object):
     @staticmethod
     def from_trajectory_s(
                 trajectory_object:Trajectory,
-                rcut:float,
-                max_nbrs_num:Union[bool, int]=False,
-                ):
+                rcut:float):
         '''
         Description
         -----------
@@ -167,10 +160,7 @@ class DpLabeledSystem(object):
                 - 轨迹对象
                 - e.g. `matersdk.io.pwmat.output.movement.Movement`
             
-            2. rcut
-            
-            3. max_nbrs_num: 
-                - note: 使用 `StructureNeighborsV3` 时可以设置为False
+            2. rcut: float
         '''         
         ### Step 1. 得到 Movement 中所有构型的相关信息
         (structures_lst, 
@@ -188,9 +178,7 @@ class DpLabeledSystem(object):
                         potential_energys_array=potential_energys_array,
                         kinetic_energys_array=kinetic_energys_array,
                         virial_tensors_array=virial_tensors_array,
-                        rcut=rcut,
-                        max_nbrs_num=max_nbrs_num,
-        )
+                        rcut=rcut)
         
         return dp_data_system
     
@@ -293,7 +281,44 @@ class DpLabeledSystem(object):
             if np.any(atomic_energy_array != 0):
                 np.save(file=f"{dir_path}/{set_folder_name}/atom_energy.npy", arr=atomic_energy_array[set_stt_idx:set_end_idx])
          
-    
+
+    @staticmethod
+    def from_indices(
+                dp_labeled_system,
+                indices_lst:List[int]
+                ):
+        '''
+        Description
+        -----------
+            1. 根据索引(`indices_lst`)从 deepmd_data_system 中抽取结构作为 sub_deepmd_data_system
+        
+        Parameters
+        ----------
+            1. deepmd_data_system: DeepmdDataSystem
+                - 
+            2. indices_lst: List[int]
+                - 索引
+        '''
+        if max(indices_lst) > len(dp_labeled_system):
+            raise IndexError("index in indices_lst is larger than len(DeepmdDataSystem)!!!")
+        
+        structures_lst = [dp_labeled_system.structures_lst[tmp_index] for tmp_index in indices_lst]
+        total_energys_array = np.array([dp_labeled_system.total_energys_array[tmp_index] for tmp_index in indices_lst])
+        potential_energys_array = np.array([dp_labeled_system.potential_energys_array[tmp_index] for tmp_index in indices_lst])
+        kinetic_energys_array = np.array([dp_labeled_system.kinetic_energys_array[tmp_index] for tmp_index in indices_lst])
+        virial_tensors_array = np.array([dp_labeled_system.virial_tensors_array[tmp_index] for tmp_index in indices_lst])
+        
+        rcut = dp_labeled_system.rcut
+        
+        return DpLabeledSystem(
+                    structures_lst=structures_lst,
+                    total_energys_array=total_energys_array,
+                    potential_energys_array=potential_energys_array,
+                    kinetic_energys_array=kinetic_energys_array,
+                    virial_tensors_array=virial_tensors_array,
+                    rcut=rcut)
+
+
     def save_all_info(
             self,
             dir_path:str,
@@ -398,9 +423,8 @@ class DpLabeledSystem(object):
         parameters_lst = [(
                         os.path.join(dir_path, f"%0{num_bits}d" % tmp_idx),
                         self.structures_lst[tmp_idx],
-                        scaling_matrix,
                         self.rcut,
-                        self.max_nbrs_num) for tmp_idx in range(self.num_structures)]
+                        scaling_matrix) for tmp_idx in range(self.num_structures)]
         
         with mp.Pool(os.cpu_count()-2) as pool:
             pool.starmap(ParallelFunction.save_struct_nbr, parameters_lst)
@@ -423,45 +447,7 @@ class DpLabeledSystem(object):
         ### Step 2. 
         return max(max_nbrs_num_real_lst)
         
-            
-
-    @staticmethod
-    def from_indices(
-                dp_labeled_system,
-                indices_lst:List[int]
-                ):
-        '''
-        Description
-        -----------
-            1. 根据索引(`indices_lst`)从 deepmd_data_system 中抽取结构作为 sub_deepmd_data_system
         
-        Parameters
-        ----------
-            1. deepmd_data_system: DeepmdDataSystem
-                - 
-            2. indices_lst: List[int]
-                - 索引
-        '''
-        if max(indices_lst) > len(dp_labeled_system):
-            raise IndexError("index in indices_lst is larger than len(DeepmdDataSystem)!!!")
-        
-        structures_lst = [dp_labeled_system.structures_lst[tmp_index] for tmp_index in indices_lst]
-        total_energys_array = np.array([dp_labeled_system.total_energys_array[tmp_index] for tmp_index in indices_lst])
-        potential_energys_array = np.array([dp_labeled_system.potential_energys_array[tmp_index] for tmp_index in indices_lst])
-        kinetic_energys_array = np.array([dp_labeled_system.kinetic_energys_array[tmp_index] for tmp_index in indices_lst])
-        virial_tensors_array = np.array([dp_labeled_system.virial_tensors_array[tmp_index] for tmp_index in indices_lst])
-        
-        rcut = dp_labeled_system.rcut
-        max_nbrs_num = dp_labeled_system.max_nbrs_num
-        
-        return DpLabeledSystem(
-                    structures_lst=structures_lst,
-                    total_energys_array=total_energys_array,
-                    potential_energys_array=potential_energys_array,
-                    kinetic_energys_array=kinetic_energys_array,
-                    virial_tensors_array=virial_tensors_array,
-                    rcut=rcut,
-                    max_nbrs_num=max_nbrs_num)
             
 
 class ParallelFunction(object):
@@ -474,9 +460,8 @@ class ParallelFunction(object):
     def save_struct_nbr(
                     tmp_image_dir_path:int,
                     structure:DStructure,
-                    scaling_matrix:List[int],
                     rcut:float,
-                    max_nbrs_num:Union[bool, int]=False):
+                    scaling_matrix:List[int]):
         '''
         Description
         -----------
@@ -493,14 +478,12 @@ class ParallelFunction(object):
         '''
         # 10. nbr_info.npy
         struct_nbr = StructureNeighborsDescriptor.create(
-                    'v3',
+                    'v1',
                     structure=structure,
+                    rcut=rcut,
                     scaling_matrix=scaling_matrix,
                     reformat_mark=True,
-                    coords_are_cartesian=True,
-                    rcut=rcut,
-                    max_nbrs_num=max_nbrs_num,
-        )
+                    coords_are_cartesian=True)
 
         np.save(
                 file=os.path.join(tmp_image_dir_path, "nbrs_atomic_numbers.npy"),
@@ -519,16 +502,13 @@ class ParallelFunction(object):
     @staticmethod
     def get_max_nbrs_num_real_s(
                 structure:DStructure,
-                scaling_matrix:List[int],
                 rcut:float,
-                max_nbrs_num:Union[bool, int]=False):
+                scaling_matrix:List[int]):
         struct_nbr = StructureNeighborsDescriptor.create(
-                    'v3',
+                    'v1',
                     structure=structure,
+                    rcut=rcut,
                     scaling_matrix=scaling_matrix,
                     reformat_mark=True,
-                    coords_are_cartesian=True,
-                    rcut=rcut,
-                    max_nbrs_num=max_nbrs_num,
-        )
+                    coords_are_cartesian=True)
         return struct_nbr.key_nbr_atomic_numbers.shape[1]

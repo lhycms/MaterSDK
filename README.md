@@ -50,6 +50,7 @@ Using following algorithm to handle the periodic boundary conditions (Take an 2D
 
 ### 1.4.0. `matersdk.io.publicLayer.neigh.StructureNeighborUtils`
 1. Get `max_num_nbrs_real`: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/neighs/SturtureNeighbors.ipynb
+2. Get `max_num_nbrs_real_element`: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/neighs/SturtureNeighbors.ipynb
 
 ### 1.4.1. `matersdk.io.publicLayer.neigh.StructureNeighborsBase`: Get information of neighbors atom for center atom.
 
@@ -64,7 +65,8 @@ Using following algorithm to handle the periodic boundary conditions (Take an 2D
 
 ### 1.4.3. Smooth edition $\widetilde{R}$ of Deepmd feature pair -- `matersdk.feature.deepmd.se_pair.DpseTildeRPairBase`
 #### 1.4.3.1. `matersdk.feature.deepmd.se.DpseTildeRPairV1`
-1. 
+1. 2D system: https://github.com/lhycms/MaterSDK/blob/reduce/demo/feature/deepmd/dpseTileRPair.ipynb
+2. 3D system: https://github.com/lhycms/MaterSDK/blob/reduce/demo/feature/deepmd/dpseTileRPair_3d.ipynb
 
 ## 1.5. Adjacent Matrix
 1. Demo url: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/graph/adjacent_matrix.ipynb

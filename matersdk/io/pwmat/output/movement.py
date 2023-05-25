@@ -10,7 +10,7 @@ from ..utils.lineLocator import (LineLocator,
 from ..utils.parameters import atomic_number2specie
 from ...publicLayer.structure import DStructure
 from ...publicLayer.traj import Trajectory
-from ...publicLayer.neigh import StructureNeighborUtils
+from ...publicLayer.neigh import StructureNeighborsUtils
 
 
 class Movement(Trajectory):
@@ -428,7 +428,7 @@ class ParallelFunction(object):
         -----------
             1. 得到单个结构的 `max_nbrs_num_real`
         '''
-        max_nbrs_num_real = StructureNeighborUtils.get_max_num_nbrs_real(
+        max_nbrs_num_real = StructureNeighborsUtils.get_max_num_nbrs_real(
                                                     structure=structure,
                                                     scaling_matrix=scaling_matrix,
                                                     rcut=rcut)
