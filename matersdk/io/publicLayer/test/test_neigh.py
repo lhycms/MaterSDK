@@ -26,11 +26,10 @@ class StructureNeighborsV1Test(unittest.TestCase):
         neighbors_v1 = StructureNeighborsDescriptor.create(
                         "v1",
                         structure=structure,
+                        rcut=rcut,
                         scaling_matrix=scaling_matrix,
                         reformat_mark=reformat_mark,
                         coords_are_cartesian=coords_are_cartesian,
-                        rcut=rcut,
-                        #max_nbrs_num=100,
                         )
         
         print()
@@ -44,13 +43,13 @@ class StructureNeighborsV1Test(unittest.TestCase):
 
 
 class StructureNeighborUtilsTest(unittest.TestCase):
-    def all(self):
+    def test_all(self):
         atom_config_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/atom.config"
         #atom_config_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/feature/movement/LiSi.config"
         scaling_matrix = [5, 5, 1]
         #scaling_matrix = [3, 3, 3]
-        #rcut = 3.2
-        rcut = 6.5
+        rcut = 3.2
+        #rcut = 6.5
         coords_are_cartesian = True   
         
         structure = DStructure.from_file(
@@ -60,10 +59,19 @@ class StructureNeighborUtilsTest(unittest.TestCase):
         ### Step 1.
         max_num_nbrs_real = StructureNeighborUtils.get_max_num_nbrs_real(
                                     structure=structure,
-                                    scaling_matrix=scaling_matrix,
                                     rcut=rcut,
+                                    scaling_matrix=scaling_matrix,
                                     coords_are_cartesian=coords_are_cartesian)
         print("Step 1. 此 atom.config 在截断半径 {0} 内，最大近邻原子数（不包括中心原子自身）为:".format(rcut), end="\t")
+        print(max_num_nbrs_real)
+        
+        print("Step 2. 此 atom.config 在截断半径 {0} 内，最大近邻各元素的元素数（不包括中心原子自身）为:".format(rcut), end="\t")
+        max_num_nbrs_real = StructureNeighborUtils.get_max_num_nbrs_real_element(
+                                    structure=structure,
+                                    rcut=rcut,
+                                    nbr_elements=["Mo", "S"],
+                                    scaling_matrix=scaling_matrix,
+                                    coords_are_cartesian=coords_are_cartesian)
         print(max_num_nbrs_real)
 
     

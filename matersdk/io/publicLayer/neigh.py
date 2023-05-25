@@ -4,15 +4,21 @@ from typing import List, Union
 from abc import ABC, abstractmethod
 
 from .structure import DStructure
+from ..pwmat.utils.parameters import atomic_number2specie, specie2atomic_number
 
 
 class StructureNeighborUtils(object):
     @staticmethod
     def get_max_num_nbrs_real(
                     structure:DStructure,
-                    scaling_matrix:List[int],
                     rcut:float,
+                    scaling_matrix:List[int],
                     coords_are_cartesian:bool=True):
+        '''
+        Description
+        -----------
+            1. 获取最大近邻原子数目
+        '''
         ### Step 0. 获取 primitive_cell 中原子在 supercell 中的 index
         key_idxs = structure.get_key_idxs(scaling_matrix=scaling_matrix)
         supercell = structure.make_supercell_(
@@ -48,6 +54,60 @@ class StructureNeighborUtils(object):
                 max_num_nbrs = tmp_num_nbrs
         
         return max_num_nbrs - 1
+    
+    
+    @staticmethod
+    def get_max_num_nbrs_real_element(
+                            structure:DStructure,
+                            rcut:float,
+                            nbr_elements:List[str],
+                            scaling_matrix:List[int],
+                            coords_are_cartesian:bool=True):
+        '''
+        Description
+        -----------
+            1. 获取某元素最大近邻原子数目 
+                - {"O": 38, "H", 78}: 近邻的O的数目最多为38；近邻的H的数目最多为78
+        '''
+        ### Step 0. 获取 primitive_cell 中原子在 supercell 中的index
+        key_idxs = structure.get_key_idxs(scaling_matrix=scaling_matrix)
+        supercell = structure.make_supercell_(
+                                    scaling_matrix=scaling_matrix,
+                                    reformat_mark=True)
+        
+        ### Step 1. 获取supercell 中所有原子的(笛卡尔)坐标 -- `supercell_coords`
+        if coords_are_cartesian:
+            supercell_coords = supercell.cart_coords
+        else:
+            supercell_coords = supercell.frac_coords
+        supercell_species = np.array([tmp_specie.Z for tmp_specie in supercell.species])
+        
+        ### Step 2. 计算在截断半径内的各元素最大原子数
+        nbr_element2max_num = dict.fromkeys(nbr_elements, 0)
+        for tmp_i, tmp_center_idx in enumerate(key_idxs):
+            ### Step 2.1. 计算该中心原子与近邻原子的距离
+            # shape = (3,) -> (1,3)
+            tmp_center_coord = supercell_coords[tmp_center_idx].reshape(1, 3)
+            # shape = (num_supercell, 3)
+            tmp_relative_coords = supercell_coords - tmp_center_coord
+            # shape = (num_supercell,)
+            tmp_distances = np.linalg.norm(tmp_relative_coords, axis=1)
+            
+            ### Step 2.2. 判断哪些近邻原子在截断半径内
+            tmp_mark_rcut = np.where(tmp_distances<rcut, True, False)
+            
+            ### Step 2.3. 
+            for tmp_element in nbr_elements:
+                tmp_atomic_number = specie2atomic_number[tmp_element]
+                tmp_mark_element = np.where(supercell_species==tmp_atomic_number, True, False)
+                tmp_mark_tot = tmp_mark_element & tmp_mark_rcut
+                tmp_mark_tot[tmp_center_idx] = False  # 排除中心原子自身
+                tmp_num_element = np.count_nonzero(tmp_mark_tot)
+                if tmp_num_element > nbr_element2max_num[tmp_element]:
+                    nbr_element2max_num.update({tmp_element: tmp_num_element})
+        
+                    
+        return nbr_element2max_num
                        
 
 
@@ -103,41 +163,36 @@ class StructureNeighborsV1(StructureNeighborsBase):
     '''
     Description
     -----------
-        1. Work as `StructureNeighborsV3`, but set `rcut` not `n_neighbors`.
+        1. Set `rcut`, not `n_neighbors`, not `max_num_nbrs`.
         2. Save images(frames) in different folders, and their neighbors' size are different.
     '''
     def __init__(
                 self,
                 structure:DStructure,
-                scaling_matrix:List[int]=[3,3,3],
                 rcut:float=6.5,
+                scaling_matrix:List[int]=[3,3,3],
                 reformat_mark:bool=True,
-                coords_are_cartesian:bool=True,
-                max_nbrs_num:Union[bool, int]=False):
+                coords_are_cartesian:bool=True):
         '''
         Parameters
         ----------
             1. structure: DStructure
                 - 结构
-            2. scaling_matrix: List[int]
-                - 扩胞系数
-            3. rcut: float:
+            2. rcut: float:
                 - 截断半径
+            3. scaling_matrix: List[int]
+                - 扩胞系数
             4. reformat_mark: bool
                 - 是否按照原子序数排序。
                 - 这个参数一定要设置为 `True`
             5. coords_are_cartesian: bool
                 - 是否使用笛卡尔坐标
-            6. max_nbrs_num: 
-                - False: 若不设置 `max_nbrs_num`, 则 `max_nbrs_num = max_nbrs_num_real + 1`
-                - int: 超出 `max_nbrs_num_real` 的部分用 `zero padding` 填充。
         '''
         ### Step 1. 
         self.structure = structure
         self.supercell = self.structure.make_supercell_(
                                 scaling_matrix=scaling_matrix,
                                 reformat_mark=reformat_mark)
-        self.max_nbrs_num:Union[False, int] = max_nbrs_num
 
         ### Step 2.
         self.key_nbr_atomic_numbers, self.key_nbr_distances, self.key_nbr_coords = \
@@ -233,13 +288,8 @@ class StructureNeighborsV1(StructureNeighborsBase):
             nbr_coords[tmp_i, :tmp_num_nbrs, :] = supercell_coords[tmp_sorted_nbr_idxs, :]
         
         ### Step 3. 
-        if self.max_nbrs_num:
-            nbr_atomic_numbers = nbr_atomic_numbers[:, :self.max_nbrs_num]
-            nbr_distances = nbr_distances[:, :self.max_nbrs_num]
-            nbr_coords = nbr_coords[:, :self.max_nbrs_num, :]
-        else:
-            nbr_atomic_numbers = nbr_atomic_numbers[:, :max_num_nbrs]
-            nbr_distances = nbr_distances[:, :max_num_nbrs]
-            nbr_coords = nbr_coords[:, :max_num_nbrs, :]
+        nbr_atomic_numbers = nbr_atomic_numbers[:, :max_num_nbrs]
+        nbr_distances = nbr_distances[:, :max_num_nbrs]
+        nbr_coords = nbr_coords[:, :max_num_nbrs, :]
         
         return nbr_atomic_numbers, nbr_distances, nbr_coords
