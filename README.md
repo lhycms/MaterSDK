@@ -34,7 +34,7 @@ You can:
    2. Extract `virial tensor` of specific frame;
    3. Extract `volume` of specific frame;
    4. Extract `energy` of specific frame;
-3. Calculate the `max number of neighbors (max_num_nbrs_real)` and `max_num_nbrs_real_element` among all `DStructrue` in `Movement`.
+3. Calculate the `max number of neighbors (max_num_nbrs_real)` among all `DStructrue` in `Movement`.
 4. `Movement.get_all_frame_structures_info()`:
    1. `structures_lst:List[DStructure]`
    2. `total_energys_array`
@@ -50,23 +50,53 @@ Using following algorithm to handle the periodic boundary conditions (Take an 2D
 
 ### 1.4.0. `matersdk.io.publicLayer.neigh.StructureNeighborUtils`
 1. Get `max_num_nbrs_real`: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/neighs/SturtureNeighbors.ipynb
-2. Get `max_num_nbrs_real_element`: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/neighs/SturtureNeighbors.ipynb
 
 ### 1.4.1. `matersdk.io.publicLayer.neigh.StructureNeighborsBase`: Get information of neighbors atom for center atom.
 
+<font color="#73DB90" size="4">
+
+Note
+----
+1. `StructureNeighborsV1` and `StructureNeighborsV2` will be deprecated! Please use `StructureNeighborsV3`.
+
+</font>
+
 #### 1.4.1.1. Use `matersdk.io.publicLayer.neigh.StructureNeighborsV1` to analyse the surrouing environment for specific atom.
-1. Note: If not set `max_num_nbrs`, `max_num_nbrs = max_num_nbrs_real + 1` !!!
+1. `matersdk.io.publicLayer.neigh.StructureNeighborsV2` is much faster than `matersdk.io.publicLayer.neigh.StructureNeighbors`.
+2. Demo url: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/neighs/SturtureNeighbors.ipynb
+
+#### 1.4.1.2. Use `matersdk.io.publicLayer.neigh.StructureNeighborsV2` to analyse the surrouing environment for specific atom.
+1. `matersdk.io.publicLayer.neigh.StructureNeighborsV2` is much faster than `matersdk.io.publicLayer.neigh.StructureNeighbors`.
+2. Demo url: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/neighs/SturtureNeighbors.ipynb
+
+#### 1.4.1.3. Use `matersdk.io.publicLayer.neigh.StructureNeighborsV3` to analyse the surrouing environment for specific atom.
+1. `matersdk.io.publicLayer.neigh.StructureNeighborsV3` is much faster than `matersdk.io.publicLayer.neigh.StructureNeighborsV1`. And save more space than `StrcutureNeighborsV3`
+   - Note: If not set `max_num_nbrs`, `max_num_nbrs = max_num_nbrs_real + 1` !!!
 2. Demo url: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/neighs/SturtureNeighbors.ipynb
 
 ### 1.4.2. `matersdk.feature.deepmd.premise.DpFeaturePairPremiseBase`: Get pair information of neighbor atoms for center atom
 
+<font color="#73DB90" size="4">
+
+Note
+----
+1. `DpFeaturePairPremiseV1` will be deprecated! Please use `DpFeaturePairPremiseV2`.
+
+</font>
+
 #### 1.4.2.1. `matersdk.feature.deepmd.premise.DpFeaturePairPremiseV1`
 1. Demo url: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/deepmd/premise.ipynb
 
-### 1.4.3. Smooth edition $\widetilde{R}$ of Deepmd feature pair -- `matersdk.feature.deepmd.se_pair.DpseTildeRPairBase`
-#### 1.4.3.1. `matersdk.feature.deepmd.se.DpseTildeRPairV1`
-1. 2D system: https://github.com/lhycms/MaterSDK/blob/reduce/demo/feature/deepmd/dpseTileRPair.ipynb
-2. 3D system: https://github.com/lhycms/MaterSDK/blob/reduce/demo/feature/deepmd/dpseTileRPair_3d.ipynb
+#### 1.4.2.2. `matersdk.feature.deepmd.premise.DpFeaturePairPremiseV2`
+1. Demo url: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/deepmd/premise.ipynb
+
+### 1.4.3. Smooth edition $\widetilde{R}$ of Deepmd feature pair
+#### 1.4.3.1. `matersdk.feature.deepmd.se.DeepmdSeTildeRV1`
+1. Demo url: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/deepmd/deepmdTileR_3d.ipynb
+2. https://github.com/lhycms/MaterSDK/blob/main/demo/feature/deepmd/deepmdTileR.ipynb
+
+#### 1.4.3.2. `matersdk.feature.deepmd.se.DeepmdSeTildeRV2` -- Don't need to specify `n_neighbors` at first.
+1. https://github.com/lhycms/MaterSDK/blob/main/demo/feature/deepmd/deepmdTileR.ipynb
 
 ## 1.5. Adjacent Matrix
 1. Demo url: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/graph/adjacent_matrix.ipynb
