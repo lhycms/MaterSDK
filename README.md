@@ -53,14 +53,6 @@ Using following algorithm to handle the periodic boundary conditions (Take an 2D
 
 ### 1.4.1. `matersdk.io.publicLayer.neigh.StructureNeighborsBase`: Get information of neighbors atom for center atom.
 
-<font color="#73DB90" size="4">
-
-Note
-----
-1. `StructureNeighborsV1` and `StructureNeighborsV2` will be deprecated! Please use `StructureNeighborsV3`.
-
-</font>
-
 #### 1.4.1.1. Use `matersdk.io.publicLayer.neigh.StructureNeighborsV1` to analyse the surrouing environment for specific atom.
 1. Note: If not set `max_num_nbrs`, `max_num_nbrs = max_num_nbrs_real + 1` !!!
 2. Demo url: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/neighs/SturtureNeighbors.ipynb
