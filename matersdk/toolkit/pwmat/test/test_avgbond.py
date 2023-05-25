@@ -5,7 +5,7 @@ from ..avgbond import AvgBond, PairBond
 
 
 class AvgBondTest(unittest.TestCase):
-    def all(self):
+    def test_all(self):
         #movement_path = "/data/home/liuhanyu/hyliu/data_for_test/bondfft_GeTe/MOVEMENT"
         movement_path = "/data/home/liuhanyu/hyliu/code/mlff/test/demo2/PWdata/data1/MOVEMENT"
         #element_1 = "Ge"
@@ -28,7 +28,7 @@ class AvgBondTest(unittest.TestCase):
         print(bondfft.get_frames_avg_bond())
         
     
-    def test_all(self):
+    def all(self):
         #movement_path = "/data/home/liuhanyu/hyliu/data_for_test/bondfft_GeTe/MOVEMENT"
         movement_path = "/data/home/liuhanyu/hyliu/code/mlff/test/demo2/PWdata/data1/MOVEMENT"
         atom1_idx = 0
@@ -38,9 +38,9 @@ class AvgBondTest(unittest.TestCase):
                             movement_path=movement_path,
                             atom1_idx=atom1_idx,
                             atom2_idx=atom2_idx)
-        print( len(pairbond.frames_lst) )
+        #print( len(pairbond.frames_lst) )
         
-        print(pairbond.get_frames_pair_bond())
+        #print(pairbond.get_frames_pair_bond())
         
 
 

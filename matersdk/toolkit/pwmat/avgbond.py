@@ -104,10 +104,11 @@ class AvgBond(object):
                         key_nbr_ans == self.atomic_number_2,
                         True,
                         False)
-        
+     
         ### Step 3. 取 Step_1 和 Step_2 的and
         filter_tot = filter_center & filter_nbr
         ### Note: 中心原子全部取 False !!!
+        filter_tot[:, 0] = False
 
         ### Step 4. 计算有效的键长，并存储为 np.array 格式
         effective_bonds_array = np.where(
@@ -120,10 +121,6 @@ class AvgBond(object):
         sumlength_bonds = np.sum(effective_bonds_array)
         
         return sumlength_bonds / num_bonds
-
-    
-    def get_avg_bond_length_pair(self):
-        pass
 
 
 
