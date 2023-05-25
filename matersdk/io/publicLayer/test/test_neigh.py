@@ -3,7 +3,7 @@ import unittest
 # python3 -m matersdk.io.publicLayer.test.test_neigh
 from ..structure import DStructure
 from ..neigh import StructureNeighborsDescriptor
-from ..neigh import StructureNeighborUtils
+from ..neigh import StructureNeighborsUtils
 
 
 #class StructureNeighborsDescriptor()
@@ -57,7 +57,7 @@ class StructureNeighborUtilsTest(unittest.TestCase):
                         file_path=atom_config_path)
         
         ### Step 1.
-        max_num_nbrs_real = StructureNeighborUtils.get_max_num_nbrs_real(
+        max_num_nbrs_real = StructureNeighborsUtils.get_max_num_nbrs_real(
                                     structure=structure,
                                     rcut=rcut,
                                     scaling_matrix=scaling_matrix,
@@ -66,7 +66,7 @@ class StructureNeighborUtilsTest(unittest.TestCase):
         print(max_num_nbrs_real)
         
         print("Step 2. 此 atom.config 在截断半径 {0} 内，最大近邻各元素的元素数（不包括中心原子自身）为:".format(rcut), end="\t")
-        max_num_nbrs_real = StructureNeighborUtils.get_max_num_nbrs_real_element(
+        max_num_nbrs_real = StructureNeighborsUtils.get_max_num_nbrs_real_element(
                                     structure=structure,
                                     rcut=rcut,
                                     nbr_elements=["Mo", "S"],

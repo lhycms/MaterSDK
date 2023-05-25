@@ -7,7 +7,7 @@ from .structure import DStructure
 from ..pwmat.utils.parameters import atomic_number2specie, specie2atomic_number
 
 
-class StructureNeighborUtils(object):
+class StructureNeighborsUtils(object):
     @staticmethod
     def get_max_num_nbrs_real(
                     structure:DStructure,
