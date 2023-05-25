@@ -59,18 +59,7 @@ Using following algorithm to handle the periodic boundary conditions (Take an 2D
 
 ### 1.4.2. `matersdk.feature.deepmd.premise.DpFeaturePairPremiseBase`: Get pair information of neighbor atoms for center atom
 
-<font color="#73DB90" size="4">
-
-Note
-----
-1. `DpFeaturePairPremiseV1` will be deprecated! Please use `DpFeaturePairPremiseV2`.
-
-</font>
-
 #### 1.4.2.1. `matersdk.feature.deepmd.premise.DpFeaturePairPremiseV1`
-1. Demo url: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/deepmd/premise.ipynb
-
-#### 1.4.2.2. `matersdk.feature.deepmd.premise.DpFeaturePairPremiseV2`
 1. Demo url: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/deepmd/premise.ipynb
 
 ### 1.4.3. Smooth edition $\widetilde{R}$ of Deepmd feature pair
