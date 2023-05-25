@@ -42,12 +42,30 @@ class DpLabeledSystemTest(unittest.TestCase):
         print(validation_set)
         
         
-        ### Step 4.
-        #print()
-        #print("Step 4. Save information: running...")
-        #dp_data_system.save_all_info(
+        ### Step 4. save_all_info()
+        print()
+        print("Step 4. save_all_info()...")
+        #dp_labeled_system.save_all_info(
         #                dir_path=dir_path,
         #                scaling_matrix=scaling_matrix)
+        
+        
+        ### Step 5. get_max_num_nbrs_real()
+        print()
+        max_num_nbrs_real = dp_labeled_system.get_max_num_nbrs_real(
+                                rcut=rcut,
+                                scaling_matrix=scaling_matrix)
+        print("Step 5. max_num_nbrs_real = ", max_num_nbrs_real)
+        
+        
+        ### Step 6. get_max_num_nbrs_real_element()
+        max_num_nbrs_real_element = dp_labeled_system.get_max_num_nbrs_real_element(
+                                rcut=rcut,
+                                nbr_elements=["Li", "Si"],
+                                scaling_matrix=scaling_matrix)
+        print("Step 6. max_num_nbrs_real_element:")
+        print(max_num_nbrs_real_element)
+        
         
         
 

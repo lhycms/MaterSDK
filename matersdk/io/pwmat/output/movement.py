@@ -2,7 +2,7 @@ import os
 import warnings
 import numpy as np
 import copy
-from typing import List
+from typing import List, Dict
 import multiprocessing as mp
 
 from ..utils.lineLocator import (LineLocator,
@@ -388,10 +388,10 @@ class Movement(Trajectory):
         return volume
 
 
-    def get_max_nbrs_num_real(
+    def get_max_num_nbrs_real(
                             self,
-                            scaling_matrix:List[int],
-                            rcut:float):
+                            rcut:float, 
+                            scaling_matrix:List[int]):
         '''
         Description
         -----------
@@ -400,15 +400,58 @@ class Movement(Trajectory):
         structures_lst = self.get_all_frame_structures()
         parameters_lst = [(
                             tmp_structure,
-                            scaling_matrix,
-                            rcut) for tmp_structure in structures_lst]
+                            rcut,
+                            scaling_matrix) for tmp_structure in structures_lst]
         
         with mp.Pool(os.cpu_count()-2) as pool:
             max_nbrs_num_real_lst = pool.starmap(
-                                        ParallelFunction.get_max_nbrs_num4struct,
+                                        ParallelFunction.get_max_num_nbrs_real,
                                         parameters_lst)
             
         return np.max(max_nbrs_num_real_lst)
+    
+    
+    def get_max_num_nbrs_real_element(
+                                self,
+                                rcut:float,
+                                nbr_elements:List[str],
+                                scaling_matrix:List[int]):
+        '''
+        Description
+        -----------
+            1.
+        
+        Return
+        ------
+            1. return_dict
+                - e.g. {'Li': 54, 'Si': 29}
+                -   近邻的 Li 原子最多有 54 个
+                -   近邻的 Si 原子最多有 29 个
+        '''
+        structures_lst = self.get_all_frame_structures()
+        parameters_lst = [(
+                            tmp_structure,
+                            rcut,
+                            nbr_elements,
+                            scaling_matrix) for tmp_structure in structures_lst]
+
+        ### Step 1. 初始化
+        with mp.Pool(os.cpu_count()-2) as pool:
+            max_nbrs_num_real_element:Dict[str, int] = pool.starmap(
+                                        ParallelFunction.get_max_num_nbrs_real_element,
+                                        parameters_lst)
+
+        ### Step 2. 
+        return_dict:Dict[str, int] = dict.fromkeys(
+                                        list(max_nbrs_num_real_element[0].keys()),
+                                        0
+                                    )
+        for tmp_dict in max_nbrs_num_real_element:
+            for tmp_key in tmp_dict.keys():
+                if tmp_dict[tmp_key] > return_dict[tmp_key]:
+                    return_dict[tmp_key] = tmp_dict[tmp_key]
+               
+        return return_dict
 
 
 
@@ -419,20 +462,37 @@ class ParallelFunction(object):
         1. 一些需要进程并行的函数
     '''
     @staticmethod
-    def get_max_nbrs_num4struct(
+    def get_max_num_nbrs_real(
                 structure:DStructure,
-                scaling_matrix:List[int],
-                rcut:float):
+                rcut:float,
+                scaling_matrix:List[int]):
         '''
         Description
         -----------
             1. 得到单个结构的 `max_nbrs_num_real`
         '''
-        max_nbrs_num_real = StructureNeighborsUtils.get_max_num_nbrs_real(
+        max_num_nbrs_real = StructureNeighborsUtils.get_max_num_nbrs_real(
                                                     structure=structure,
+                                                    rcut=rcut,
                                                     scaling_matrix=scaling_matrix,
-                                                    rcut=rcut)
-        return max_nbrs_num_real
+                                                    coords_are_cartesian=True)
+        return max_num_nbrs_real
+    
+    
+    @staticmethod
+    def get_max_num_nbrs_real_element(
+                    structure:DStructure,
+                    rcut:float,
+                    nbr_elements:List[str],
+                    scaling_matrix:List[int]):
+        max_nbrs_num_real_element = StructureNeighborsUtils.get_max_num_nbrs_real_element(
+                                                    structure=structure,
+                                                    rcut=rcut,
+                                                    nbr_elements=nbr_elements,
+                                                    scaling_matrix=scaling_matrix,
+                                                    coords_are_cartesian=True)
+        return max_nbrs_num_real_element
+    
 
 
 count = -1

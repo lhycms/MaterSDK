@@ -1,13 +1,16 @@
 import os
 import shutil
 import numpy as np
-from typing import List
+from typing import List, Dict
 import multiprocessing as mp
 
 from ...io.pwmat.utils.parameters import atomic_number2specie
 from ...io.publicLayer.traj import Trajectory
 from ...io.publicLayer.structure import DStructure
-from ...io.publicLayer.neigh import StructureNeighborsDescriptor
+from ...io.publicLayer.neigh import (
+                        StructureNeighborsDescriptor,
+                        StructureNeighborsUtils
+)
 
 
 class DpLabeledSystem(object):
@@ -430,22 +433,68 @@ class DpLabeledSystem(object):
             pool.starmap(ParallelFunction.save_struct_nbr, parameters_lst)
 
 
-    def get_max_nbr_num_real(
+    def get_max_num_nbrs_real(
                 self,
+                rcut:float,
                 scaling_matrix:List[int]=[3, 3, 3]):
+        '''
+        Description
+        -----------
+            1. 得到该 MOVEMENT 中所有 atom.config 中原子的`最大近邻原子数目`
+        '''
         ### Step 1. 得到每个 structure 的 max_nbrs_num_real
-        max_nbrs_num_real_lst = []
         parameters_lst = [(
-                        self.structures_lst[tmp_idx],
-                        scaling_matrix,
-                        self.rcut,
-                        self.max_nbrs_num) for tmp_idx in range(self.num_structures)]
-        
+                    tmp_structure,
+                    rcut,
+                    scaling_matrix) for tmp_structure in self.structures_lst]
         with mp.Pool(os.cpu_count()-2) as pool:
-            max_nbrs_num_real_lst = pool.starmap(ParallelFunction.get_max_nbrs_num_real_s, parameters_lst)
-                
-        ### Step 2. 
-        return max(max_nbrs_num_real_lst)
+            max_nbrs_num_real_lst = pool.starmap(
+                                        ParallelFunction.get_max_num_nbrs_real,
+                                        parameters_lst)
+        
+        return np.max(max_nbrs_num_real_lst)
+    
+    
+    def get_max_num_nbrs_real_element(
+                self,
+                rcut:float,
+                nbr_elements:List[str],
+                scaling_matrix:List[int]):
+        '''
+        Description
+        -----------
+            1.
+        
+        Return
+        ------
+            1. return_dict
+                - e.g. {'Li': 54, 'Si': 29}
+                -   近邻的 Li 原子最多有 54 个
+                -   近邻的 Si 原子最多有 29 个
+        '''
+        parameters_lst = [(
+                            tmp_structure,
+                            rcut,
+                            nbr_elements,
+                            scaling_matrix) for tmp_structure in self.structures_lst]
+        
+        ### Step 1. 初始化
+        with mp.Pool(os.cpu_count()-2) as pool:
+            max_nbrs_num_real_element:Dict[str, int] = pool.starmap(
+                                    ParallelFunction.get_max_num_nbrs_real_element,
+                                    parameters_lst)
+        
+        ### Step 2.
+        return_dict:Dict[str, int] = dict.fromkeys(
+                                        list(max_nbrs_num_real_element[0].keys()),
+                                        0
+                                    )
+        for tmp_dict in max_nbrs_num_real_element:
+            for tmp_key in tmp_dict.keys():
+                if tmp_dict[tmp_key] > return_dict[tmp_key]:
+                    return_dict[tmp_key] = tmp_dict[tmp_key]
+               
+        return return_dict
         
         
             
@@ -500,15 +549,35 @@ class ParallelFunction(object):
         
     
     @staticmethod
-    def get_max_nbrs_num_real_s(
+    def get_max_num_nbrs_real(
                 structure:DStructure,
                 rcut:float,
                 scaling_matrix:List[int]):
-        struct_nbr = StructureNeighborsDescriptor.create(
-                    'v1',
-                    structure=structure,
-                    rcut=rcut,
-                    scaling_matrix=scaling_matrix,
-                    reformat_mark=True,
-                    coords_are_cartesian=True)
-        return struct_nbr.key_nbr_atomic_numbers.shape[1]
+        '''
+        Description
+        -----------
+            1. 得到单个结构的 `max_nbrs_num_real`
+        '''
+        max_num_nbrs_real = StructureNeighborsUtils.get_max_num_nbrs_real(
+                                structure=structure,
+                                rcut=rcut,
+                                scaling_matrix=scaling_matrix,
+                                coords_are_cartesian=True)
+        
+        return max_num_nbrs_real
+    
+    
+    @staticmethod
+    def get_max_num_nbrs_real_element(
+                structure:DStructure,
+                rcut:float,
+                nbr_elements:List[str],
+                scaling_matrix:List[int]):
+        max_nbrs_num_real_element = StructureNeighborsUtils.get_max_num_nbrs_real_element(
+                                        structure=structure,
+                                        rcut=rcut,
+                                        nbr_elements=nbr_elements,
+                                        scaling_matrix=scaling_matrix,
+                                        coords_are_cartesian=True)
+        
+        return max_nbrs_num_real_element

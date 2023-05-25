@@ -34,7 +34,7 @@ You can:
    2. Extract `virial tensor` of specific frame;
    3. Extract `volume` of specific frame;
    4. Extract `energy` of specific frame;
-3. Calculate the `max number of neighbors (max_num_nbrs_real)` among all `DStructrue` in `Movement`.
+3. Calculate the `max number of neighbors (max_num_nbrs_real)` and `max_num_nbrs_real_element` among all `DStructrue` in `Movement`.
 4. `Movement.get_all_frame_structures_info()`:
    1. `structures_lst:List[DStructure]`
    2. `total_energys_array`

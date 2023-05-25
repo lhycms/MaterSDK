@@ -45,10 +45,10 @@ class MovementTest(unittest.TestCase):
         '''
         
         # 6. 
-        print()
-        print("Step 6. Virial tensor of {0}th frame:".format(idx_frame))
-        virial_tensor = movement.get_frame_virial(idx_frame=idx_frame)
-        print(virial_tensor)
+        #print()
+        #print("Step 6. Virial tensor of {0}th frame:".format(idx_frame))
+        #virial_tensor = movement.get_frame_virial(idx_frame=idx_frame)
+        #print(virial_tensor)
         
         '''
         # 7. 
@@ -72,27 +72,27 @@ class MovementTest(unittest.TestCase):
         '''
         
         # 10. Especially for MLFF.
-        print()
-        print("Step 10. Movement.get_all_frame_structure_info():")
-        (structures_lst,
-         total_energys_array,
-         potential_energys_array,
-         kinetic_energys_array,
-         virial_tensors_array) = \
-                    movement.get_all_frame_structures_info()
+        #print()
+        #print("Step 10. Movement.get_all_frame_structure_info():")
+        #(structures_lst,
+        # total_energys_array,
+        # potential_energys_array,
+        # kinetic_energys_array,
+        # virial_tensors_array) = \
+        #            movement.get_all_frame_structures_info()
         #print(structures_lst)
-        print("\t1. len(structures_lst) =\t", len(structures_lst))
-        print("\t2. total_energys_array.shape =\t", total_energys_array.shape)
-        print("\t3. potential_energys_array.shape =\t", potential_energys_array.shape)
-        print("\t4. kinetic_energys_arary.shape =\t", kinetic_energys_array.shape)
-        print("\t5. virial_tensors_array.shape =\t", virial_tensors_array.shape)
+        #print("\t1. len(structures_lst) =\t", len(structures_lst))
+        #print("\t2. total_energys_array.shape =\t", total_energys_array.shape)
+        #print("\t3. potential_energys_array.shape =\t", potential_energys_array.shape)
+        #print("\t4. kinetic_energys_arary.shape =\t", kinetic_energys_array.shape)
+        #print("\t5. virial_tensors_array.shape =\t", virial_tensors_array.shape)
         
         
-        '''
+        
         ### 11. 
-        print("Step 11. 得到 movement 的所有 DStructure 对象")
-        structures_lst = movement.get_all_frame_structures()
-        print(structures_lst[0])
+        #print("Step 11. 得到 movement 的所有 DStructure 对象")
+        #structures_lst = movement.get_all_frame_structures()
+        #print(structures_lst[0])
         
         
         
@@ -100,8 +100,20 @@ class MovementTest(unittest.TestCase):
         print("Step 12. MOVEMENT中所有atom.config中，所有原子中近邻原子数(不包括自身)最大为:\t", end='\t')
         scaling_matrix = [3, 3, 3]
         rcut = 6.5
-        print(movement.get_max_nbrs_num_real(scaling_matrix=scaling_matrix, rcut=rcut))
-        '''
+        print(movement.get_max_num_nbrs_real(
+                    rcut=rcut,
+                    scaling_matrix=scaling_matrix)
+        )
+        
+        
+        ### 13.
+        nbr_elements = ["Li", "Si"]
+        print("Step 13. max_num_nbrs_real_element:")
+        movement.get_max_num_nbrs_real_element(
+                    rcut=rcut,
+                    nbr_elements=nbr_elements,
+                    scaling_matrix=scaling_matrix)
+        
     
         
         

@@ -52,5 +52,5 @@ class Trajectory(ABC):
     
     
     @abstractmethod
-    def get_max_nbrs_num_real(self):
+    def get_max_num_nbrs_real(self):
         pass

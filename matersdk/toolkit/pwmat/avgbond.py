@@ -4,7 +4,7 @@ from typing import List
 from ...io.pwmat.output.movement import Movement
 from ...io.publicLayer.neigh import (
                                 StructureNeighborsDescriptor,
-                                StructureNeighborsV3
+                                StructureNeighborsV1
                                 )
 from ...io.pwmat.utils.parameters import specie2atomic_number
 
@@ -39,9 +39,7 @@ class AvgBond(object):
                     self,
                     scaling_matrix:List[int]=[3, 3, 3],
                     reformat_mark:bool=True,
-                    coords_are_cartesian:bool=True,
-                    max_nbrs_num:int=10,
-                    ):
+                    coords_are_cartesian:bool=True):
         '''
         Description
         -----------
@@ -56,23 +54,18 @@ class AvgBond(object):
                 - 是否按原子序数从小到大排序
             3. coords_are_cartesian: bool
                 - 是否按照笛卡尔坐标计算
-            4. max_nbrs_num: int
-                - 最大的近邻原子数
         '''
         avg_bond_lengths_lst = []
         for tmp_idx, tmp_struct in enumerate(self.frames_lst):
             struct_neigh = StructureNeighborsDescriptor.create(
-                                'v3',
+                                'v1',
                                 structure=tmp_struct,
+                                rcut=self.cutoff,
                                 scaling_matrix=scaling_matrix,
                                 reformat_mark=reformat_mark,
-                                coords_are_cartesian=coords_are_cartesian,
-                                rcut=self.cutoff,
-                                max_nbrs_num=max_nbrs_num,
-            )
+                                coords_are_cartesian=coords_are_cartesian)
             tmp_avg_bond_length = self._get_avg_bond_length(
-                                        struct_neigh=struct_neigh,
-                                        max_nbrs_num=max_nbrs_num)
+                                        struct_neigh=struct_neigh)
             avg_bond_lengths_lst.append(tmp_avg_bond_length)
 
         avg_bond_lengths_array = np.array(avg_bond_lengths_lst)
@@ -82,8 +75,7 @@ class AvgBond(object):
     
     def _get_avg_bond_length(
                     self,
-                    struct_neigh:StructureNeighborsV3,
-                    max_nbrs_num:int):
+                    struct_neigh:StructureNeighborsV1):
         '''
         Description
         -----------
@@ -93,8 +85,6 @@ class AvgBond(object):
         ----------
             1. struct_neigh: StructureNeighborsV#
                 - 近邻原子信息
-            2. max_nbrs_num: int
-                - 最大近邻原子数目
         '''
         key_nbr_ans = struct_neigh.key_nbr_atomic_numbers
         key_nbr_distances = struct_neigh.key_nbr_distances
@@ -106,7 +96,7 @@ class AvgBond(object):
                         False)
         filter_center = np.repeat(
                         filter_center[:, np.newaxis],
-                        max_nbrs_num,
+                        key_nbr_ans.shape[1],
                         axis=1)
         
         ### Step 2. 按照近邻原子种类筛选
