@@ -92,4 +92,4 @@ $ pip install .
 ```
 
 ## 2.1. Offline
-1. You can download a python interpreter containing `matersdk` from https://www.jianguoyun.com/p/DfhQFx8Q_qS-CxifgfwEIAA.
+1. You can download a python interpreter containing `matersdk` from https://www.jianguoyun.com/p/DfhQFx8Q_qS-CxifgfwEIAA.matersdk.egg-info
