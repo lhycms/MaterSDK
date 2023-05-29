@@ -1,0 +1,31 @@
+
+CommandNotFoundError: Your shell has not been properly configured to use 'conda activate'.
+To initialize your shell, run
+
+    $ conda init <SHELL_NAME>
+
+Currently supported shells are:
+  - bash
+  - fish
+  - tcsh
+  - xonsh
+  - zsh
+  - powershell
+
+See 'conda init --help' for more information and options.
+
+IMPORTANT: You may need to close and restart your shell after running 'conda init'.
+
+
+****************** LabeledSystem Summary *******************
+	 * Images Number           : 42001         
+	 * Atoms Number            : 54            
+	 * Virials Information     : False         
+	 * Energy Deposition       : False         
+	 * Elements List           :
+		 - Ge: 27              
+		 - Te: 27              
+************************************************************
+
+
+Calculating the avg bond length for all frames in MOVEMENT...

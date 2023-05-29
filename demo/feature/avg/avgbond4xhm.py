@@ -1,14 +1,17 @@
 import numpy as np
+from scipy.fft import fft
 from matersdk.feature.avg.avgbond import AvgBond
 from matersdk.io.pwmat.output.movement import Movement
 from matersdk.data.deepmd.data_system import DpLabeledSystem
 
 
 ### Part I. Custom parameters
-movement_path = "/data/home/liuhanyu/hyliu/code/mlff/test/demo2/PWdata/data1/MOVEMENT"
-element_1 = "Li"
-element_2 = "Si"
+movement_path = "/data/home/liuhanyu/hyliu/pwmat_demo/xhm/MOVEMENT"
+element_1 = "Ge"
+element_2 = "Te"
+
 rcut = 3.2    # 在此范围内认为 `element_1` 与 `element_1` 成键
+
 save_path = "./data.txt"
 
 
