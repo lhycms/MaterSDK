@@ -34,7 +34,7 @@ class DpseTildeRPairDescriptor(object):
     def create(cls, name:str, *args, **kwargs):
         subclass = cls.registry[name]
         if subclass is None:
-            raise ValueError(f"No DeepmdSeTildeR registered with name '{name}'")
+            raise ValueError(f"No DpseTildeRPair registered with name '{name}'")
         return subclass(*args, **kwargs)
     
     
