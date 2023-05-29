@@ -68,6 +68,9 @@ Using following algorithm to handle the periodic boundary conditions (Take an 2D
 1. 2D system: https://github.com/lhycms/MaterSDK/blob/reduce/demo/feature/deepmd/dpseTileRPair.ipynb
 2. 3D system: https://github.com/lhycms/MaterSDK/blob/reduce/demo/feature/deepmd/dpseTileRPair_3d.ipynb
 
+#### 1.4.3.2. `matersdk.feature.deepmd.se.DpseTildeRV1`
+1. 2D system: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/deepmd/dpseTildeR.ipynb
+
 ## 1.5. Adjacent Matrix
 1. Demo url: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/graph/adjacent_matrix.ipynb
 
