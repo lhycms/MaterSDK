@@ -1,6 +1,6 @@
 import unittest
 
-# python3 -m matersdk.feature.deepmd.test.test_se
+# python3 -m matersdk.feature.deepmd.test.test_se_pair
 from ....io.publicLayer.structure import DStructure
 from ....io.publicLayer.neigh import StructureNeighborsDescriptor
 from ..se_pair import DpseTildeRPairDescriptor
@@ -54,6 +54,13 @@ class DpseTildeRPairTest(unittest.TestCase):
         print()
         print("Step 3.")
         print("\t1. deepmd_se_r.dp_feature_pair_tildeR.shape = ", dpse_tildeR_pair.dp_feature_pair_tildeR.shape)
+
+
+        ### Step 4.
+        print()
+        print("Step 4.")
+        print("\t1. deepmd_se_r.get_tildeR(max_num_nbrs=24).shape = ", dpse_tildeR_pair.get_tildeR(max_num_nbrs=24).shape)
+        print(dpse_tildeR_pair.get_tildeR(max_num_nbrs=24))
 
 
 if __name__ == "__main__":

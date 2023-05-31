@@ -175,6 +175,10 @@ class DpseTildeRPairV1(DpseTildeRPairBase):
         ------
             1. dp_feature_pair_tildeR: np.ndarray, shape=(num_center, max_num_nbrs_real_element, 4)
                 - $\widetilde{R}$ in Zhang L, Han J, Wang H, et al. End-to-end symmetry preserving inter-atomic potential energy model for finite and extended systems[J]. Advances in neural information processing systems, 2018, 31.
+                
+        Note
+        ----
+            1. Haven't use zero-padding.
         '''
         ### Step 1. 调用 `self._get_s()` 得到 `dp_feature_pair_s`
         # shape = (num_center, max_num_nbrs_real_element)
@@ -207,3 +211,20 @@ class DpseTildeRPairV1(DpseTildeRPairBase):
                                         axis=2)
         
         return dp_feature_pair_tildeR
+    
+    
+    def get_tildeR(self, max_num_nbrs:int):
+        '''
+        Description
+        -----------
+            1. 按照 `max_num_nbrs`，对 `self.dp_feature_pair_tildeR` 进行 zero-padding
+        '''
+        tilde_R = np.zeros((
+                    self.dp_feature_pair_tildeR.shape[0],
+                    max_num_nbrs,
+                    4)
+        )
+        tilde_R[:, :self.dp_feature_pair_tildeR.shape[1], :] = \
+                    self.dp_feature_pair_tildeR
+        
+        return tilde_R
