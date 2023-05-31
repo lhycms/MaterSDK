@@ -25,7 +25,7 @@ class DpEmbeddingNetTest(unittest.TestCase):
         nbr_atomic_number = 14
         rcut = 6.5
         rcut_smooth = 6.0
-        sel = [100, 30]
+        max_num_nbrs = 36
     
         struct_nbr = StructureNeighborsDescriptor.create(
                         "v1",
@@ -41,7 +41,7 @@ class DpEmbeddingNetTest(unittest.TestCase):
                         center_atomic_number=center_atomic_number,
                         nbr_atomic_number=nbr_atomic_number,
                         rcut=rcut,
-                        rcut_smooth=rcut_smooth)
+                        rcut_smooth=rcut_smooth).get_tildeR(max_num_nbrs=max_num_nbrs)
         print(tilde_r.shape)
 
         ### Step 2. 将 `tilde_R` 重复一次，假装有两个结构
@@ -51,7 +51,15 @@ class DpEmbeddingNetTest(unittest.TestCase):
         tilde_R = tilde_R.to(torch.float32)
 
         ### 2. 从 embedding_net 获取 g
-        dp_embedding = DpEmbeddingNet(embedding_sizes=embedding_sizes)
+        dp_embedding = DpEmbeddingNet(
+                            input_dims=[1, 2, 3],
+                            embedding_sizes=embedding_sizes,
+                            M2=4,
+                            #activation_fn
+                            )
+        
+        dp_embedding.check()
+        
         # shape = (2, 48, 16, 4). M1=16; M2=4
         D = dp_embedding(tilde_R)
         print(D.size())

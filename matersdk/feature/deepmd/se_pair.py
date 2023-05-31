@@ -4,6 +4,8 @@ from abc import ABC, abstractclassmethod
 from ...io.publicLayer.neigh import StructureNeighborsV1
 from .premise import DpFeaturePairPremiseDescriptor
 
+import warnings
+warnings.filterwarnings("ignore")
 
 
 class DpseTildeRPairBase(ABC):
@@ -142,8 +144,9 @@ class DpseTildeRPairV1(DpseTildeRPairBase):
         '''        
         ### Step 1. 获取 `dp_feature_pair_d_reciprocal` -- $\frac{1}{rji}$
         # (num_center, max_num_nbrs_real_element)
-        dp_feature_pair_d_reciprocal = np.reciprocal(self.dp_feature_pair_d)
-        
+        dp_feature_pair_d_reciprocal_ = np.reciprocal(self.dp_feature_pair_d)
+        dp_feature_pair_d_reciprocal = np.where(self.dp_feature_pair_d==0, 0, dp_feature_pair_d_reciprocal_)
+
         ### Step 2. 把`self.dp_feature_pair_d`全部转换为 rcut_smooth < r < rcut 时的形式
         # (num_center, max_num_nbrs_real_element)
         dp_feature_pair_d_scaled = dp_feature_pair_d_reciprocal * (1/2) * (np.cos(np.pi*(self.dp_feature_pair_d-rcut_smooth)/(rcut-rcut_smooth)) + 1)
@@ -154,6 +157,7 @@ class DpseTildeRPairV1(DpseTildeRPairBase):
                                 (self.dp_feature_pair_d>rcut_smooth) & (self.dp_feature_pair_d<rcut),
                                 dp_feature_pair_d_scaled,
                                 dp_feature_pair_d_reciprocal)
+        #print(dp_feature_pair_s)
 
         return dp_feature_pair_s
     
@@ -192,8 +196,9 @@ class DpseTildeRPairV1(DpseTildeRPairBase):
         ### Step 2. 利用 `self.dp_feature_pair_rc` 计算 $\widetilde{R}$ 的后三列
         ### Step 2.1.
         # shape = (num_center, max_num_nbrs_real_element)
-        dp_feature_pair_d_reciprocal = np.reciprocal(self.dp_feature_pair_d)
-
+        dp_feature_pair_d_reciprocal_ = np.reciprocal(self.dp_feature_pair_d)
+        dp_feature_pair_d_reciprocal = np.where(self.dp_feature_pair_d==0, 0, dp_feature_pair_d_reciprocal_)
+        
         # shape = (num_center, max_num_nbrs_real_element, 1)
         dp_feature_pair_d_reciprocal = np.repeat(
                                 dp_feature_pair_d_reciprocal[:, :, np.newaxis],
@@ -203,7 +208,7 @@ class DpseTildeRPairV1(DpseTildeRPairBase):
         ### Step 2.2.
         # shape = (num_center, max_num_nbrs_real_element, 3)
         tildeR_last3 = dp_feature_pair_s * dp_feature_pair_d_reciprocal * self.dp_feature_pair_rc
-        
+
         ### Step 3. 合并 `dp_feature_pair` 和 `tildeR_last3`
         # shape = (num_center, max_num_nbrs_real_element, 4)
         dp_feature_pair_tildeR = np.concatenate(
