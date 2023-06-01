@@ -45,8 +45,16 @@ class FFExtractorTest(unittest.TestCase):
         print("Step 3.1. hdf5_file.keys() = ")
         print(hdf5_file.keys())
         print("Step 3.2. The type of value give hdf5_file.keys():")
-        for tmp_key in hdf5_file.keys():
-            print(type(hdf5_file[tmp_key][()]))
+        #for tmp_key in hdf5_file.keys():
+        #    print(type(hdf5_file[tmp_key][()]))
+        
+        
+        ### Step 4. 
+        print()
+        print("Step 4. get_hdf5_dict:")
+        hdf5_dict = FFExtractor.get_hdf5_dict(hdf5_path=hdf5_path)
+        print(hdf5_dict.keys())
+        #print(hdf5_dict["fitting_net.1.bias.bias1"])
         
         
 
