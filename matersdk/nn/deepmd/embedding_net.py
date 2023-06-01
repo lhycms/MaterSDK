@@ -98,7 +98,7 @@ class DpEmbeddingNet(nn.Module):
                     xx = hidden + xx
             elif self.sizes[tmp_i] == 2 * self.sizes[tmp_i-1]:
                 if self.resnet_dt:
-                    xx = hidden * self.resnet_dt['r_{0}_{1}'.format(tmp_i-1, tmp_i)].view(1, -1) + torch.cat((xx, xx), dim=-1)
+                    xx = hidden * self.resnet_dts['r_{0}_{1}'.format(tmp_i-1, tmp_i)].view(1, -1) + torch.cat((xx, xx), dim=-1)
                 else:
                     xx = hidden + torch.cat((xx, xx), dim=-1)
             else:

@@ -16,7 +16,7 @@ warnings.filterwarnings("ignore")
 class DpEmbeddingNetTest(unittest.TestCase):
     def test_all(self):
         ### Custom parameters
-        embedding_sizes = [32, 32, 32]
+        embedding_sizes = [32, 64, 32]
         
         ### Step 1. 生成 DeepPot-SE 的特征
         atom_config_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/feature/movement/LiSi.config"
