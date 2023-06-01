@@ -79,7 +79,7 @@ class FFExtractor(object):
             for tmp_layer_idx in range(self.num_fitting_layers):
                 hdf5_file.create_dataset(
                     "fitting_net.{0}.weights.weight{1}".format(tmp_net_idx, tmp_layer_idx),
-                    data=self.model_state_dict["embedding_net.{0}.weights.weight{1}".format(tmp_net_idx, tmp_layer_idx)].numpy()
+                    data=self.model_state_dict["fitting_net.{0}.weights.weight{1}".format(tmp_net_idx, tmp_layer_idx)].numpy()
                 )
                 hdf5_file.create_dataset(
                     "fitting_net.{0}.bias.bias{1}".format(tmp_net_idx, tmp_layer_idx),
