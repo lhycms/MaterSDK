@@ -12,20 +12,6 @@ class FFInfer(object):
         pass
     
     
-    def _get_ff_params(self, ff_path:str):
-        '''
-        Description
-        -----------
-            1. 从`.ff`文件中读取力场的参数
-        
-        Parameters
-        ----------
-            1. ff_path: str
-                - `.ff` 文件的路径
-        '''
-        pass
-    
-    
     def _featurize(self,
                 struct_file_path:str,
                 struct_file_fmt:str):

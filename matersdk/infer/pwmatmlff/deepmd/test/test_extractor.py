@@ -18,7 +18,6 @@ class FFExtractorTest(unittest.TestCase):
         print("Step 1. Get keys from model[state_dict]:")
         ff_extractor = FFExtractor(
                         pt_path=pt_path,
-                        hdf5_path=hdf5_path,
                         num_embedding_nets=num_embedding_nets,
                         num_embedding_layers=num_embedding_layers,
                         num_fitting_nets=num_fitting_nets,
@@ -34,7 +33,7 @@ class FFExtractorTest(unittest.TestCase):
         ### Step 2.
         print()
         print("Step 2. Save to HDF5 file...")
-        ff_extractor.save_hdf5_file()
+        ff_extractor.save_hdf5_file(hdf5_path=hdf5_path)
         
         
         ### Step 3.
