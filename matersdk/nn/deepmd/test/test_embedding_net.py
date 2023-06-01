@@ -1,5 +1,6 @@
 import unittest
 import torch
+import torch.nn as nn
 import numpy as np
 from matersdk.io.publicLayer.structure import DStructure
 from matersdk.io.publicLayer.neigh import StructureNeighborsDescriptor
@@ -15,7 +16,7 @@ warnings.filterwarnings("ignore")
 class DpEmbeddingNetTest(unittest.TestCase):
     def test_all(self):
         ### Custom parameters
-        embedding_sizes = [64, 32, 16]
+        embedding_sizes = [32, 32, 32]
         
         ### Step 1. 生成 DeepPot-SE 的特征
         atom_config_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/feature/movement/LiSi.config"
@@ -52,16 +53,17 @@ class DpEmbeddingNetTest(unittest.TestCase):
 
         ### 2. 从 embedding_net 获取 g
         dp_embedding = DpEmbeddingNet(
-                            input_dims=[1, 2, 3],
+                            input_size=3,
                             embedding_sizes=embedding_sizes,
                             M2=4,
-                            #activation_fn
+                            activation_fn=nn.Tanh(),
+                            resnet_dt=True
                             )
         
         dp_embedding.check()
         
-        # shape = (2, 48, 16, 4). M1=16; M2=4
-        D = dp_embedding(tilde_R)
+        # shape = (2, 48, 36, 32).
+        D = dp_embedding(tilde_R[:, :, :, 1:])
         print(D.size())
 
 
