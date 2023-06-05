@@ -1,4 +1,5 @@
 import unittest
+import numpy as np
 from matersdk.io.publicLayer.structure import DStructure
 from matersdk.io.publicLayer.neigh import StructureNeighborsDescriptor
 from matersdk.feature.deepmd.se_pair import DpseTildeRPairDescriptor
@@ -38,7 +39,7 @@ class TildRNormalizerTest(unittest.TestCase):
                         nbr_atomic_number=nbr_atomic_number,
                         rcut=rcut,
                         rcut_smooth=rcut_smooth)
-        #print(dpse_tildeR_pair.dp_feature_pair_tildeR.shape)
+        #print(dpse_tildeR_pair.dp_feature_pair_tildeR)
         tildeRs_array = dpse_tildeR_pair.dp_feature_pair_tildeR
     
     
@@ -47,6 +48,10 @@ class TildRNormalizerTest(unittest.TestCase):
         davg_unit, dstd_unit = normalizer.calc_stats()
         print(davg_unit)
         print(dstd_unit)
+        
+        ### Step 2. 
+        print(np.max(normalizer.normalize(tildeRs_array=tildeRs_array)))
+        print(np.min(normalizer.normalize(tildeRs_array=tildeRs_array)))
 
 
 
