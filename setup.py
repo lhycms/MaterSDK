@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 setup(
     name="matersdk",
     version="v1.0",
-    author="Liu Hanyu  &&  LONXUN QUANTUM",
+    author="Liu Hanyu && LONXUN QUANTUM",
     author_email="domainofbuaa@gmail.com",
     url="https://github.com/lhycms/MaterSDK",
     packages=find_packages(),
@@ -16,5 +16,6 @@ setup(
             #"dpdata>=0.2.13",
             "click>=8.1.3",
             "joblib>=1.2.0",
+            "h5py>=3.8.0",
     ]
 )
