@@ -17,8 +17,14 @@ class FFInferTest(unittest.TestCase):
         rcut_smooth = 6.0
         scaling_matrix = [3, 3, 3]
         max_num_nbrs_dict = {3: 100, 14: 80}
-        davgs_dict = None
-        dstds_dict = None
+        davgs_dict = {
+            3: np.ndarray([0.08375034, 0., 0., 0.]),
+            14: None
+        }
+        dstds_dict = {
+            3: np.ndarray([0.11677445, 0.08296664, 0.08296664, 0.08296664]),
+            14: None
+        }
         
         ff_infer = FFInfer(
                     hdf5_path=hdf5_path,

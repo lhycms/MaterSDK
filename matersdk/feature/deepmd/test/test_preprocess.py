@@ -32,7 +32,17 @@ class TildRPairNormalizerTest(unittest.TestCase):
                         scaling_matrix=scaling_matrix,
                         reformat_mark=reformat_mark,
                         coords_are_cartesian=coords_are_cartesian)
-        dpse_tildeR_pair = DpseTildeRPairDescriptor.create(
+        dpse_tildeR_pair_Li = DpseTildeRPairDescriptor.create(
+                        'v1',
+                        structure_neighbors=struct_nbr,
+                        center_atomic_number=center_atomic_number,
+                        nbr_atomic_number=3,
+                        rcut=rcut,
+                        rcut_smooth=rcut_smooth)
+        #print(dpse_tildeR_pair.dp_feature_pair_tildeR)
+        tildeRs_array_Li = dpse_tildeR_pair_Li.get_tildeR(max_num_nbrs=100)
+        
+        dpse_tildeR_pair_Si = DpseTildeRPairDescriptor.create(
                         'v1',
                         structure_neighbors=struct_nbr,
                         center_atomic_number=center_atomic_number,
@@ -40,8 +50,10 @@ class TildRPairNormalizerTest(unittest.TestCase):
                         rcut=rcut,
                         rcut_smooth=rcut_smooth)
         #print(dpse_tildeR_pair.dp_feature_pair_tildeR)
-        tildeRs_array = dpse_tildeR_pair.dp_feature_pair_tildeR
-    
+        tildeRs_array_Si = dpse_tildeR_pair_Si.get_tildeR(max_num_nbrs=80)
+        # (48, 100, 4) + (48, 80, 4) = (48, 180, 4)
+        tildeRs_array = np.concatenate([tildeRs_array_Li, tildeRs_array_Si], axis=1)
+
     
         ### Step 1. 
         print()

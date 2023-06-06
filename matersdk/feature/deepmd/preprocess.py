@@ -16,13 +16,14 @@ class TildeRPairNormalizer(object):
         Parameters
         ----------
             1. tildeRs_array: 
-                - 
+                - Noe:
+                    1. You should calculate tildeR of `Li-Li` and `Li-Si`, and concat them, then calculate `davg` and `dstd`
             2. davg: np.ndarray 
-                - `davg.shape = (4,)`
+                - `davg.shape = (1, 4)`
             3. dstd: np.ndarray
-                - `dstd.shape = (4,)`
+                - `dstd.shape = (1, 4)`
         '''
-        # shape = (4,)
+        # shape = (1, 4)
         if (davg != False) and (dstd != False):
             self.davg = davg
             self.dstd = dstd
@@ -72,7 +73,7 @@ class TildeRPairNormalizer(object):
         ### Step 3. 计算平均值 -- davg_unit
         davg_unit = [sum_info_radius / (total_num_pairs + 1e-15), 0, 0, 0]
         # shape = (1, 4)
-        davg_unit = np.array(davg_unit)
+        davg_unit = np.array(davg_unit).reshape(-1, 4)
         
         
         ### Step 4. 计算方差 -- dstd_unit
@@ -83,7 +84,7 @@ class TildeRPairNormalizer(object):
             self._calc_std(sum2_value=sum2_info_angles, sum_value=sum_info_angles, N=total_num_pairs)
         ]
         # shape = (1, 4)
-        dstd_unit = np.array(dstd_unit)
+        dstd_unit = np.array(dstd_unit).reshape(-1, 4)
         
         return davg_unit, dstd_unit
         
