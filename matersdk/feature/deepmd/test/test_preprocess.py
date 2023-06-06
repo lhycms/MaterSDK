@@ -8,7 +8,7 @@ from matersdk.feature.deepmd.se_pair import DpseTildeRPairDescriptor
 from ..preprocess import TildeRPairNormalizer
 
 
-class TildRNormalizerTest(unittest.TestCase):
+class TildRPairNormalizerTest(unittest.TestCase):
     def test_all(self):
         atom_config_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/feature/movement/LiSi.config"
         structure = DStructure.from_file(
