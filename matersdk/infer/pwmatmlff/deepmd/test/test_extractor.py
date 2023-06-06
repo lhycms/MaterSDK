@@ -53,7 +53,8 @@ class FFExtractorTest(unittest.TestCase):
         print("Step 4. get_hdf5_dict:")
         hdf5_dict = FFExtractor.get_hdf5_dict(hdf5_path=hdf5_path)
         print(hdf5_dict.keys())
-        #print(hdf5_dict["fitting_net.1.bias.bias1"])
+        print(hdf5_dict["embedding_sizes"])
+        print(hdf5_dict["fitting_sizes"])
         
         
 

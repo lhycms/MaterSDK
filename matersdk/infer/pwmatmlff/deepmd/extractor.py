@@ -1,5 +1,6 @@
 import h5py
 import torch
+import numpy as np
 
 
 class FFExtractor(object):
@@ -36,7 +37,6 @@ class FFExtractor(object):
         self.num_fitting_nets = num_fitting_nets
         self.num_fitting_layers = num_fitting_layers
         
-
 
     def save_hdf5_file(self, hdf5_path:str):
         '''
@@ -107,6 +107,34 @@ class FFExtractor(object):
         
         hdf5_file.create_dataset("M1", data=M1)
         hdf5_file.create_dataset("M2", data=M2)
+        
+        ### Step 2.4. Get `embedding_sizes` and `fitting_sizes`
+        '''
+        Part I
+        ------
+            1. e.g.
+                1) embedding_sizes = [25 25 25]
+                2) fitting_sizes = [50 50 50]
+        
+        Part II
+        -------
+        embedding_net.0.weights.weight0  .shape=  (1, 25)
+        embedding_net.0.weights.weight1  .shape=  (25, 25)
+        embedding_net.0.weights.weight2  .shape=  (25, 25)
+        '''
+        embedding_sizes = [] # e.g. [25, 25, 25]
+        for tmp_embedding_idx in range(self.num_embedding_layers):
+            embedding_sizes.append(
+                self.model_state_dict["embedding_net.0.weights.weight{0}".format(tmp_embedding_idx)].shape[-1]
+            )
+        hdf5_file.create_dataset("embedding_sizes", data=np.array(embedding_sizes))
+        
+        fitting_sizes = [] # e.g. [50, 50, 50]
+        for tmp_fitting_idx in range(self.num_fitting_layers):
+            fitting_sizes.append(
+                self.model_state_dict["fitting_net.0.weights.weight{0}".format(tmp_fitting_idx)].shape[-1]
+            )
+        hdf5_file.create_dataset("fitting_sizes", data=np.array(fitting_sizes))
                 
         ### Step 3. Close a HDF5 file
         hdf5_file.close()
@@ -135,4 +163,5 @@ class FFExtractor(object):
             ### Note: hdf5_file["key"][()]
             hdf5_dict.update({tmp_key: tmp_value[()]})
         
+        hdf5_file.close()
         return hdf5_dict
