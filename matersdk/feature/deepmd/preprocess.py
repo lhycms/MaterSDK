@@ -1,14 +1,36 @@
 import numpy as np
-
+from typing import Union
 
 class TildeRPairNormalizer(object):
-    def __init__(self, tildeRs_array:np.ndarray):
+    def __init__(self,
+                tildeRs_array:np.ndarray,
+                davg:Union[np.ndarray, bool]=False,
+                dstd:Union[np.ndarray, bool]=False):
+        '''
+        Description
+        -----------
+            1. Calculate the `davg` and `dstd` of Environment matrix ($\widetilde{R}^i = (s, sx/r, sy/r, sz/r)$)
+            2. Normalize the Environment matrix ($\widetilde{R}^i = (s, sx/r, sy/r, sz/r)$)
+
+        Parameters
+        ----------
+            1. tildeRs_array: 
+                - 
+            2. davg: 
+                - 
+            3. dstd: 
+                - 
+        '''
         # shape: (num_frames, num_centers, max_num_nbrs, 4)     e.g. (48, 26, 4)
         #   ->
         # shape: (num_frames * num_centers * max_num_nbrs, 4)   e.g. (1248, 4)
         self.tildeRs_array = tildeRs_array.reshape(-1, 4)
         # shape = (1, 4)
-        self.davg, self.dstd = self.calc_stats()
+        if (davg != False) and (dstd != False):
+            self.davg = davg
+            self.dstd = dstd
+        else:
+            self.davg, self.dstd = self.calc_stats()
     
     
     def calc_stats(self):
@@ -40,7 +62,7 @@ class TildeRPairNormalizer(object):
         ) / 3.0
         
         ### Step 2.3. total_num_pairs.shape: num_centers * max_num_nbrs
-        total_num_pairs = info_radius.shape[0]
+        total_num_pairs = np.count_nonzero(info_radius.flatten() != 0.) # Error: info_radius.shape[0]
         
         
         ### Step 3. 计算平均值 -- davg_unit
@@ -96,4 +118,3 @@ class TildeRPairNormalizer(object):
         result = (tildeRs_array - davg) / dstd
         
         return result
-        

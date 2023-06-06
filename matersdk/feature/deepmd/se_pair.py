@@ -149,7 +149,12 @@ class DpseTildeRPairV1(DpseTildeRPairBase):
 
         ### Step 2. 把`self.dp_feature_pair_d`全部转换为 rcut_smooth < r < rcut 时的形式
         # (num_center, max_num_nbrs_real_element)
-        dp_feature_pair_d_scaled = dp_feature_pair_d_reciprocal * (1/2) * (np.cos(np.pi*(self.dp_feature_pair_d-rcut_smooth)/(rcut-rcut_smooth)) + 1)
+        # Version 2018: dp_feature_pair_d_scaled = dp_feature_pair_d_reciprocal * (1/2) * (np.cos(np.pi*(self.dp_feature_pair_d-rcut_smooth)/(rcut-rcut_smooth)) + 1)
+        dp_feature_x = (self.dp_feature_pair_d - rcut_smooth) / (rcut - rcut_smooth)
+        dp_feature_pair_d_scaled = dp_feature_pair_d_reciprocal * \
+                ( 
+                    np.power(dp_feature_x, 3) * (-6 * np.power(dp_feature_x, 2) + 15 * dp_feature_x - 10) + 1
+        )
         
         ### Step 3. 根据 Step2. 和 Step3. 的结果筛选 
         # (num_center, max_num_nbrs_real_element)
