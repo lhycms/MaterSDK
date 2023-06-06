@@ -44,14 +44,43 @@ class TildRNormalizerTest(unittest.TestCase):
     
     
         ### Step 1. 
+        print()
+        print("Step 1. ")
         normalizer = TildeRPairNormalizer(tildeRs_array=tildeRs_array)
         davg_unit, dstd_unit = normalizer.calc_stats()
+        print("Step 1.1. The davg of environment matrix is :", end='\t')
         print(davg_unit)
+        print("Step 1.2. The dstd of environment matrix is :", end='\t')
         print(dstd_unit)
         
         ### Step 2. 
-        print(np.max(normalizer.normalize(tildeRs_array=tildeRs_array)))
-        print(np.min(normalizer.normalize(tildeRs_array=tildeRs_array)))
+        new_atom_config_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/feature/movement/LiSi_32.config"
+        new_structure = DStructure.from_file(
+                        file_format="pwmat",
+                        file_path=new_atom_config_path)
+        new_struct_nbr = StructureNeighborsDescriptor.create(
+                        'v1',
+                        structure=new_structure,
+                        rcut=rcut,
+                        scaling_matrix=scaling_matrix,
+                        reformat_mark=reformat_mark,
+                        coords_are_cartesian=coords_are_cartesian)
+        new_dpse_tildeR_pair = DpseTildeRPairDescriptor.create(
+                        'v1',
+                        structure_neighbors=new_struct_nbr,
+                        center_atomic_number=center_atomic_number,
+                        nbr_atomic_number=nbr_atomic_number,
+                        rcut=rcut,
+                        rcut_smooth=rcut_smooth)
+        #print(dpse_tildeR_pair.dp_feature_pair_tildeR)
+        new_tildeRs_array = new_dpse_tildeR_pair.dp_feature_pair_tildeR
+        
+        print()
+        print("Step 2. Using a new environment matrix, after normalize...")
+        print("Step 2.1. The max value of environment is : ", end="\t")
+        print(np.max(normalizer.normalize(tildeRs_array=new_tildeRs_array)))
+        print("Step 2.2. The min value of environment is : ", end="\t")
+        print(np.min(normalizer.normalize(tildeRs_array=new_tildeRs_array)))
 
 
 

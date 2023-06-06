@@ -108,13 +108,31 @@ class TildeRPairNormalizer(object):
     
     def normalize(self, tildeRs_array:np.ndarray):
         '''
+        Description
+        -----------
+            1. 
+        
         Parameters
         ----------
             1. tildeRs_array: np.ndarray
                 - shape = (num_frames, num_centers, max_num_nbrs, 4)
+        
+        Note
+        ----    
+            1. You can input environment matrix for `single frame` or `many frames`
+                - single frame: .shape = (num_centers, max_num_nbrs, 4) 
+                - many frames : .shape = (num_frames, num_centers, max_num_nbrs, 4)
         '''
-        davg = self.davg.reshape(1, 1, 1, 4)
-        dstd = self.dstd.reshape(1, 1, 1, 4)
+        if (len(tildeRs_array.shape) == 3):
+            # single frame: tildeR.shape = (num_centers, max_num_nbrs, 4)
+            davg = self.davg.reshape(1, 1, 4)
+            dstd = self.dstd.reshape(1, 1, 4)
+        elif (len(tildeRs_array.shape) == 4):
+            # many frames: tildeR.shape = (num_frames, num_centers, max_num_nbrs, 4)
+            davg = self.davg.reshape(1, 1, 1, 4)
+            dstd = self.dstd.reshape(1, 1, 1, 4)
+        
+        ### Normalize the environment matrix
         result = (tildeRs_array - davg) / dstd
         
         return result
