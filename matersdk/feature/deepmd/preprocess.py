@@ -1,9 +1,10 @@
 import numpy as np
 from typing import Union
 
+
 class TildeRPairNormalizer(object):
     def __init__(self,
-                tildeRs_array:np.ndarray,
+                tildeRs_array:Union[np.ndarray, bool]=False,
                 davg:Union[np.ndarray, bool]=False,
                 dstd:Union[np.ndarray, bool]=False):
         '''
@@ -16,21 +17,23 @@ class TildeRPairNormalizer(object):
         ----------
             1. tildeRs_array: 
                 - 
-            2. davg: 
-                - 
-            3. dstd: 
-                - 
+            2. davg: np.ndarray 
+                - `davg.shape = (4,)`
+            3. dstd: np.ndarray
+                - `dstd.shape = (4,)`
         '''
-        # shape: (num_frames, num_centers, max_num_nbrs, 4)     e.g. (48, 26, 4)
-        #   ->
-        # shape: (num_frames * num_centers * max_num_nbrs, 4)   e.g. (1248, 4)
-        self.tildeRs_array = tildeRs_array.reshape(-1, 4)
-        # shape = (1, 4)
+        # shape = (4,)
         if (davg != False) and (dstd != False):
             self.davg = davg
             self.dstd = dstd
-        else:
+        elif (tildeRs_array is not False):
+            # shape: (num_frames, num_centers, max_num_nbrs, 4)     e.g. (48, 26, 4)
+            #   ->
+            # shape: (num_frames * num_centers * max_num_nbrs, 4)   e.g. (1248, 4)
+            self.tildeRs_array = tildeRs_array.reshape(-1, 4)
             self.davg, self.dstd = self.calc_stats()
+        else:
+            raise ValueError("You should check davg and dstd!")
     
     
     def calc_stats(self):
@@ -38,6 +41,7 @@ class TildeRPairNormalizer(object):
         Description
         -----------
             1. 计算 DeepPot-SE 中 TildeR 的平均值(`avg`)和方差(`std`)
+            2. 
         '''
         ### Step 1. 分别获取径向信息(`info_radius`)和角度信息(`info_angles`)
         # shape: (num_frames * num_centers * max_num_nbrs, 1)
@@ -62,13 +66,14 @@ class TildeRPairNormalizer(object):
         ) / 3.0
         
         ### Step 2.3. total_num_pairs.shape: num_centers * max_num_nbrs
-        total_num_pairs = np.count_nonzero(info_radius.flatten() != 0.) # Error: info_radius.shape[0]
-        
+        total_num_pairs = info_radius.shape[0] # Error: np.count_nonzero(info_radius.flatten() != 0.)
+
         
         ### Step 3. 计算平均值 -- davg_unit
         davg_unit = [sum_info_radius / (total_num_pairs + 1e-15), 0, 0, 0]
         # shape = (1, 4)
-        davg_unit = np.array(davg_unit).reshape(1, 4)
+        davg_unit = np.array(davg_unit)
+        
         
         ### Step 4. 计算方差 -- dstd_unit
         dstd_unit = [
@@ -78,7 +83,7 @@ class TildeRPairNormalizer(object):
             self._calc_std(sum2_value=sum2_info_angles, sum_value=sum_info_angles, N=total_num_pairs)
         ]
         # shape = (1, 4)
-        dstd_unit = np.array(dstd_unit).reshape(1, 4)
+        dstd_unit = np.array(dstd_unit)
         
         return davg_unit, dstd_unit
         
@@ -96,7 +101,7 @@ class TildeRPairNormalizer(object):
             2. sum_value: float
                 - sum_value  = \sum_i^N{x_i}
         '''
-        if (N == 2):
+        if (N == 0):
             return 1e-2
         std = np.sqrt(
                 sum2_value / N - np.multiply(sum_value/N, sum_value/N)
