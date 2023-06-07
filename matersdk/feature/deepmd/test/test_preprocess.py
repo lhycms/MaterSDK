@@ -31,7 +31,7 @@ class TildeRNormalizerTest(unittest.TestCase):
         rcut_smooth = 6.0
         center_atomic_numbers = [3, 14]
         nbr_atomic_numbers = [3, 14]
-        max_num_nbrs_dict = {3:100, 14:80}
+        max_num_nbrs = [100, 80]
         scaling_matrix = [3, 3, 3]
         print()
         print("Step 2. Calculate stats (davgs, dstds):")
@@ -42,15 +42,42 @@ class TildeRNormalizerTest(unittest.TestCase):
                         rcut_smooth=rcut_smooth,
                         center_atomic_numbers=center_atomic_numbers,
                         nbr_atomic_numbers=nbr_atomic_numbers,
-                        max_num_nbrs_dict=max_num_nbrs_dict,
+                        max_num_nbrs=max_num_nbrs,
                         scaling_matrix=scaling_matrix)
-        davgs, dstds = tilde_r_normalizer.calc_stats()
+        davgs, dstds = tilde_r_normalizer.davgs, tilde_r_normalizer.dstds
         print("\nStep 2.1. davgs:", end="\n")
         print(center_atomic_numbers)
         print(davgs)
         print("\nStep 2.2. dstds:", end="\n")
         print(center_atomic_numbers)
         print(dstds)
+        
+        
+        ### Step 3.
+        print()
+        print("Step 3. Normalize: ")
+        tildeR_dict = tilde_r_normalizer.normalize(structure=movement.get_frame_structure(idx_frame=100))
+        for tmp_key, tmp_value in tildeR_dict.items():
+            print("\t", tmp_key, ": ", tmp_value.shape)
+            
+            
+        ### Step 4.
+        print()
+        print("Step 4. Save TildeRNormalizer to hdf5 file...")
+        hdf5_file_path = "/data/home/liuhanyu/hyliu/code/matersdk/test_data/deepmd/normalizer/LiSi_norm.h5"
+        tilde_r_normalizer.to(hdf5_file_path=hdf5_file_path)
+        
+        
+        ### Step 5. 
+        print()
+        print("Step 5. TildeRNormalizer.from_file()")
+        new_tilde_r_normalizer = TildeRNormalizer.from_file(hdf5_file_path=hdf5_file_path)
+        print(new_tilde_r_normalizer.davgs)
+        
+        
+        ### Step 6.
+        print("Step 6. self.__repr__():")
+        print(new_tilde_r_normalizer)
 
 
 class TildRPairNormalizerTest(unittest.TestCase):
@@ -156,7 +183,7 @@ class NormalizerPremiseTest(unittest.TestCase):
         rcut_smooth = 6.0
         center_atomic_number = 3
         nbr_atomic_numbers = [3, 14]
-        max_num_nbrs_dict = {3:100, 14:80}
+        max_num_nbrs = [100, 80]
         scaling_matrix = [3, 3, 3]
         print()
         print("Step 2. NormalizerPremise.concat_tildeRs():")
@@ -167,7 +194,7 @@ class NormalizerPremiseTest(unittest.TestCase):
                             rcut_smooth=rcut_smooth,
                             center_atomic_number=center_atomic_number,
                             nbr_atomic_numbers=nbr_atomic_numbers,
-                            max_num_nbrs_dict=max_num_nbrs_dict,
+                            max_num_nbrs=max_num_nbrs,
                             scaling_matrix=scaling_matrix
         )
         print("\nStep 2.1. The shape of tildeRs of {0} structures = {1}".format(

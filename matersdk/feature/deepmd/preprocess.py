@@ -1,7 +1,9 @@
 import numpy as np
+import h5py
 from typing import Union, List, Dict
 
 from ...data.deepmd.data_system import DpLabeledSystem
+from ...io.publicLayer.structure import DStructure
 from ...io.publicLayer.neigh import StructureNeighborsDescriptor
 from ...feature.deepmd.se_pair import DpseTildeRPairDescriptor
 
@@ -10,11 +12,12 @@ class TildeRNormalizer(object):
     '''
     Description
     -----------
-        1. 可以设置中心原子为不同的元素
+        1. 计算 $\tilde{R}$ + normalize 一条龙
+        2. 可以设置中心原子为不同的元素
             - e.g. 计算下列 pair 的 `davg`, `dstd`
                 1) Li-Li/Si 的 $\tilde{R}$
                 2) Si-Li/Si 的$\tilde{R}$
-        2. 在 `TildeRNormalizer` 内部会调用：
+        3. 在 `TildeRNormalizer` 内部会调用：
             1. `TildeRPairNormalizer`
                 - 
             2. `NormalizerPremise`
@@ -22,30 +25,109 @@ class TildeRNormalizer(object):
     '''
     def __init__(
             self,
-            dp_labeled_system:DpLabeledSystem,
-            structure_indices:List[int],
             rcut:float,
             rcut_smooth:float,
-            center_atomic_numbers:List[int],
-            nbr_atomic_numbers:List[int],
-            max_num_nbrs_dict:Dict[int,int],
-            scaling_matrix:List[int]):
-        self.dp_labeled_system = dp_labeled_system
-        self.structure_indices = structure_indices
+            center_atomic_numbers:Union[List[int], np.ndarray],
+            nbr_atomic_numbers:Union[List[int], np.ndarray],
+            max_num_nbrs:List[int],
+            scaling_matrix:List[int],
+            dp_labeled_system:Union[DpLabeledSystem, bool]=False,
+            structure_indices:Union[List[int], bool]=False,
+            davgs:Union[np.ndarray, bool]=False,
+            dstds:Union[np.ndarray, bool]=False
+            ):
+        '''
+        Parameters
+        ----------
+            1. rcut: float
+                - DeepPot-SE 的截断半径
+            2. rcut_smooth: float
+                - DeepPot-SE 的 smooth cutoff
+            3. center_atomic_numbers: List[int]
+                - 中心原子的原子序数，按照从小到大排序
+            4. nbr_atomic_numbers: List[int]
+                - 近邻原子的原子序数，按照从小到大排序
+            5. max_num_nbrs: List[int]
+                - 中心原子近邻的nbr元素最多的原子数目
+                - Note: 与 nbr_atomic_numbers 一一对应
+            6. scaling_matrix: List[int]
+                - 
+            7. dp_labeled_system: Union[DpLabeledSystem, bool]
+                - Way 1
+            8. structure_indices: Union[List[int], bool]
+                - Way 1
+            9. davgs: Union[np.ndarray, bool]
+                - Way 2
+            10. dstds: Union[np.ndarray, bool]
+                - Way 2
+            
+        Note
+        ----    
+            1. 有两种方法初始化 `TildeRNormalizer`
+                1) dp_labeled_system + structure_indices
+                2) davgs + dstds
+        '''
         self.rcut = rcut
         self.rcut_smooth = rcut_smooth
         self.center_atomic_numbers = center_atomic_numbers
         self.nbr_atomic_numbers = nbr_atomic_numbers
-        self.max_num_nbrs_dict = max_num_nbrs_dict
+        self.max_num_nbrs = max_num_nbrs
         self.scaling_matrix = scaling_matrix
+        
+        ### Step 1. Get the `davgs` and `dstds`
+        if (dp_labeled_system is not False) and (structure_indices is not False):
+            self.davgs, self.dstds = self.calc_stats(
+                            dp_labeled_system=dp_labeled_system,
+                            structure_indices=structure_indices
+            )
+        
+        elif (davgs is not False) and (dstds is not False):
+            self.davgs = davgs
+            self.dstds = dstds
+        
+        else:
+            raise ValueError("You must specify the davgs and dstds!")
     
     
-    def calc_stats(self):
+    def __str__(self):
+        return self.__repr__()
+    
+    
+    def __repr__(self):
+        print("{0:*^80s}".format(" TildeRNormalizer Summary "))
+        
+        print("\t * {0:26s}: {1:14f}".format("rcut", self.rcut))
+        print("\t * {0:26s}: {1:14f}".format("rcut_smooth", self.rcut_smooth))
+        print("\t * {0:26s}:\t".format("center_atomic_numbers:"), self.center_atomic_numbers)
+        print("\t * {0:26s}:\t".format("nbr_atomic_numbers:"), self.nbr_atomic_numbers)
+        print("\t * {0:26s}:\t".format("max_num_nbrs"), self.max_num_nbrs)
+        print("\t * {0:26s}:\t".format("scaling_matrix"), self.scaling_matrix)
+        print("\t * {0:26s}:\t".format("davgs"))
+        print(self.davgs)
+        print("\t * {0:26s}:\t".format("davgs"))
+        print(self.dstds)        
+        
+        print("{0:*^80s}".format("**"))
+        return ""
+    
+    
+    def calc_stats(
+                self, 
+                dp_labeled_system:DpLabeledSystem,
+                structure_indices:List[int]
+                ):
         '''
         Description
         -----------
-            1. 
-            
+            1. 如果初始化的时候使用 `dp_labeled_system` 和 `structure_indices`，则会调用这个函数
+        
+        Parameters
+        ----------
+            1. dp_labeled_system: DpLabeledSystem
+                - 
+            2. structure_indices: List[int]
+                - 
+        
         Return
         ------
             1. davgs: np.ndarray
@@ -66,13 +148,13 @@ class TildeRNormalizer(object):
             #   Li .shape = (48, 1800, 4)
             #   Si .shape = (24, 1800, 4)
             tmp_tildeRs_array = NormalizerPremise.concat_tildeRs(
-                    dp_labeled_system=self.dp_labeled_system,
-                    structure_indices=self.structure_indices,
+                    dp_labeled_system=dp_labeled_system,
+                    structure_indices=structure_indices,
                     rcut=self.rcut,
                     rcut_smooth=self.rcut_smooth,
                     center_atomic_number=tmp_center_an,
                     nbr_atomic_numbers=self.nbr_atomic_numbers,
-                    max_num_nbrs_dict=self.max_num_nbrs_dict,
+                    max_num_nbrs=self.max_num_nbrs,
                     scaling_matrix=self.scaling_matrix
             )
             
@@ -90,8 +172,110 @@ class TildeRNormalizer(object):
         dstds = np.concatenate(dstds_lst, axis=0)
         
         return davgs, dstds
-            
+    
+    
+    def normalize(self, structure:DStructure):
+        '''
+        Description
+        -----------
+            1.
+        
+        Parameters
+        ----------
+            1. structure: DStructure
+                - 
+        
+        Return
+        ------
+            1. tildeR_dict: Dict[str, np.ndarray]
+                - e.g. {
+                        "3_3": np.ndarray,
+                        "3_14": np.ndarray,
+                        "14_3": np.ndarray,
+                        "14_14": np.ndarray
+                    }
+        '''
+        tildeR_dict:Dict[str, np.ndarray] = {}
+        ### Step 1. 计算新结构的 `StructureNeighbors`
+        struct_neigh = StructureNeighborsDescriptor.create(
+                    'v1',
+                    structure=structure,
+                    rcut=self.rcut,
+                    scaling_matrix=self.scaling_matrix,
+                    reformat_mark=True,
+                    coords_are_cartesian=True)
+        
+        ### Step 2. 计算 Normalized 的 $\tilde{R}$
+        for tmp_idx_center_an, tmp_center_an in enumerate(self.center_atomic_numbers):
+            for tmp_idx_nbr_an, tmp_nbr_an in enumerate(self.nbr_atomic_numbers):
+                ### Step 2.1. 计算 Environment Matrix -- $\tilde{R}$ 
+                tmp_tilde_R = DpseTildeRPairDescriptor.create(
+                            'v1',
+                            structure_neighbors=struct_neigh,
+                            center_atomic_number=tmp_center_an,
+                            nbr_atomic_number=tmp_nbr_an,
+                            rcut=self.rcut,
+                            rcut_smooth=self.rcut_smooth
+                ).get_tildeR(max_num_nbrs=self.max_num_nbrs[tmp_idx_nbr_an])
+                
+                ### Step 2.2. Normalize Environment Matrix -- $\tilde{R}$
+                tmp_davg = self.davgs[tmp_idx_center_an]
+                tmp_dstd = self.dstds[tmp_idx_center_an]
+                tmp_tilde_r_pair_normalizer = TildeRPairNormalizer(
+                            davg=tmp_davg,
+                            dstd=tmp_dstd
+                )
+                tmp_normalized_tildeR = tmp_tilde_r_pair_normalizer.normalize(tildeRs_array=tmp_tilde_R)
+                tildeR_dict.update({"{0}_{1}".format(tmp_center_an, tmp_nbr_an): tmp_normalized_tildeR})
+        
+        return tildeR_dict
 
+
+    def to(self, hdf5_file_path:str):
+        h5_file = h5py.File(hdf5_file_path, 'w')
+        
+        h5_file.create_dataset("rcut", data=self.rcut)
+        h5_file.create_dataset("rcut_smooth", data=self.rcut_smooth)
+        h5_file.create_dataset("center_atomic_numbers", data=self.center_atomic_numbers)
+        h5_file.create_dataset("nbr_atomic_numbers", data=self.nbr_atomic_numbers)
+        h5_file.create_dataset("max_num_nbrs", data=self.max_num_nbrs)
+        h5_file.create_dataset("scaling_matrix", data=np.array(self.scaling_matrix))
+        h5_file.create_dataset("davgs", data=self.davgs)
+        h5_file.create_dataset("dstds", data=self.dstds)
+        
+        h5_file.close()
+        
+        
+    @classmethod
+    def from_file(cls, hdf5_file_path:str):
+        ### Step 1. Extract information from hdf5 file
+        hdf5_file = h5py.File(hdf5_file_path, 'r')
+        rcut = hdf5_file["rcut"][()]
+        rcut_smooth = hdf5_file["rcut_smooth"][()]
+        center_atomic_numbers = hdf5_file["center_atomic_numbers"][()]
+        nbr_atomic_numbers = hdf5_file["nbr_atomic_numbers"][()]
+        max_num_nbrs = hdf5_file["max_num_nbrs"][()]
+        scaling_matrix = hdf5_file["scaling_matrix"][()]
+        davgs = hdf5_file["davgs"][()]
+        dstds = hdf5_file["dstds"][()]
+        hdf5_file.close()
+        
+        ### Step 2. Initialize the `TildeRNormailzer`
+        tilde_r_normalizer = cls(
+                        rcut=rcut,
+                        rcut_smooth=rcut_smooth,
+                        center_atomic_numbers=center_atomic_numbers,
+                        nbr_atomic_numbers=nbr_atomic_numbers,
+                        max_num_nbrs=max_num_nbrs,
+                        scaling_matrix=scaling_matrix,
+                        davgs=davgs,
+                        dstds=dstds
+        )
+        
+        return tilde_r_normalizer
+        
+        
+        
 
 
 class TildeRPairNormalizer(object):
@@ -125,7 +309,7 @@ class TildeRPairNormalizer(object):
                 - `dstd.shape = (1, 4)`
         '''
         # shape = (1, 4)
-        if (davg != False) and (dstd != False):
+        if (davg is not False) and (dstd is not False):
             self.davg = davg
             self.dstd = dstd
         elif (tildeRs_array is not False):
@@ -142,7 +326,7 @@ class TildeRPairNormalizer(object):
         Description
         -----------
             1. 计算 DeepPot-SE 中 TildeR 的平均值(`avg`)和方差(`std`)
-            2. 
+            2. 如果初始化的时候使用 `dp_labeled_system` 和 `structure_indices`，则会调用这个函数
         
         Parameters
         ----------
@@ -225,7 +409,7 @@ class TildeRPairNormalizer(object):
         
         Parameters
         ----------
-            1. tildeRs_array: np.ndarray
+            1. tildeR_array: np.ndarray
                 - shape = (num_frames, num_centers, max_num_nbrs, 4)
         
         Note
@@ -259,12 +443,12 @@ class NormalizerPremise(object):
                 rcut_smooth:float,
                 center_atomic_number:int,
                 nbr_atomic_numbers:List[int],
-                max_num_nbrs_dict:Dict[int, int],
+                max_num_nbrs:List[int],
                 scaling_matrix:List[int]):
         '''
         Description
         -----------
-            1. ...
+            1. 中心原子的元素种类是确定的！！！
                 - e.g. 计算多个结构的 Li-Li, Li-Si 的 $\tilde{R}$ 并合并
                     - Li-Li: (48, 100, 4) -- (num_centers, max_num_nbrs, 4)
                     - Li-Si: (48, 80, 4)  -- (num_centers, max_num_nbrs, 4)
@@ -291,7 +475,7 @@ class NormalizerPremise(object):
                             coords_are_cartesian=True)
             
             tmp_all_nbrs_tildeRs_lst = []    # 同一结构，同一中心原子，不同近邻原子
-            for tmp_nbr_an in nbr_atomic_numbers:
+            for tmp_idx_nbr_an, tmp_nbr_an in enumerate(nbr_atomic_numbers):
                 # e.g. Li-Li : (48, 100, 4) -- (num_centers, max_num_nbrs ,4)
                 # e.g. Li-Si : (48, 80,  4) -- (num_centers, max_num_nbrs, 4)
                 tmp_nbr_tildeR = DpseTildeRPairDescriptor.create(
@@ -301,7 +485,7 @@ class NormalizerPremise(object):
                             nbr_atomic_number=tmp_nbr_an,
                             rcut=rcut,
                             rcut_smooth=rcut_smooth).get_tildeR(
-                                    max_num_nbrs=max_num_nbrs_dict[tmp_nbr_an])
+                                    max_num_nbrs=max_num_nbrs[tmp_idx_nbr_an])
                 tmp_all_nbrs_tildeRs_lst.append(tmp_nbr_tildeR)
             # tmp_tildeR: Li-Li&Si
             # shape = (48, 180, 4)
