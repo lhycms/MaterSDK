@@ -12,8 +12,7 @@ class DpLabeledSystemTest(unittest.TestCase):
         scaling_matrix = [3, 3, 3]
         
         dp_labeled_system = DpLabeledSystem.from_trajectory_s(
-                            trajectory_object=movement,
-                            rcut=rcut)
+                            trajectory_object=movement)
         dir_path = "/data/home/liuhanyu/hyliu/code/test"
         
         ### Step 1.

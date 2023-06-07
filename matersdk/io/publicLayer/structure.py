@@ -70,6 +70,10 @@ class DStructure(Structure):
             
             ### 以下性质，只有在运行AIMD时才会输出
             structure.virial_tensor = atom_config_extractor.get_virial_tensor()
+        
+        if (file_format == "pdb"):
+            pass
+        
 
         structure.__class__ = cls
         return structure

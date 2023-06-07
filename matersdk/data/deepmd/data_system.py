@@ -461,6 +461,7 @@ class DpLabeledSystem(object):
         '''
         parameters_lst = [(
                             tmp_structure,
+                            rcut,
                             nbr_elements,
                             scaling_matrix) for tmp_structure in self.structures_lst]
         
