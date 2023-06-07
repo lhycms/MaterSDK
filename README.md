@@ -79,6 +79,12 @@ Using following algorithm to handle the periodic boundary conditions (Take an 2D
 #### 1.4.4.2. Calculate the `davgs` and `dstds` using the first 10 frames.
 1. Demo: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/deepmd/normalizer.ipynb
 
+#### 1.4.4.3. `TildeRNormalizer.normalize(DStructure, ...)`
+1. Demo: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/deepmd/normalizer.ipynb
+
+#### 1.4.4.4. `TildeRNormalizer.to()` & `TildeRNormalizer.from_file()`
+1. Demo: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/deepmd/normalizer.ipynb
+
 ## 1.5. Adjacent Matrix
 1. Demo url: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/graph/adjacent_matrix.ipynb
 
