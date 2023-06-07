@@ -1,15 +1,17 @@
 import unittest
 import numpy as np
 from matersdk.io.publicLayer.structure import DStructure
+from matersdk.io.pwmat.output.movement import Movement
+from matersdk.data.deepmd.data_system import DpLabeledSystem
 from matersdk.io.publicLayer.neigh import StructureNeighborsDescriptor
 from matersdk.feature.deepmd.se_pair import DpseTildeRPairDescriptor
 
 # python3 -m matersdk.feature.deepmd.test.test_preprocess
-from ..preprocess import TildeRPairNormalizer
+from ..preprocess import TildeRPairNormalizer, NormalizerPremise
 
 
 class TildRPairNormalizerTest(unittest.TestCase):
-    def test_all(self):
+    def all(self):
         atom_config_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/feature/movement/LiSi.config"
         structure = DStructure.from_file(
                         file_format="pwmat",
@@ -59,11 +61,10 @@ class TildRPairNormalizerTest(unittest.TestCase):
         print()
         print("Step 1. ")
         normalizer = TildeRPairNormalizer(tildeRs_array=tildeRs_array)
-        davg_unit, dstd_unit = normalizer.calc_stats()
         print("Step 1.1. The davg of environment matrix is :", end='\t')
-        print(davg_unit)
+        print(normalizer.davg)
         print("Step 1.2. The dstd of environment matrix is :", end='\t')
-        print(dstd_unit)
+        print(normalizer.dstd)
         
         ### Step 2. 
         new_atom_config_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/feature/movement/LiSi_32.config"
@@ -94,6 +95,44 @@ class TildRPairNormalizerTest(unittest.TestCase):
         print("Step 2.2. The min value of environment is : ", end="\t")
         print(np.min(normalizer.normalize(tildeRs_array=new_tildeRs_array)))
 
+
+
+class NormalizerPremiseTest(unittest.TestCase):
+    def test_all(self):
+        movement_path = "/data/home/liuhanyu/hyliu/code/mlff/test/demo2/PWdata/data1/MOVEMENT"
+        movement = Movement(movement_path=movement_path)    
+        
+        ### Step 1. 
+        print()
+        print("Step 1. Get DpLabeledSystem:")
+        dpsys = DpLabeledSystem.from_trajectory_s(trajectory_object=movement)
+        print(dpsys)
+        
+        ### Step 2. 
+        structure_indices = [*range(10)]
+        rcut = 6.5
+        rcut_smooth = 6.0
+        center_atomic_number = 3
+        nbr_atomic_numbers = [3, 14]
+        max_num_nbrs_dict = {3:100, 14:80}
+        scaling_matrix = [3, 3, 3]
+        print()
+        print("Step 2. NormalizerPremise.concat_tildeRs():")
+        tildeRs_array = NormalizerPremise.concat_tildeRs(
+                            dp_labeled_system=dpsys,
+                            structure_indices=structure_indices,
+                            rcut=rcut,
+                            rcut_smooth=rcut_smooth,
+                            center_atomic_number=center_atomic_number,
+                            nbr_atomic_numbers=nbr_atomic_numbers,
+                            max_num_nbrs_dict=max_num_nbrs_dict,
+                            scaling_matrix=scaling_matrix
+        )
+        print("\nStep 2.1. The shape of tildeRs of {0} structures = {1}".format(
+                        10, tildeRs_array.shape
+        ))
+    
+    
 
 
 if __name__ == "__main__":

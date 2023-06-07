@@ -72,7 +72,7 @@ Using following algorithm to handle the periodic boundary conditions (Take an 2D
 1. 2D system: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/deepmd/dpseTildeR.ipynb
 
 
-### 1.4.4. `TildeRPairNormalizer`: normalize the environment matrix($\tilde{R}^i$)
+### 1.4.4. `NormalizerPremise` + `TildeRPairNormalizer`: normalize the environment matrix($\tilde{R}^i$)
 1. Demo: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/deepmd/normalizer.ipynb
 
 ## 1.5. Adjacent Matrix

@@ -37,10 +37,7 @@ class DpLabeledSystem(object):
                 total_energys_array: np.ndarray,
                 potential_energys_array: np.ndarray,
                 kinetic_energys_array: np.ndarray,
-                virial_tensors_array: np.ndarray,
-                rcut:float=None):
-        self.rcut = rcut
-        
+                virial_tensors_array: np.ndarray):        
         self.num_structures = len(structures_lst)
         self.structures_lst = structures_lst
         self.total_energys_array = total_energys_array
@@ -87,16 +84,14 @@ class DpLabeledSystem(object):
         return_potential_energys_array = self.potential_energys_array[index]
         return_kinetic_energys_array = self.kinetic_energys_array[index]
         return_virial_tensors_array = self.virial_tensors_array[index]
-        
-        return_rcut = self.rcut
-        
+                
         return_object = DpLabeledSystem(
                             structures_lst=return_structures_lst,
                             total_energys_array=return_total_energys_array,
                             potential_energys_array=return_potential_energys_array,
                             kinetic_energys_array=return_kinetic_energys_array,
                             virial_tensors_array=return_virial_tensors_array,
-                            rcut=return_rcut)
+        )
 
         return return_object
     
@@ -149,9 +144,7 @@ class DpLabeledSystem(object):
     
     
     @staticmethod
-    def from_trajectory_s(
-                trajectory_object:Trajectory,
-                rcut:float):
+    def from_trajectory_s(trajectory_object:Trajectory):
         '''
         Description
         -----------
@@ -162,8 +155,6 @@ class DpLabeledSystem(object):
             1. trajectory_object: Trajectory
                 - 轨迹对象
                 - e.g. `matersdk.io.pwmat.output.movement.Movement`
-            
-            2. rcut: float
         '''         
         ### Step 1. 得到 Movement 中所有构型的相关信息
         (structures_lst, 
@@ -181,7 +172,7 @@ class DpLabeledSystem(object):
                         potential_energys_array=potential_energys_array,
                         kinetic_energys_array=kinetic_energys_array,
                         virial_tensors_array=virial_tensors_array,
-                        rcut=rcut)
+        )
         
         return dp_data_system
     
@@ -310,16 +301,13 @@ class DpLabeledSystem(object):
         potential_energys_array = np.array([dp_labeled_system.potential_energys_array[tmp_index] for tmp_index in indices_lst])
         kinetic_energys_array = np.array([dp_labeled_system.kinetic_energys_array[tmp_index] for tmp_index in indices_lst])
         virial_tensors_array = np.array([dp_labeled_system.virial_tensors_array[tmp_index] for tmp_index in indices_lst])
-        
-        rcut = dp_labeled_system.rcut
-        
+                
         return DpLabeledSystem(
                     structures_lst=structures_lst,
                     total_energys_array=total_energys_array,
                     potential_energys_array=potential_energys_array,
                     kinetic_energys_array=kinetic_energys_array,
-                    virial_tensors_array=virial_tensors_array,
-                    rcut=rcut)
+                    virial_tensors_array=virial_tensors_array)
 
 
     def save_all_info(
@@ -426,7 +414,6 @@ class DpLabeledSystem(object):
         parameters_lst = [(
                         os.path.join(dir_path, f"%0{num_bits}d" % tmp_idx),
                         self.structures_lst[tmp_idx],
-                        self.rcut,
                         scaling_matrix) for tmp_idx in range(self.num_structures)]
         
         with mp.Pool(os.cpu_count()-2) as pool:
@@ -474,7 +461,6 @@ class DpLabeledSystem(object):
         '''
         parameters_lst = [(
                             tmp_structure,
-                            rcut,
                             nbr_elements,
                             scaling_matrix) for tmp_structure in self.structures_lst]
         
@@ -509,7 +495,6 @@ class ParallelFunction(object):
     def save_struct_nbr(
                     tmp_image_dir_path:int,
                     structure:DStructure,
-                    rcut:float,
                     scaling_matrix:List[int]):
         '''
         Description
@@ -529,7 +514,6 @@ class ParallelFunction(object):
         struct_nbr = StructureNeighborsDescriptor.create(
                     'v1',
                     structure=structure,
-                    rcut=rcut,
                     scaling_matrix=scaling_matrix,
                     reformat_mark=True,
                     coords_are_cartesian=True)

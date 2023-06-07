@@ -1,4 +1,6 @@
 import unittest
+import os
+import numpy as np
 
 # python3 -m matersdk.infer.pwmatmlff.deepmd.test.test_extractor
 from ..extractor import FFExtractor
@@ -50,11 +52,19 @@ class FFExtractorTest(unittest.TestCase):
         
         ### Step 4. 
         print()
-        print("Step 4. get_hdf5_dict:")
+        print("Step 4. get_hdf5_dict():")
         hdf5_dict = FFExtractor.get_hdf5_dict(hdf5_path=hdf5_path)
-        print(hdf5_dict.keys())
+        print("Step 4.1. hdf5_dict.keys()")
+        for tmp_key, tmp_value in hdf5_dict.items():
+            if type(tmp_value) == np.ndarray:
+                print("{0} .shape: = {1}".format(tmp_key, tmp_value.shape))
+        print("Step 4.2. embedding_sizes = ", end='\t')
         print(hdf5_dict["embedding_sizes"])
+        print("Step 4.3. fitting_sizes = ", end='\t')
         print(hdf5_dict["fitting_sizes"])
+        
+        
+        os.remove(path=hdf5_path)
         
         
 
