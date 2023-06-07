@@ -6,7 +6,104 @@ from ...io.publicLayer.neigh import StructureNeighborsDescriptor
 from ...feature.deepmd.se_pair import DpseTildeRPairDescriptor
 
 
+class TildeRNormalizer(object):
+    '''
+    Description
+    -----------
+        1. 可以设置中心原子为不同的元素
+            - e.g. 计算下列 pair 的 `davg`, `dstd`
+                1) Li-Li/Si 的 $\tilde{R}$
+                2) Si-Li/Si 的$\tilde{R}$
+        2. 在 `TildeRNormalizer` 内部会调用：
+            1. `TildeRPairNormalizer`
+                - 
+            2. `NormalizerPremise`
+                - 
+    '''
+    def __init__(
+            self,
+            dp_labeled_system:DpLabeledSystem,
+            structure_indices:List[int],
+            rcut:float,
+            rcut_smooth:float,
+            center_atomic_numbers:List[int],
+            nbr_atomic_numbers:List[int],
+            max_num_nbrs_dict:Dict[int,int],
+            scaling_matrix:List[int]):
+        self.dp_labeled_system = dp_labeled_system
+        self.structure_indices = structure_indices
+        self.rcut = rcut
+        self.rcut_smooth = rcut_smooth
+        self.center_atomic_numbers = center_atomic_numbers
+        self.nbr_atomic_numbers = nbr_atomic_numbers
+        self.max_num_nbrs_dict = max_num_nbrs_dict
+        self.scaling_matrix = scaling_matrix
+    
+    
+    def calc_stats(self):
+        '''
+        Description
+        -----------
+            1. 
+            
+        Return
+        ------
+            1. davgs: np.ndarray
+                - .shape = (num_types, 4)
+            2. dstds: np.ndarray
+                - .shape = (num_types, 4)
+        '''
+        ### Step 1. 
+        #       e.g. {
+        #            3: (48, 1800, 4)
+        #           14: (24, 1800, 4)
+        #}
+        davgs_lst = []
+        dstds_lst = []
+        for tmp_center_an in self.center_atomic_numbers:
+            ### Step 1.1. Calcuate `tildeRs_array`
+            # e.g.
+            #   Li .shape = (48, 1800, 4)
+            #   Si .shape = (24, 1800, 4)
+            tmp_tildeRs_array = NormalizerPremise.concat_tildeRs(
+                    dp_labeled_system=self.dp_labeled_system,
+                    structure_indices=self.structure_indices,
+                    rcut=self.rcut,
+                    rcut_smooth=self.rcut_smooth,
+                    center_atomic_number=tmp_center_an,
+                    nbr_atomic_numbers=self.nbr_atomic_numbers,
+                    max_num_nbrs_dict=self.max_num_nbrs_dict,
+                    scaling_matrix=self.scaling_matrix
+            )
+            
+            ### Step 1.2. Calculate `davg`, `dstd`
+            tmp_normalizer = TildeRPairNormalizer(tildeRs_array=tmp_tildeRs_array)
+            # tmp_normalizer.davg.shape = (1, 4)
+            # tmp_normalizer.dstd.shape = (1, 4)
+            davgs_lst.append(tmp_normalizer.davg)
+            dstds_lst.append(tmp_normalizer.dstd)
+        
+        ### Step 2.
+        # shape = (num_types, 4)
+        davgs = np.concatenate(davgs_lst, axis=0)
+        # shape = (num_types, 4)
+        dstds = np.concatenate(dstds_lst, axis=0)
+        
+        return davgs, dstds
+            
+
+
+
 class TildeRPairNormalizer(object):
+    '''
+    Description
+    -----------
+        1. 中心原子确定
+            - e.g. 计算下列 pair 的 `davg`, `dstd`
+                1) Li-Li/Si 的 $\tilde{R}$
+                2) Si-Li/Si 的 $\tilde{R}$
+                
+    '''
     def __init__(self,
                 tildeRs_array:Union[np.ndarray, bool]=False,
                 davg:Union[np.ndarray, bool]=False,

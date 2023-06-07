@@ -7,7 +7,50 @@ from matersdk.io.publicLayer.neigh import StructureNeighborsDescriptor
 from matersdk.feature.deepmd.se_pair import DpseTildeRPairDescriptor
 
 # python3 -m matersdk.feature.deepmd.test.test_preprocess
-from ..preprocess import TildeRPairNormalizer, NormalizerPremise
+from ..preprocess import (
+                TildeRNormalizer,
+                TildeRPairNormalizer,
+                NormalizerPremise,
+)
+
+
+class TildeRNormalizerTest(unittest.TestCase):
+    def test_all(self):
+        movement_path = "/data/home/liuhanyu/hyliu/code/mlff/test/demo2/PWdata/data1/MOVEMENT"
+        movement = Movement(movement_path=movement_path)    
+        
+        ### Step 1. 
+        print()
+        print("Step 1. Get DpLabeledSystem:")
+        dpsys = DpLabeledSystem.from_trajectory_s(trajectory_object=movement)
+        print(dpsys)
+
+        ### Step 2. 
+        structure_indices = [*range(10)]
+        rcut = 6.5
+        rcut_smooth = 6.0
+        center_atomic_numbers = [3, 14]
+        nbr_atomic_numbers = [3, 14]
+        max_num_nbrs_dict = {3:100, 14:80}
+        scaling_matrix = [3, 3, 3]
+        print()
+        print("Step 2. Calculate stats (davgs, dstds):")
+        tilde_r_normalizer = TildeRNormalizer(
+                        dp_labeled_system=dpsys,
+                        structure_indices=structure_indices,
+                        rcut=rcut,
+                        rcut_smooth=rcut_smooth,
+                        center_atomic_numbers=center_atomic_numbers,
+                        nbr_atomic_numbers=nbr_atomic_numbers,
+                        max_num_nbrs_dict=max_num_nbrs_dict,
+                        scaling_matrix=scaling_matrix)
+        davgs, dstds = tilde_r_normalizer.calc_stats()
+        print("\nStep 2.1. davgs:", end="\n")
+        print(center_atomic_numbers)
+        print(davgs)
+        print("\nStep 2.2. dstds:", end="\n")
+        print(center_atomic_numbers)
+        print(dstds)
 
 
 class TildRPairNormalizerTest(unittest.TestCase):
@@ -95,10 +138,9 @@ class TildRPairNormalizerTest(unittest.TestCase):
         print("Step 2.2. The min value of environment is : ", end="\t")
         print(np.min(normalizer.normalize(tildeRs_array=new_tildeRs_array)))
 
-
-
+                
 class NormalizerPremiseTest(unittest.TestCase):
-    def test_all(self):
+    def all(self):
         movement_path = "/data/home/liuhanyu/hyliu/code/mlff/test/demo2/PWdata/data1/MOVEMENT"
         movement = Movement(movement_path=movement_path)    
         
