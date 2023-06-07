@@ -73,6 +73,10 @@ Using following algorithm to handle the periodic boundary conditions (Take an 2D
 
 
 ### 1.4.4. `NormalizerPremise` + `TildeRPairNormalizer`: normalize the environment matrix($\tilde{R}^i$)
+#### 1.4.4.1. Normalize the $\tilde{R}$ for the specific center atoms (e.g. Li-Li&Si)
+1. https://github.com/lhycms/MaterSDK/blob/main/demo/feature/deepmd/normalizer_for_single_pair.ipynb
+
+#### 1.4.4.2. Calculate the `davgs` and `dstds` using the first 10 frames.
 1. Demo: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/deepmd/normalizer.ipynb
 
 ## 1.5. Adjacent Matrix
