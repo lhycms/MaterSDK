@@ -84,6 +84,11 @@ class TildeRNormalizer(object):
         elif (davgs is not False) and (dstds is not False):
             self.davgs = davgs
             self.dstds = dstds
+            
+            assert (davgs.shape[0] == len(self.center_atomic_numbers))
+            assert (davgs.shape[1] == 4)
+            assert (dstds.shape[0] == len(self.center_atomic_numbers))
+            assert (dstds.shape[1] == 4)
         
         else:
             raise ValueError("You must specify the davgs and dstds!")
