@@ -104,7 +104,7 @@ class TildeRNormalizer(object):
         print("\t * {0:26s}:\t".format("scaling_matrix"), self.scaling_matrix)
         print("\t * {0:26s}:\t".format("davgs"))
         print(self.davgs)
-        print("\t * {0:26s}:\t".format("davgs"))
+        print("\t * {0:26s}:\t".format("dstds"))
         print(self.dstds)        
         
         print("{0:*^80s}".format("**"))
