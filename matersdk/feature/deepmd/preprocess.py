@@ -31,10 +31,8 @@ class TildeRNormalizer(object):
             nbr_atomic_numbers:Union[List[int], np.ndarray],
             max_num_nbrs:List[int],
             scaling_matrix:List[int],
-            dp_labeled_system:Union[DpLabeledSystem, bool]=False,
-            structure_indices:Union[List[int], bool]=False,
-            davgs:Union[np.ndarray, bool]=False,
-            dstds:Union[np.ndarray, bool]=False
+            davgs:np.ndarray,
+            dstds:np.ndarray
             ):
         '''
         Parameters
@@ -52,14 +50,10 @@ class TildeRNormalizer(object):
                 - Note: 与 nbr_atomic_numbers 一一对应
             6. scaling_matrix: List[int]
                 - 
-            7. dp_labeled_system: Union[DpLabeledSystem, bool]
-                - Way 1
-            8. structure_indices: Union[List[int], bool]
-                - Way 1
-            9. davgs: Union[np.ndarray, bool]
-                - Way 2
-            10. dstds: Union[np.ndarray, bool]
-                - Way 2
+            7. davgs: Union[np.ndarray, bool]
+                - shape = (num_types, 4)
+            8. dstds: Union[np.ndarray, bool]
+                - shape = (num_types, 4)
             
         Note
         ----    
@@ -75,23 +69,13 @@ class TildeRNormalizer(object):
         self.scaling_matrix = scaling_matrix
         
         ### Step 1. Get the `davgs` and `dstds`
-        if (dp_labeled_system is not False) and (structure_indices is not False):
-            self.davgs, self.dstds = self.calc_stats(
-                            dp_labeled_system=dp_labeled_system,
-                            structure_indices=structure_indices
-            )
+        self.davgs = davgs
+        self.dstds = dstds
         
-        elif (davgs is not False) and (dstds is not False):
-            self.davgs = davgs
-            self.dstds = dstds
-            
-            assert (davgs.shape[0] == len(self.center_atomic_numbers))
-            assert (davgs.shape[1] == 4)
-            assert (dstds.shape[0] == len(self.center_atomic_numbers))
-            assert (dstds.shape[1] == 4)
-        
-        else:
-            raise ValueError("You must specify the davgs and dstds!")
+        assert (davgs.shape[0] == len(self.center_atomic_numbers))
+        assert (davgs.shape[1] == 4)
+        assert (dstds.shape[0] == len(self.center_atomic_numbers))
+        assert (dstds.shape[1] == 4)
     
     
     def __str__(self):
@@ -116,10 +100,16 @@ class TildeRNormalizer(object):
         return ""
     
     
+    @staticmethod
     def calc_stats(
-                self, 
                 dp_labeled_system:DpLabeledSystem,
-                structure_indices:List[int]
+                structure_indices:List[int],
+                rcut:float,
+                rcut_smooth:float,
+                center_atomic_numbers:List[int],
+                nbr_atomic_numbers:List[int],
+                max_num_nbrs:List[int],
+                scaling_matrix:List[int],
                 ):
         '''
         Description
@@ -147,7 +137,7 @@ class TildeRNormalizer(object):
         #}
         davgs_lst = []
         dstds_lst = []
-        for tmp_center_an in self.center_atomic_numbers:
+        for tmp_center_an in center_atomic_numbers:
             ### Step 1.1. Calcuate `tildeRs_array`
             # e.g.
             #   Li .shape = (48, 1800, 4)
@@ -155,12 +145,12 @@ class TildeRNormalizer(object):
             tmp_tildeRs_array = NormalizerPremise.concat_tildeRs(
                     dp_labeled_system=dp_labeled_system,
                     structure_indices=structure_indices,
-                    rcut=self.rcut,
-                    rcut_smooth=self.rcut_smooth,
+                    rcut=rcut,
+                    rcut_smooth=rcut_smooth,
                     center_atomic_number=tmp_center_an,
-                    nbr_atomic_numbers=self.nbr_atomic_numbers,
-                    max_num_nbrs=self.max_num_nbrs,
-                    scaling_matrix=self.scaling_matrix
+                    nbr_atomic_numbers=nbr_atomic_numbers,
+                    max_num_nbrs=max_num_nbrs,
+                    scaling_matrix=scaling_matrix
             )
             
             ### Step 1.2. Calculate `davg`, `dstd`
@@ -177,6 +167,94 @@ class TildeRNormalizer(object):
         dstds = np.concatenate(dstds_lst, axis=0)
         
         return davgs, dstds
+    
+
+    def to(self, hdf5_file_path:str):
+        h5_file = h5py.File(hdf5_file_path, 'w')
+        
+        h5_file.create_dataset("rcut", data=self.rcut)
+        h5_file.create_dataset("rcut_smooth", data=self.rcut_smooth)
+        h5_file.create_dataset("center_atomic_numbers", data=self.center_atomic_numbers)
+        h5_file.create_dataset("nbr_atomic_numbers", data=self.nbr_atomic_numbers)
+        h5_file.create_dataset("max_num_nbrs", data=self.max_num_nbrs)
+        h5_file.create_dataset("scaling_matrix", data=np.array(self.scaling_matrix))
+        h5_file.create_dataset("davgs", data=self.davgs)
+        h5_file.create_dataset("dstds", data=self.dstds)
+        
+        h5_file.close()
+        
+        
+    @classmethod
+    def from_file(cls, hdf5_file_path:str):
+        ### Step 1. Extract information from hdf5 file
+        hdf5_file = h5py.File(hdf5_file_path, 'r')
+        rcut = hdf5_file["rcut"][()]
+        rcut_smooth = hdf5_file["rcut_smooth"][()]
+        center_atomic_numbers = hdf5_file["center_atomic_numbers"][()]
+        nbr_atomic_numbers = hdf5_file["nbr_atomic_numbers"][()]
+        max_num_nbrs = hdf5_file["max_num_nbrs"][()]
+        scaling_matrix = hdf5_file["scaling_matrix"][()]
+        davgs = hdf5_file["davgs"][()]
+        dstds = hdf5_file["dstds"][()]
+        hdf5_file.close()
+        
+        ### Step 2. Initialize the `TildeRNormailzer`
+        tilde_r_normalizer = cls(
+                        rcut=rcut,
+                        rcut_smooth=rcut_smooth,
+                        center_atomic_numbers=center_atomic_numbers,
+                        nbr_atomic_numbers=nbr_atomic_numbers,
+                        max_num_nbrs=max_num_nbrs,
+                        scaling_matrix=scaling_matrix,
+                        davgs=davgs,
+                        dstds=dstds
+        )
+        
+        return tilde_r_normalizer
+    
+    
+    @classmethod
+    def from_dp_labeled_system(
+                    cls,
+                    dp_labeled_system:DpLabeledSystem,
+                    structure_indices:List[int],
+                    rcut:float, 
+                    rcut_smooth:float,
+                    center_atomic_numbers:List[int],
+                    nbr_atomic_numbers:List[int],
+                    max_num_nbrs:List[int],
+                    scaling_matrix:List[int]):
+        '''
+        Descroption
+        -----------
+            1. 由一个 DpLabeledSystem 初始化 TildeRNormalizer
+        
+        Parameters
+        ----------
+            1. 
+        '''
+        davgs, dstds = TildeRNormalizer.calc_stats(
+                    dp_labeled_system=dp_labeled_system,
+                    structure_indices=structure_indices,
+                    rcut=rcut,
+                    rcut_smooth=rcut_smooth,
+                    center_atomic_numbers=center_atomic_numbers,
+                    nbr_atomic_numbers=nbr_atomic_numbers,
+                    max_num_nbrs=max_num_nbrs,
+                    scaling_matrix=scaling_matrix
+        )
+        tilde_r_normalizer = cls(
+                        rcut=rcut,
+                        rcut_smooth=rcut_smooth,
+                        center_atomic_numbers=center_atomic_numbers,
+                        nbr_atomic_numbers=nbr_atomic_numbers,
+                        max_num_nbrs=max_num_nbrs,
+                        scaling_matrix=scaling_matrix,
+                        davgs=davgs,
+                        dstds=dstds)
+
+        return tilde_r_normalizer
+    
     
     
     def normalize(self, structure:DStructure):
@@ -234,51 +312,6 @@ class TildeRNormalizer(object):
                 tildeR_dict.update({"{0}_{1}".format(tmp_center_an, tmp_nbr_an): tmp_normalized_tildeR})
         
         return tildeR_dict
-
-
-    def to(self, hdf5_file_path:str):
-        h5_file = h5py.File(hdf5_file_path, 'w')
-        
-        h5_file.create_dataset("rcut", data=self.rcut)
-        h5_file.create_dataset("rcut_smooth", data=self.rcut_smooth)
-        h5_file.create_dataset("center_atomic_numbers", data=self.center_atomic_numbers)
-        h5_file.create_dataset("nbr_atomic_numbers", data=self.nbr_atomic_numbers)
-        h5_file.create_dataset("max_num_nbrs", data=self.max_num_nbrs)
-        h5_file.create_dataset("scaling_matrix", data=np.array(self.scaling_matrix))
-        h5_file.create_dataset("davgs", data=self.davgs)
-        h5_file.create_dataset("dstds", data=self.dstds)
-        
-        h5_file.close()
-        
-        
-    @classmethod
-    def from_file(cls, hdf5_file_path:str):
-        ### Step 1. Extract information from hdf5 file
-        hdf5_file = h5py.File(hdf5_file_path, 'r')
-        rcut = hdf5_file["rcut"][()]
-        rcut_smooth = hdf5_file["rcut_smooth"][()]
-        center_atomic_numbers = hdf5_file["center_atomic_numbers"][()]
-        nbr_atomic_numbers = hdf5_file["nbr_atomic_numbers"][()]
-        max_num_nbrs = hdf5_file["max_num_nbrs"][()]
-        scaling_matrix = hdf5_file["scaling_matrix"][()]
-        davgs = hdf5_file["davgs"][()]
-        dstds = hdf5_file["dstds"][()]
-        hdf5_file.close()
-        
-        ### Step 2. Initialize the `TildeRNormailzer`
-        tilde_r_normalizer = cls(
-                        rcut=rcut,
-                        rcut_smooth=rcut_smooth,
-                        center_atomic_numbers=center_atomic_numbers,
-                        nbr_atomic_numbers=nbr_atomic_numbers,
-                        max_num_nbrs=max_num_nbrs,
-                        scaling_matrix=scaling_matrix,
-                        davgs=davgs,
-                        dstds=dstds
-        )
-        
-        return tilde_r_normalizer
-        
         
         
 

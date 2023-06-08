@@ -35,7 +35,7 @@ class TildeRNormalizerTest(unittest.TestCase):
         scaling_matrix = [3, 3, 3]
         print()
         print("Step 2. Calculate stats (davgs, dstds):")
-        tilde_r_normalizer = TildeRNormalizer(
+        tilde_r_normalizer = TildeRNormalizer.from_dp_labeled_system(
                         dp_labeled_system=dpsys,
                         structure_indices=structure_indices,
                         rcut=rcut,

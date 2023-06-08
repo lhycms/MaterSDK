@@ -26,7 +26,7 @@ movement = Movement(movement_path=movement_path)
 dpsys = DpLabeledSystem.from_trajectory_s(trajectory_object=movement)
 
 
-tilde_r_normalizer = TildeRNormalizer(
+tilde_r_normalizer = TildeRNormalizer.from_dp_labeled_system(
                 dp_labeled_system=dpsys,
                 structure_indices=structure_indices,
                 rcut=rcut,
