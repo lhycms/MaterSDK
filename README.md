@@ -51,6 +51,7 @@ Using following algorithm to handle the periodic boundary conditions (Take an 2D
 ### 1.4.0. `matersdk.io.publicLayer.neigh.StructureNeighborUtils`
 1. Get `max_num_nbrs_real`: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/neighs/SturtureNeighbors.ipynb
 2. Get `max_num_nbrs_real_element`: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/neighs/SturtureNeighbors.ipynb
+3. Mapping the site in supercell to site in primitive_cell, and get `neigh_list`: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/deepmd/dpseTileRPair.ipynb
 
 ### 1.4.1. `matersdk.io.publicLayer.neigh.StructureNeighborsBase`: Get information of neighbors atom for center atom.
 
@@ -84,6 +85,7 @@ Using following algorithm to handle the periodic boundary conditions (Take an 2D
 
 #### 1.4.4.4. `TildeRNormalizer.to()` & `TildeRNormalizer.from_file()`
 1. Demo: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/deepmd/normalizer.ipynb
+
 
 ## 1.5. Adjacent Matrix
 1. Demo url: https://github.com/lhycms/MaterSDK/blob/main/demo/feature/graph/adjacent_matrix.ipynb
