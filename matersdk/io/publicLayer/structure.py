@@ -559,3 +559,40 @@ class DStructure(Structure):
         for tmp_site in self.sites:
             energyes_lst.append(tmp_site.atomic_energy[0])
         return np.array(energyes_lst)
+    
+    
+    def get_site_index(self, site_coord:np.ndarray):
+        '''
+        Description
+        -----------
+            1. site是扩包后的某个原子。此函数找到`近邻原子`对应的 primitive cell 中原子的 index
+            2. 此函数是为了适配 PWmat-MLFF 中的 neigh_list!
+        
+        Parameters
+        ----------
+            1. site_coord: np.ndarray
+                - site 的坐标
+        '''
+        def is_almost_int(num:float, epsilon=1e-10):
+            #print("**", num, int(num), abs(num-int(num)))
+            '''
+            Note
+            ----
+                1. int(-0.9999999999999999) = 0
+                2. int(round(-0.9999999999999999)) = -1
+            '''
+            return abs( num - int(round(num)) ) <= epsilon
+        
+        
+        ### Step 1. Calculate the tmp_offset_coord
+        for tmp_idx, tmp_coord in enumerate(self.cart_coords):
+            tmp_offset_coord = site_coord - tmp_coord
+            tmp_offset_coeff = np.linalg.inv(self.lattice.matrix.T) @ tmp_offset_coord
+            #print(tmp_offset_coeff)
+            #print(is_almost_int(tmp_offset_coeff[0]), is_almost_int(tmp_offset_coeff[1]), is_almost_int(tmp_offset_coeff[2]))
+            if is_almost_int(tmp_offset_coeff[0]) and \
+                is_almost_int(tmp_offset_coeff[1]) and \
+                is_almost_int(tmp_offset_coeff[2]):
+                return tmp_idx + 1
+
+        return 0

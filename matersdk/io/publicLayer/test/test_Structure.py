@@ -3,6 +3,7 @@ import numpy as np
 
 # python3 -m matersdk.io.publicLayer.test.test_Structure
 from ..structure import DStructure
+from ..neigh import StructureNeighborsDescriptor
 from ...pwmat.output.movement import Movement
 
 
@@ -25,7 +26,7 @@ class StructureTest(unittest.TestCase):
         #print(structure.atomic_numbers_lst)
     
     
-    def test_from_str(self):
+    def from_str(self):
         #movement_path = "/data/home/liuhanyu/hyliu/code/mlff/test/demo1/PWdata/data1/MOVEMENT"
         movement_path = "/data/home/liuhanyu/hyliu/code/mlff/test/demo2/PWdata/data1/MOVEMENT"
         movement = Movement(movement_path=movement_path)
@@ -190,8 +191,50 @@ class StructureTest(unittest.TestCase):
         key_idxs = structure.get_key_idxs(scaling_matrix=scaling_matrix)
         #print(key_idxs)
         
-          
-    
+ 
+    def test_get_site_index(self):
+        file_format = "pwmat"
+        # 1. 初始化结构
+        file_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/atom.config"
+        coords_are_cartesian = False
+        structure = DStructure.from_file(
+                        file_path=file_path,
+                        file_format=file_format,
+                        coords_are_cartesian=coords_are_cartesian
+                        )
+        
+        # 2. 找到近邻原子
+        scaling_matrix=np.array([3, 3, 1])
+        rcut = 3.2
+        reformat_mark = True
+        coords_are_cartesian = True   
+        neighbors_v1 = StructureNeighborsDescriptor.create(
+                        "v1",
+                        structure=structure,
+                        rcut=rcut,
+                        scaling_matrix=scaling_matrix,
+                        reformat_mark=reformat_mark,
+                        coords_are_cartesian=coords_are_cartesian,
+                        )
+        
+        # 3. Run test function
+        site_coord = structure.sites[-2].coords + structure.lattice.matrix[0]
+        
+        #print("Step 1. The corresponding index in primitive cell is :",)
+        #print( structure.get_site_index(site_coord=site_coord) )
+        
+        print(structure)
+        print("Step 2.")
+        for tmp_idx, tmp_coord in enumerate(neighbors_v1.key_nbr_coords[0]):
+            # 一个S周围有3个Mo、6个S
+            print(neighbors_v1.key_nbr_distances[0][tmp_idx], structure.get_site_index(site_coord=tmp_coord))
+
+
+        #print("Step 3.")
+        #tmp_coord = neighbors_v1.key_nbr_coords[0][3]
+        #print(tmp_coord)
+        ##print(tmp_coord)
+        #structure.get_site_index(site_coord=tmp_coord)
 
 
 if __name__ == "__main__":
