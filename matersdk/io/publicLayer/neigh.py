@@ -105,9 +105,86 @@ class StructureNeighborsUtils(object):
                 if tmp_num_element > nbr_element2max_num[tmp_element]:
                     nbr_element2max_num.update({tmp_element: tmp_num_element})
         
-                    
         return nbr_element2max_num
-                       
+    
+    
+    @staticmethod
+    def get_nbrs_indices(
+                struct_nbr,
+                center_atomic_number:int,
+                nbr_atomic_number:int):
+        '''
+        Description
+        -----------
+            1. 此函数是为了适配 PWmat-MLFF 中的 neigh_list!
+                - Note: 由于 Fortran 是从 1 开始的，
+                    1. 因此 `return tmp_idx + 1`
+                    2. `0` 代表没有原子
+        
+        Parameters
+        ----------
+            1. struct_nbr: `StructureNeighborsV1`
+                1.1. key_nbr_atomic_numbers: np.ndarray
+                    - shape = (num_centers, num_nbrs)
+                1.2. key_nbr_coords: np.ndarray
+                    - shape = (num_centers, num_nbrs)
+            3. center_atomic_number: int
+                - 中心原子的原子序数
+            4. nbr_atomic_number: int
+                - 近邻原子的原子序数
+        '''
+        structure = struct_nbr.structure
+        key_nbr_atomic_numbers = struct_nbr.key_nbr_atomic_numbers
+        key_nbr_coords = struct_nbr.key_nbr_coords
+        
+        ### Step 1. Get `new_nbr_atomic_numbers`, `new_nbr_coords`
+        ### Step 1.1. 根据中心原子种类，设定 mask_center
+        mask_center = np.where(
+                    key_nbr_atomic_numbers[:, 0]==center_atomic_number,
+                    True,
+                    False)
+        mask_center = np.repeat(
+                    mask_center[:, np.newaxis], 
+                    key_nbr_atomic_numbers.shape[1],
+                    axis=1
+        )
+        
+        ### Step 1.2. 根据近邻原子种类，设定 mask_nbr
+        mask_nbr = np.where(
+                    key_nbr_atomic_numbers==nbr_atomic_number,
+                    True,
+                    False)
+        
+        ### Step 1.3. `mask_center & mask_nbr`
+        mask_tot = mask_center & mask_nbr
+        
+        ### Step 1.4. Remove center atom self
+        mask_tot[:, 0] = False
+        max_num_nbr = np.max(np.count_nonzero(mask_tot, axis=1))
+
+        ### Step 1.5. 根据 `mask_center & mask_nbr` 取出
+        #           - key_nbr_atomic_numbers
+        #           - key_nbr_coords
+        # shape = (num_centers, max_num_nbrs, 3)
+        new_nbr_coords = np.zeros(
+                            (key_nbr_atomic_numbers.shape[0], 
+                            max_num_nbr,
+                            3)
+        )
+        for tmp_center in range(key_nbr_coords.shape[0]):
+            tmp_mask = mask_tot[tmp_center, :]
+            tmp_max_num_nbr = np.count_nonzero(tmp_mask)
+            new_nbr_coords[tmp_center, :tmp_max_num_nbr, :] = key_nbr_coords[tmp_center][tmp_mask][:]
+
+        ### Step 2. 获取 neigh_list for PWmatMLFF
+        neigh_list = []
+        for tmp_center_idx, tmp_center_nbr_coord in enumerate(new_nbr_coords):
+            tmp_neigh_list = []
+            for tmp_nbr_idx, tmp_nbr_coord in enumerate(tmp_center_nbr_coord):
+                tmp_neigh_list.append(structure.get_site_index(site_coord=tmp_nbr_coord))
+            neigh_list.append(tmp_neigh_list)
+        neigh_list = np.array(neigh_list)
+        return neigh_list
 
 
 class StructureNeighborsDescriptor(object):

@@ -574,7 +574,7 @@ class DStructure(Structure):
         Parameters
         ----------
             1. site_coord: np.ndarray
-                - site 的坐标
+                - site 的坐标 (可能是 primitive_cell 中的原子，也可能是由primitive_cell扩包获得的原子)
         '''
         def is_almost_int(num:float, epsilon=1e-10):
             #print("**", num, int(num), abs(num-int(num)))
