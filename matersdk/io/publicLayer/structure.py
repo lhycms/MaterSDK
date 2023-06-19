@@ -567,6 +567,9 @@ class DStructure(Structure):
         -----------
             1. site是扩包后的某个原子。此函数找到`近邻原子`对应的 primitive cell 中原子的 index
             2. 此函数是为了适配 PWmat-MLFF 中的 neigh_list!
+                - Note: 由于 Fortran 是从 1 开始的，
+                    1. 因此 `return tmp_idx + 1`
+                    2. `0` 代表没有原子
         
         Parameters
         ----------
