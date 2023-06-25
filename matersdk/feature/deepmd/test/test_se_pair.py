@@ -69,6 +69,10 @@ class DpseTildeRPairTest(unittest.TestCase):
         print("\t1. Calculate the derivative of tilde_R...")
         tildeR_derivative = dpse_tildeR_pair._calc_derivative()
         print("\t\t - The shape of derivative of tildeR: ", tildeR_derivative.shape) 
+        
+        print("\t2. Calculate the derivative of tilde_R...")
+        tildeR_derivative_ = dpse_tildeR_pair.calc_derivative(max_num_nbrs=24)
+        print("\t\t - After zero-padding, The shape of derivative of tildeR: ", tildeR_derivative_.shape)         
 
 
 if __name__ == "__main__":

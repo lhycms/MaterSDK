@@ -6,9 +6,6 @@ from ..neigh import StructureNeighborsDescriptor
 from ..neigh import StructureNeighborsUtils
 
 
-#class StructureNeighborsDescriptor()
-
-
 class StructureNeighborsV1Test(unittest.TestCase):
     def all(self):
         atom_config_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/atom.config"

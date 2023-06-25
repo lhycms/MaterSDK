@@ -473,3 +473,25 @@ class DpseTildeRPairV1(DpseTildeRPairBase):
         )
         
         return tildeR_deriv
+    
+
+    def calc_derivative(self, max_num_nbrs:int):
+        '''
+        Description
+        -----------
+            1. 按照 `max_num_nbrs`，对 `self.dp_feature_pair_tildeR` 的导数进行 zero-padding
+        
+        Return 
+        ------
+            1. tildeR_deriv: np.ndarray
+                - shape = (num_centers, max_num_nbrs, 4, 3)
+        '''
+        tildeR_deriv = np.zeros((
+            self.dp_feature_pair_tildeR.shape[0],
+            max_num_nbrs,
+            4, 3)
+        )
+        tildeR_deriv[:, :self.dp_feature_pair_tildeR.shape[1], :, :] = \
+                self._calc_derivative()
+                
+        return tildeR_deriv

@@ -184,6 +184,35 @@ class StructureNeighborsUtils(object):
                 tmp_neigh_list.append(structure.get_site_index(site_coord=tmp_nbr_coord))
             neigh_list.append(tmp_neigh_list)
         neigh_list = np.array(neigh_list)
+        
+        ### Step 3. 去除全为 0 的行
+        '''
+        e.g. neigh_list
+        ---------------
+            [[ 0  0  0  0  0  0]
+            [ 0  0  0  0  0  0]
+            [ 0  0  0  0  0  0]
+            [ 0  0  0  0  0  0]
+            [ 0  0  0  0  0  0]
+            [ 0  0  0  0  0  0]
+            [ 0  0  0  0  0  0]
+            [ 0  0  0  0  0  0]
+            [ 4  4 10 10  7  7]
+            [ 1  1  7  7 10 10]
+            [10 10  4  4  1  1]
+            [ 7  7  1  1  4  4]]
+            
+        e.g. mask_remove_all0_row 
+        -------------------------
+            [False False False False False False False False  True  True  True  True]
+        '''
+        mask_remove_all0_row = np.where(
+                np.count_nonzero(neigh_list, axis=1) == 0,
+                False,
+                True
+        )
+        neigh_list = neigh_list[mask_remove_all0_row]
+        
         return neigh_list
 
 
