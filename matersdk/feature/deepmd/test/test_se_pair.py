@@ -15,8 +15,8 @@ class DpseTildeRPairTest(unittest.TestCase):
         
         center_atomic_number = 42
         nbr_atomic_number = 42
-        rcut = 3.2
-        rcut_smooth = 3.0
+        rcut = 6
+        rcut_smooth = 5.5
         
         structure = DStructure.from_file(
                         file_format="pwmat",
@@ -61,6 +61,14 @@ class DpseTildeRPairTest(unittest.TestCase):
         print("Step 4.")
         print("\t1. deepmd_se_r.get_tildeR(max_num_nbrs=24).shape = ", dpse_tildeR_pair.get_tildeR(max_num_nbrs=24).shape)
         print(dpse_tildeR_pair.get_tildeR(max_num_nbrs=24))
+        
+        
+        ### Step 5.
+        print()
+        print("Step 5.")
+        print("\t1. Calculate the derivative of tilde_R...")
+        tildeR_derivative = dpse_tildeR_pair._calc_derivative()
+        print("\t\t - The shape of derivative of tildeR: ", tildeR_derivative.shape) 
 
 
 if __name__ == "__main__":

@@ -52,6 +52,22 @@ class DpseTildeRPairV1(DpseTildeRPairBase):
             $\widetilde{R}^i$
         3. The format of $\widetilde{R}^i$ is specific, you can check it in:
             - Zhang L, Han J, Wang H, et al. End-to-end symmetry preserving inter-atomic potential energy model for finite and extended systems[J]. Advances in neural information processing systems, 2018, 31.
+    
+    
+    Attributes
+    ----------
+        1. self.rcut: float
+            -
+        2. self.rcut_smooth: float
+            -
+        3. self.dp_feature_pair_an: np.ndarray
+            - shape = (num_centers, num_nbrs)
+        4. self.dp_feature_pair_d: np.ndarray
+            - shape = (num_centers, num_nbrs)
+        5. self.dp_feature_pair_rc: np.ndarray
+            - shape = (num_centers, num_nbrs, 3)
+        6. self.dp_feature_pair_tildeR: np.nadrray
+            - shape = (num_centers, num_nbrs, 4)
     '''
     def __init__(
                 self,
@@ -69,6 +85,8 @@ class DpseTildeRPairV1(DpseTildeRPairBase):
             4. rcut: float
             5. rcut_smooth: float
         '''
+        self.rcut = rcut
+        self.rcut_smooth = rcut_smooth
         self.dp_feature_pair_an, self.dp_feature_pair_d, self.dp_feature_pair_rc = \
                     self._get_premise(
                             structure_neighbors=structure_neighbors,
@@ -228,6 +246,10 @@ class DpseTildeRPairV1(DpseTildeRPairBase):
         Description
         -----------
             1. 按照 `max_num_nbrs`，对 `self.dp_feature_pair_tildeR` 进行 zero-padding
+
+        Return
+        ------
+            1. dp_feature_pair_tildeR: np.ndarray, shape=(num_center, max_num_nbrs_real_element, 4)
         '''
         tilde_R = np.zeros((
                     self.dp_feature_pair_tildeR.shape[0],
@@ -238,3 +260,216 @@ class DpseTildeRPairV1(DpseTildeRPairBase):
                     self.dp_feature_pair_tildeR
         
         return tilde_R
+    
+    
+    def _calc_derivative(self):
+        '''
+        Description
+        -----------
+            1. 计算 $\tilde{R_i}$ 相对于 `x, y, z` 的导数
+                - $\tilde{R_i} = {
+                                s(r_{ij}), 
+                                \frac{s(r_{ij}x_{ij})}{r_{ij}}, 
+                                \frac{s(r_{ij}y_{ij})}{r_{ij}}, 
+                                \frac{s(r_{ij}z_{ij})}{r_{ij}}}$
+                - $\tilde{R_i}$.shape = (num_centers, num_nbrs, 4)
+                - $\tilde{R_i}$ 的导数.shape = (num_centers, num_nbrs, 4, 3)
+        
+        Parameters
+        ----------
+            1. 
+
+        Return
+        ------
+            1. 
+            
+        Temp variables
+        --------------
+            1. uu = \frac{r-r_s}{r_c-r_s}
+            2. duu = \frac{uu}{dr} = \frac{1}{r_c-r_s}
+            3. vv = s(r) * r
+                1) r < r_s          : 1
+                2) r_s <= r < r_c   : uu^3 (-6uu^2 + 15uu - 10) + 1
+                3) r >= r_c         : 0
+            4. dvv = 
+                1) r < r_s          : 0
+                2) r_s <= r < r_c   : [3uu^2(-6uu^2 + 15uu -10) + uu^3(-12uu+15)] * \frac{1}{r_c-r_s}
+                3) r >= r_c         : 0
+        '''
+        # self.dp_feature_pair_d: 
+        #   1. 满足 center_atomic_number, nbr_atomic_number
+        #   2. 近邻原子距中心原子的距离
+        #   3. 按照由近及远的顺序排列
+        #   4. Note: 没有 zero_padding, 仅考虑了实体原子！！！
+        #print(self.dp_feature_pair_d)
+        
+        ### Step 1. 计算 mask_1, mask_2 对应的 vv, dvv
+        #       1) uu = \frac{r-r_s}{r_c-r_s}
+        #       2) duu = duu/dr = \frac{1}{r_c-r_s}
+        #       3) vv = s(r) * r
+        #       4) dvv = ds(r)/dr
+        
+        ### Step 1.1. uu, duu
+        # shape = (num_centers, num_nbrs)
+        uu = (self.dp_feature_pair_d - self.rcut_smooth) / (self.rcut - self.rcut_smooth)
+        duu = 1 / (self.rcut - self.rcut_smooth)
+        
+        ### Step 1.2. vv, dvv        
+        ### Step 1.2.1. mask_1: r < rcut
+        # shape = (num_centers, num_nbrs)
+        vv_mask_1 = 1
+        dvv_mask_1 = 0
+        
+        ### Step 1.2.2. mask_2: rcut_smooth <= r < rcut
+        # shape = (num_centers, num_nbrs)
+        vv_mask_2 = np.power(uu, 3) * (-6*np.power(uu, 2) + 15*uu -10) + 1
+        dvv_mask_2 = ( 
+                    3*np.power(uu, 2) * (-6*np.power(uu,2) + 15*uu - 10) + \
+                    np.power(uu, 3) * (-12*uu + 15)
+        ) * duu
+        
+        ### Step 1.2.3. 根据 vv_mask_1, vv_mask_2 计算 vv
+        # shape = (num_centers, num_nbrs)
+        vv = np.where(
+                self.dp_feature_pair_d<self.rcut_smooth,
+                vv_mask_1,
+                vv_mask_2
+        )
+        
+        ### Step 1.2.4. 根据 dvv_mask_1, dvv_mask_2 计算 dvv
+        # shape = (num_centers, num_nbrs)
+        dvv = np.where(
+                self.dp_feature_pair_d<self.rcut_smooth,
+                dvv_mask_1,
+                dvv_mask_2
+        )        
+        
+        
+        ### Step 2. Calculate the derivative of (1/r * vv)
+        # tildeR_deriv.shape = (num_centers, num_nbrs, 4, 3)
+        tildeR_deriv = np.zeros(
+                shape=(
+                    self.dp_feature_pair_d.shape[0],
+                    self.dp_feature_pair_d.shape[1],
+                    4,
+                    3)
+        )
+        
+        '''
+        Math
+        ----    
+        1. Formula 1
+            $            
+            \frac{d(\frac{1}{r} \cdot vv)}{dx}
+            = vv \cdot \frac{d\frac{1}{r}}{dx} + \frac{1}{r} \cdot \frac{dvv}{dx}
+            $
+            
+        2. Formula 2
+            $
+            \frac{d\frac{1}{r}}{x} 
+            = \frac{d\frac{1}{r}}{dr} \cdot \frac{dr}{dx}
+            = -\frac{1}{r^2}(-\frac{x}{r}) = \frac{x}{r^3}
+            $
+            
+        3. Formula 3
+            $
+            \frac{dvv}{dx} = \frac{dvv}{dr} \cdot \frac{dr}{dx} = - dvv \cdot \frac{x}{r}
+            $
+        '''
+        dp_feature_pair_d_reciprocal_ = np.reciprocal(self.dp_feature_pair_d)
+        dp_feature_pair_d_reciprocal = np.where(
+                            self.dp_feature_pair_d==0,
+                            0,
+                            dp_feature_pair_d_reciprocal_)
+        
+        ### Step 2.1. d(1/r * vv) / dx
+        tildeR_deriv[:, :, 0, 0] = (
+            vv * self.dp_feature_pair_rc[:, :, 0] * np.power(dp_feature_pair_d_reciprocal, 3) - \
+            dp_feature_pair_d_reciprocal * dvv * self.dp_feature_pair_rc[:, :, 0] * dp_feature_pair_d_reciprocal
+        )
+        
+        ### Step 2.2. d(1/r * vv) / dy
+        tildeR_deriv[:, :, 0, 1] = (
+            vv * self.dp_feature_pair_rc[:, :, 1] * np.power(dp_feature_pair_d_reciprocal, 3) - \
+            dp_feature_pair_d_reciprocal * dvv * self.dp_feature_pair_rc[:, :, 1] * dp_feature_pair_d_reciprocal
+        )
+        
+        ### Step 2.3. d(1/r * vv) / dz
+        tildeR_deriv[:, :, 0, 2] = (
+            vv * self.dp_feature_pair_rc[:, :, 2] * np.power(dp_feature_pair_d_reciprocal, 3) - \
+            dp_feature_pair_d_reciprocal * dvv * self.dp_feature_pair_rc[:, :, 2] * dp_feature_pair_d_reciprocal
+        )
+        
+        
+        ### Step 3. Calculate the derivative of (x/r^2 * vv)
+        '''
+        Math
+        ----
+        1. Formula 1
+            $
+            \frac{d\frac{x}{r^2}vv}{dx}
+            = vv \cdot \frac{d\frac{x}{r^2}}{dx} + \frac{x}{r^2} \cdot \frac{dvv}{dx}
+            $
+        2. Formula 2
+            $
+            \frac{d\frac{x}{r^2}}{dx}
+            = vv \cdot (\frac{2x^2}{r^4} - \frac{1}{r^2}) - (\frac{x}{r^2} \cdot dvv \cdot \frac{x}{r})
+            $
+        3. Formula 3
+            $
+            \frac{dvv}{dx} = \frac{dvv}{dr} \cdot \frac{dr}{dx} = - dvv \cdot \frac{x}{r}
+            $
+        '''
+        ### Step 3.1. d(x/r * 1/r * vv) / dx -> d(x/r^2 * vv) / dx
+        tildeR_deriv[:, :, 1, 0] = (
+            vv * (2 * np.power(self.dp_feature_pair_rc[:, :, 0], 2) * np.power(dp_feature_pair_d_reciprocal, 4) - np.power(dp_feature_pair_d_reciprocal, 2)) - \
+            self.dp_feature_pair_rc[:, :, 0] * np.power(dp_feature_pair_d_reciprocal, 2) * dvv * self.dp_feature_pair_rc[:, :, 0] * dp_feature_pair_d_reciprocal
+        )
+        ### Step 3.2. d(x/r * 1/r * vv) / dy -> d(x/r^2 * vv) / dy
+        tildeR_deriv[:, :, 1, 1] = (
+            vv * (2 * self.dp_feature_pair_rc[:, :, 0] * self.dp_feature_pair_rc[:, :, 1] * np.power(dp_feature_pair_d_reciprocal, 4)) - \
+            self.dp_feature_pair_rc[:, :, 0] * np.power(dp_feature_pair_d_reciprocal, 2) * dvv * self.dp_feature_pair_rc[:, :, 1] * dp_feature_pair_d_reciprocal
+        )
+        ### Step 3.3. d(x/r * 1/r * vv) / dz -> d(x/r^2 * vv) / dz
+        tildeR_deriv[:, :, 1, 2] = (
+            vv * (2 * self.dp_feature_pair_rc[:, :, 0] * self.dp_feature_pair_rc[:, :, 2] * np.power(dp_feature_pair_d_reciprocal, 4)) - \
+            self.dp_feature_pair_rc[:, :, 0] * np.power(dp_feature_pair_d_reciprocal, 2) * dvv * self.dp_feature_pair_rc[:, :, 2] * dp_feature_pair_d_reciprocal
+        )
+                
+        
+        ### Step 4. Calculate the derivative of (y/r^2 * vv)
+        ### Step 4.1. d(y/r^2 * vv) / dx
+        tildeR_deriv[:, :, 2, 0] = (
+            vv * (2 * self.dp_feature_pair_rc[:, :, 0] * self.dp_feature_pair_rc[:, :, 1] * np.power(dp_feature_pair_d_reciprocal, 4)) - \
+            self.dp_feature_pair_rc[:, :, 1] * np.power(dp_feature_pair_d_reciprocal, 2) * dvv * self.dp_feature_pair_rc[:, :, 0] * dp_feature_pair_d_reciprocal
+        )
+        ### Step 4.2. d(y/r^2 * vv) / dy
+        tildeR_deriv[:, :, 2, 1] = (
+            vv * (2 * np.power(self.dp_feature_pair_rc[:, :, 1], 2) * np.power(dp_feature_pair_d_reciprocal, 4) - np.power(dp_feature_pair_d_reciprocal, 2)) - \
+            self.dp_feature_pair_rc[:, :, 1] * np.power(dp_feature_pair_d_reciprocal, 2) * dvv * self.dp_feature_pair_rc[:, :, 1] * dp_feature_pair_d_reciprocal
+        )
+        ### Step 4.3. d(y/r^2 * vv) / dz
+        tildeR_deriv[:, :, 2, 2] = (
+            vv * (2 * self.dp_feature_pair_rc[:, :, 1] * self.dp_feature_pair_rc[:, :, 2] * np.power(dp_feature_pair_d_reciprocal, 4)) - \
+            self.dp_feature_pair_rc[:, :, 1] * np.power(dp_feature_pair_d_reciprocal, 2) * dvv * self.dp_feature_pair_rc[:, :, 2] * dp_feature_pair_d_reciprocal
+        )
+
+        
+        ### Step 5. Calculate the derivative of (z/r^2 * vv)
+        ### Step 5.1. d(z/r^2 * vv) / dx
+        tildeR_deriv[:, :, 3, 0] = (
+            vv * (2 * self.dp_feature_pair_rc[:, :, 0] * self.dp_feature_pair_rc[:, :, 2] * np.power(dp_feature_pair_d_reciprocal, 4)) - \
+            self.dp_feature_pair_rc[:, :, 2] * np.power(dp_feature_pair_d_reciprocal, 2) * dvv * self.dp_feature_pair_rc[:, :, 0] * dp_feature_pair_d_reciprocal
+        )
+        ### Step 5.2. d(z/r^2 * vv) / dy
+        tildeR_deriv[:, :, 3, 1] = (
+            vv * (2 * self.dp_feature_pair_rc[:, :, 1] * self.dp_feature_pair_rc[:, :, 2] * np.power(dp_feature_pair_d_reciprocal, 4)) - \
+            self.dp_feature_pair_rc[:, :, 2] * np.power(dp_feature_pair_d_reciprocal, 2) * dvv * self.dp_feature_pair_rc[:, :, 1] * dp_feature_pair_d_reciprocal
+        )   
+        ### Step 5.3. d(z/r^2 * vv) / dz
+        tildeR_deriv[:, :, 3, 2] = (
+            vv * (2 * np.power(self.dp_feature_pair_rc[:, :, 2], 2) * np.power(dp_feature_pair_d_reciprocal, 4) - np.power(dp_feature_pair_d_reciprocal, 2)) - \
+            self.dp_feature_pair_rc[:, :, 2] * np.power(dp_feature_pair_d_reciprocal, 2) * dvv * self.dp_feature_pair_rc[:, :, 2] * dp_feature_pair_d_reciprocal
+        )
+        
+        return tildeR_deriv
