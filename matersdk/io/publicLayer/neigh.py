@@ -161,21 +161,33 @@ class StructureNeighborsUtils(object):
         ### Step 1.4. Remove center atom self
         mask_tot[:, 0] = False
         max_num_nbr = np.max(np.count_nonzero(mask_tot, axis=1))
-
+        
         ### Step 1.5. 根据 `mask_center & mask_nbr` 取出
-        #           - key_nbr_atomic_numbers
         #           - key_nbr_coords
-        # shape = (num_centers, max_num_nbrs, 3)
+        ### Step 1.5.1. 确定 center_atomic_number 的行数
+        # e.g. [ True  True  True  True  True  True  True  True False False False False]
+        mask_efficient_rows = np.where(
+                                np.count_nonzero(mask_tot, axis=1),
+                                True,
+                                False
+        )
+        num_efficient_rows = np.count_nonzero(mask_efficient_rows)
+        # shape = (num_efficient_rows, max_num_nbrs, 3) -- num_efficient_rows < num_centers
         new_nbr_coords = np.zeros(
-                            (key_nbr_atomic_numbers.shape[0], 
+                            (num_efficient_rows, 
                             max_num_nbr,
                             3)
         )
+        
+        efficient_center_idx = 0    # 记录填写到第几个有效行
         for tmp_center in range(key_nbr_coords.shape[0]):
             tmp_mask = mask_tot[tmp_center, :]
-            tmp_max_num_nbr = np.count_nonzero(tmp_mask)
-            new_nbr_coords[tmp_center, :tmp_max_num_nbr, :] = key_nbr_coords[tmp_center][tmp_mask][:]
-
+            if mask_efficient_rows[tmp_center]:
+                tmp_max_num_nbr = np.count_nonzero(tmp_mask)
+                new_nbr_coords[efficient_center_idx, :tmp_max_num_nbr, :] = key_nbr_coords[tmp_center][tmp_mask][:]
+                efficient_center_idx += 1
+        assert (efficient_center_idx == num_efficient_rows)
+       
         ### Step 2. 获取 neigh_list for PWmatMLFF
         neigh_list = []
         for tmp_center_idx, tmp_center_nbr_coord in enumerate(new_nbr_coords):
@@ -184,34 +196,6 @@ class StructureNeighborsUtils(object):
                 tmp_neigh_list.append(structure.get_site_index(site_coord=tmp_nbr_coord))
             neigh_list.append(tmp_neigh_list)
         neigh_list = np.array(neigh_list)
-        
-        ### Step 3. 去除全为 0 的行
-        '''
-        e.g. neigh_list
-        ---------------
-            [[ 0  0  0  0  0  0]
-            [ 0  0  0  0  0  0]
-            [ 0  0  0  0  0  0]
-            [ 0  0  0  0  0  0]
-            [ 0  0  0  0  0  0]
-            [ 0  0  0  0  0  0]
-            [ 0  0  0  0  0  0]
-            [ 0  0  0  0  0  0]
-            [ 4  4 10 10  7  7]
-            [ 1  1  7  7 10 10]
-            [10 10  4  4  1  1]
-            [ 7  7  1  1  4  4]]
-            
-        e.g. mask_remove_all0_row 
-        -------------------------
-            [False False False False False False False False  True  True  True  True]
-        '''
-        mask_remove_all0_row = np.where(
-                np.count_nonzero(neigh_list, axis=1) == 0,
-                False,
-                True
-        )
-        neigh_list = neigh_list[mask_remove_all0_row]
         
         return neigh_list
 

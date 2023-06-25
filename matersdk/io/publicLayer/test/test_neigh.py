@@ -91,7 +91,7 @@ class StructureNeighborUtilsTest(unittest.TestCase):
                         reformat_mark=reformat_mark,
                         coords_are_cartesian=coords_are_cartesian,
                         )
-        center_atomic_number = 16
+        center_atomic_number = 42
         nbr_atomic_number = 16
         
         neigh_list = StructureNeighborsUtils.get_nbrs_indices(
