@@ -4,6 +4,7 @@ import unittest
 from ..structure import DStructure
 from ..neigh import StructureNeighborsDescriptor
 from ..neigh import StructureNeighborsUtils
+from ...pwmat.output.movement import Movement
 
 
 class StructureNeighborsV1Test(unittest.TestCase):
@@ -41,6 +42,8 @@ class StructureNeighborsV1Test(unittest.TestCase):
 
 class StructureNeighborUtilsTest(unittest.TestCase):
     def test_all(self):
+        '''
+        ### Step 0.1. 2D
         atom_config_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/atom.config"
         #atom_config_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/feature/movement/LiSi.config"
         scaling_matrix = [5, 5, 1]
@@ -52,6 +55,18 @@ class StructureNeighborUtilsTest(unittest.TestCase):
         structure = DStructure.from_file(
                         file_format="pwmat",
                         file_path=atom_config_path)
+        '''
+        
+        ### Step 0.1. Li2Si
+        movement_path = "/data/home/liuhanyu/hyliu/code/mlff/test/demo2/PWdata/data1/MOVEMENT"
+        movement = Movement(movement_path=movement_path)
+        scaling_matrix = [3, 3, 3]
+        rcut = 5
+        coords_are_cartesian = True   
+        reformat_mark = True
+        # 343st corresponds to image_005
+        structure = movement.get_frame_structure(idx_frame=343)
+    
         
         ### Step 1.
         max_num_nbrs_real = StructureNeighborsUtils.get_max_num_nbrs_real(
@@ -66,23 +81,12 @@ class StructureNeighborUtilsTest(unittest.TestCase):
         max_num_nbrs_real = StructureNeighborsUtils.get_max_num_nbrs_real_element(
                                     structure=structure,
                                     rcut=rcut,
-                                    nbr_elements=["Mo", "S"],
+                                    nbr_elements=["Li", "Si"],
                                     scaling_matrix=scaling_matrix,
                                     coords_are_cartesian=coords_are_cartesian)
         print(max_num_nbrs_real)
         
         print("Step 3. 获取 neigh_list (这个函数为了PWmatMLFF的inference制定):")
-        atom_config_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/atom.config"
-        #atom_config_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/feature/movement/LiSi.config"
-        scaling_matrix = [5, 5, 1]
-        #scaling_matrix = [3, 3, 3]
-        rcut = 3.2
-        #rcut = 6.5
-        reformat_mark = True
-        coords_are_cartesian = True   
-        structure = DStructure.from_file(
-                        file_format="pwmat",
-                        file_path=atom_config_path)
         struct_nbr = StructureNeighborsDescriptor.create(
                         "v1",
                         structure=structure,
@@ -91,13 +95,14 @@ class StructureNeighborUtilsTest(unittest.TestCase):
                         reformat_mark=reformat_mark,
                         coords_are_cartesian=coords_are_cartesian,
                         )
-        center_atomic_number = 42
-        nbr_atomic_number = 42
+        center_atomic_number = 3
+        nbr_atomic_number = 3
         
         neigh_list = StructureNeighborsUtils.get_nbrs_indices(
                             struct_nbr=struct_nbr,
                             center_atomic_number=center_atomic_number,
-                            nbr_atomic_number=nbr_atomic_number)
+                            nbr_atomic_number=nbr_atomic_number,
+                            max_num_nbrs=100)
         print(neigh_list)
 
     

@@ -112,7 +112,8 @@ class StructureNeighborsUtils(object):
     def get_nbrs_indices(
                 struct_nbr,
                 center_atomic_number:int,
-                nbr_atomic_number:int):
+                nbr_atomic_number:int,
+                max_num_nbrs:int):
         '''
         Description
         -----------
@@ -128,10 +129,12 @@ class StructureNeighborsUtils(object):
                     - shape = (num_centers, num_nbrs)
                 1.2. key_nbr_coords: np.ndarray
                     - shape = (num_centers, num_nbrs)
-            3. center_atomic_number: int
+            2. center_atomic_number: int
                 - 中心原子的原子序数
-            4. nbr_atomic_number: int
+            3. nbr_atomic_number: int
                 - 近邻原子的原子序数
+            4. max_num_nbrs: int
+                - 用于 zero-padding
         '''
         structure = struct_nbr.structure
         key_nbr_atomic_numbers = struct_nbr.key_nbr_atomic_numbers
@@ -160,7 +163,7 @@ class StructureNeighborsUtils(object):
         
         ### Step 1.4. Remove center atom self
         mask_tot[:, 0] = False
-        max_num_nbr = np.max(np.count_nonzero(mask_tot, axis=1))
+        max_num_nbrs_real = np.max(np.count_nonzero(mask_tot, axis=1))
         
         ### Step 1.5. 根据 `mask_center & mask_nbr` 取出
         #           - key_nbr_coords
@@ -172,10 +175,10 @@ class StructureNeighborsUtils(object):
                                 False
         )
         num_efficient_rows = np.count_nonzero(mask_efficient_rows)
-        # shape = (num_efficient_rows, max_num_nbrs, 3) -- num_efficient_rows < num_centers
+        # shape = (num_efficient_rows, max_num_nbrs_reals, 3) -- num_efficient_rows < num_centers
         new_nbr_coords = np.zeros(
                             (num_efficient_rows, 
-                            max_num_nbr,
+                            max_num_nbrs_real,
                             3)
         )
         
@@ -183,8 +186,8 @@ class StructureNeighborsUtils(object):
         for tmp_center in range(key_nbr_coords.shape[0]):
             tmp_mask = mask_tot[tmp_center, :]
             if mask_efficient_rows[tmp_center]:
-                tmp_max_num_nbr = np.count_nonzero(tmp_mask)
-                new_nbr_coords[efficient_center_idx, :tmp_max_num_nbr, :] = key_nbr_coords[tmp_center][tmp_mask][:]
+                tmp_max_num_nbrs_real = np.count_nonzero(tmp_mask)
+                new_nbr_coords[efficient_center_idx, :tmp_max_num_nbrs_real, :] = key_nbr_coords[tmp_center][tmp_mask][:]
                 efficient_center_idx += 1
         assert (efficient_center_idx == num_efficient_rows)
        
@@ -197,7 +200,12 @@ class StructureNeighborsUtils(object):
             neigh_list.append(tmp_neigh_list)
         neigh_list = np.array(neigh_list)
         
-        return neigh_list
+        ### Step 3. Zero-padding
+        neigh_list_zero_padding = np.zeros((neigh_list.shape[0], max_num_nbrs))
+        for tmp_idx in range(neigh_list.shape[0]):
+            neigh_list_zero_padding[tmp_idx, :max_num_nbrs_real] = neigh_list[tmp_idx]
+            
+        return neigh_list_zero_padding
 
 
 class StructureNeighborsDescriptor(object):
