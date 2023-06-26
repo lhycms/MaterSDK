@@ -1,5 +1,5 @@
 import numpy as np
-from typing import List
+from typing import List, Union
 from abc import ABC, abstractmethod
 
 from .structure import DStructure
@@ -113,7 +113,7 @@ class StructureNeighborsUtils(object):
                 struct_nbr,
                 center_atomic_number:int,
                 nbr_atomic_number:int,
-                max_num_nbrs:int):
+                max_num_nbrs:Union[bool,int]=False):
         '''
         Description
         -----------
@@ -201,11 +201,13 @@ class StructureNeighborsUtils(object):
         neigh_list = np.array(neigh_list)
         
         ### Step 3. Zero-padding
-        neigh_list_zero_padding = np.zeros((neigh_list.shape[0], max_num_nbrs))
-        for tmp_idx in range(neigh_list.shape[0]):
-            neigh_list_zero_padding[tmp_idx, :max_num_nbrs_real] = neigh_list[tmp_idx]
-            
-        return neigh_list_zero_padding
+        if max_num_nbrs:
+            neigh_list_zero_padding = np.zeros((neigh_list.shape[0], max_num_nbrs))
+            for tmp_idx in range(neigh_list.shape[0]):
+                neigh_list_zero_padding[tmp_idx, :max_num_nbrs_real] = neigh_list[tmp_idx]
+            return neigh_list_zero_padding
+        
+        return neigh_list
 
 
 class StructureNeighborsDescriptor(object):

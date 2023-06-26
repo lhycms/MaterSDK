@@ -97,13 +97,20 @@ class StructureNeighborUtilsTest(unittest.TestCase):
                         )
         center_atomic_number = 3
         nbr_atomic_number = 3
-        
+        ### Step 3.1. 
+        print("Step 3.1. With max_num_nbrs = 100:", end='\t')
         neigh_list = StructureNeighborsUtils.get_nbrs_indices(
                             struct_nbr=struct_nbr,
                             center_atomic_number=center_atomic_number,
                             nbr_atomic_number=nbr_atomic_number,
                             max_num_nbrs=100)
-        print(neigh_list)
+        print(neigh_list.shape)
+        print("Step 3.2. Without max_num_nbrs:", end='\t')
+        neigh_list = StructureNeighborsUtils.get_nbrs_indices(
+                            struct_nbr=struct_nbr,
+                            center_atomic_number=center_atomic_number,
+                            nbr_atomic_number=nbr_atomic_number)
+        print(neigh_list.shape)
 
     
 if __name__ == "__main__":
