@@ -142,7 +142,7 @@ class TildeRNormalizer(object):
             # e.g.
             #   Li .shape = (48, 1800, 4)
             #   Si .shape = (24, 1800, 4)
-            tmp_tildeRs_array = NormalizerPremise.concat_tildeRs(
+            tmp_tildeRs_array = NormalizerPremise.concat_tildeRs4calc_stats(
                     dp_labeled_system=dp_labeled_system,
                     structure_indices=structure_indices,
                     rcut=rcut,
@@ -272,13 +272,23 @@ class TildeRNormalizer(object):
         ------
             1. tildeR_dict: Dict[str, np.ndarray]
                 - e.g. {
-                        "3_3": np.ndarray,
-                        "3_14": np.ndarray,
-                        "14_3": np.ndarray,
-                        "14_14": np.ndarray
+                        "3_3": np.ndarray,  # shape = (num_centers, max_num_nbrs, 4)
+                        "3_14": np.ndarray, # shape = (num_centers, max_num_nbrs, 4)
+                        "14_3": np.ndarray, # shape = (num_centers, max_num_nbrs, 4)
+                        "14_14": np.ndarray # shape = (num_centers, max_num_nbrs, 4)
+                    }
+                - concat `tildeR_dict["3_3"]` and `tildeR_dict["3_14"]` -> Li's Environment matrix 
+            
+            2. tildeR_derivative_dict: Dict[str, np.ndarray]
+                - e.g. {
+                        "3_3": np.ndarray,  # shape = (num_centers, max_num_nbrs, 4, 3)
+                        "3_14": np.ndarray, # shape = (num_centers, max_num_nbrs, 4, 3)
+                        "14_3": np.ndarray, # shape = (num_centers, max_num_nbrs, 4, 3)
+                        "14_14": np.ndarray # shape = (num_centers, max_num_nbrs, 4, 3)
                     }
         '''
         tildeR_dict:Dict[str, np.ndarray] = {}
+        tildeR_derivative_dict:Dict[str, np.ndarray] = {}
         ### Step 1. 计算新结构的 `StructureNeighbors`
         struct_neigh = StructureNeighborsDescriptor.create(
                     'v1',
@@ -292,14 +302,20 @@ class TildeRNormalizer(object):
         for tmp_idx_center_an, tmp_center_an in enumerate(self.center_atomic_numbers):
             for tmp_idx_nbr_an, tmp_nbr_an in enumerate(self.nbr_atomic_numbers):
                 ### Step 2.1. 计算 Environment Matrix -- $\tilde{R}$ 
-                tmp_tilde_R = DpseTildeRPairDescriptor.create(
+                dpse_tildeR_pair = DpseTildeRPairDescriptor.create(
                             'v1',
                             structure_neighbors=struct_neigh,
                             center_atomic_number=tmp_center_an,
                             nbr_atomic_number=tmp_nbr_an,
                             rcut=self.rcut,
                             rcut_smooth=self.rcut_smooth
-                ).get_tildeR(max_num_nbrs=self.max_num_nbrs[tmp_idx_nbr_an])
+                )
+                ### 计算 Environment Matrix
+                tmp_tilde_R = dpse_tildeR_pair.get_tildeR(
+                                max_num_nbrs=self.max_num_nbrs[tmp_idx_nbr_an])
+                ### 计算 derivative of Environment Matrix with respect to x, y, z
+                tmp_tilde_R_derivative = dpse_tildeR_pair.calc_derivative(
+                                max_num_nbrs=self.max_num_nbrs[tmp_idx_nbr_an])
                 
                 ### Step 2.2. Normalize Environment Matrix -- $\tilde{R}$
                 tmp_davg = self.davgs[tmp_idx_center_an]
@@ -310,8 +326,13 @@ class TildeRNormalizer(object):
                 )
                 tmp_normalized_tildeR = tmp_tilde_r_pair_normalizer.normalize(tildeRs_array=tmp_tilde_R)
                 tildeR_dict.update({"{0}_{1}".format(tmp_center_an, tmp_nbr_an): tmp_normalized_tildeR})
-        
-        return tildeR_dict
+                
+                ### Step 2.3. Scaling the derivative of Environment Matrix (Rij) with respect to x, y, z
+                tmp_scaled_tildeR_derivative = tmp_tilde_r_pair_normalizer.normalize_derivative(
+                                                    tildeR_derivatives_array=tmp_tilde_R_derivative)
+                tildeR_derivative_dict.update({"{0}_{1}".format(tmp_center_an, tmp_nbr_an): tmp_scaled_tildeR_derivative})
+                
+        return tildeR_dict, tildeR_derivative_dict
         
         
 
@@ -320,7 +341,8 @@ class TildeRPairNormalizer(object):
     '''
     Description
     -----------
-        1. 中心原子确定
+        1. 适用于单个结构、单个中心原子！
+        2. 中心原子确定
             - e.g. 计算下列 pair 的 `davg`, `dstd`
                 1) Li-Li/Si 的 $\tilde{R}$
                 2) Si-Li/Si 的 $\tilde{R}$
@@ -339,8 +361,37 @@ class TildeRPairNormalizer(object):
         Parameters
         ----------
             1. tildeRs_array: 
-                - Note:
-                    1. You should calculate tildeR of `Li-Li` and `Li-Si`, and concat them, then calculate `davg` and `dstd`
+                - `tildeRs_array.shape = (48, 80, 4) concat (48, 100, 4) = (48, 180, 4)`
+                    ```
+                    struct_nbr = StructureNeighborsDescriptor.create(
+                                    'v1',
+                                    structure=structure,
+                                    rcut=rcut,
+                                    scaling_matrix=scaling_matrix,
+                                    reformat_mark=reformat_mark,
+                                    coords_are_cartesian=coords_are_cartesian)
+                    dpse_tildeR_pair_Li = DpseTildeRPairDescriptor.create(
+                                    'v1',
+                                    structure_neighbors=struct_nbr,
+                                    center_atomic_number=center_atomic_number,
+                                    nbr_atomic_number=3,
+                                    rcut=rcut,
+                                    rcut_smooth=rcut_smooth)
+                    #print(dpse_tildeR_pair.dp_feature_pair_tildeR)
+                    tildeRs_array_Li = dpse_tildeR_pair_Li.get_tildeR(max_num_nbrs=100)
+                    
+                    dpse_tildeR_pair_Si = DpseTildeRPairDescriptor.create(
+                                    'v1',
+                                    structure_neighbors=struct_nbr,
+                                    center_atomic_number=center_atomic_number,
+                                    nbr_atomic_number=nbr_atomic_number,
+                                    rcut=rcut,
+                                    rcut_smooth=rcut_smooth)
+                    #print(dpse_tildeR_pair.dp_feature_pair_tildeR)
+                    tildeRs_array_Si = dpse_tildeR_pair_Si.get_tildeR(max_num_nbrs=80)
+                    # (48, 100, 4) + (48, 80, 4) = (48, 180, 4)
+                    tildeRs_array = np.concatenate([tildeRs_array_Li, tildeRs_array_Si], axis=1)
+                    ```
             2. davg: np.ndarray 
                 - `davg.shape = (1, 4)`
             3. dstd: np.ndarray
@@ -443,12 +494,15 @@ class TildeRPairNormalizer(object):
         '''
         Description
         -----------
-            1. 
+            1. 将 tildeRs_array(多个结构的DeepPot-SE特征) 或 tildeR_array(单个结构的DeepPot-SE特征) 归一化
         
         Parameters
         ----------
-            1. tildeR_array: np.ndarray
-                - shape = (num_frames, num_centers, max_num_nbrs, 4)
+            1. tildeRs_array: np.ndarray
+                - shape = 
+                    1. (num_frames, num_centers, max_num_nbrs, 4)
+                    2. (num_centers, max_num_nbrs, 4)
+                
         
         Note
         ----    
@@ -458,23 +512,62 @@ class TildeRPairNormalizer(object):
         '''
         if (len(tildeRs_array.shape) == 3):
             # single frame: tildeR.shape = (num_centers, max_num_nbrs, 4)
+            # (1, 4) -> (1, 1, 4)
             davg = self.davg.reshape(1, 1, 4)
             dstd = self.dstd.reshape(1, 1, 4)
         elif (len(tildeRs_array.shape) == 4):
             # many frames: tildeR.shape = (num_frames, num_centers, max_num_nbrs, 4)
+            # (1, 4) -> (1, 1, 1, 4)
             davg = self.davg.reshape(1, 1, 1, 4)
             dstd = self.dstd.reshape(1, 1, 1, 4)
         
-        ### Normalize the environment matrix
+        ### Normalize the environment matrix (Rij)
         result = (tildeRs_array - davg) / dstd
         
         return result
     
+    
+    def normalize_derivative(self, tildeR_derivatives_array:np.ndarray):
+        '''
+        Description
+        -----------
+            1. 将 tildeR_derivatives_array (单个结构DeepPot-SE的导数) 或 tildeR_detivatives_array (多个结构DeepPot-SE的导数) 进行归一化
+            
+        Parameters
+        ----------
+            1. tildeR_derivatives_array: np.ndarray
+                - shape = 
+                    1. Single frame -- (num_centers, max_num_nbrs, 4, 3)
+                    2. Many frames  -- (num_frames, num_centers, max_num_nbrs, 4, 3)
+        '''
+        if (len(tildeR_derivatives_array.shape) == 4):
+            # single frame, tildeR_derivatives_array.shape = (num_centers, max_num_nbrs, 4, 3)
+            # (1, 4) -> (1, 1, 4, 1)
+            dstd = self.dstd.reshape(1, 1, 4, 1)
+        elif (len(tildeR_derivatives_array.shape) == 5):
+            # many frames, tildeR_derivatives_array.shape = (num_frames, num_centers, max_num_nbrs, 4, 3)
+            dstd = self.dstd.reshape(1, 1, 1, 4, 1)
+        
+        ### Normalize the derivative of environment matrix (Rij) with respect to x, y, z
+        result = tildeR_derivatives_array / dstd
+    
+        return result
+
+
 
 
 class NormalizerPremise(object):
+    '''
+    Static Member Function:
+        1. concat_tildeRs4calc_stats:
+            - 计算 Environment matrix (Rij) 的 statistic data (avg, std) 时使用
+            - return shape = (48, 180 * 10, 4)
+        2. concat_tildeRs4nromalize:
+            - 归一化新结构的 Environment matrix (Rij) 时使用
+            - return shape = (10, 48, 180, 4)
+    '''
     @staticmethod
-    def concat_tildeRs(
+    def concat_tildeRs4calc_stats(
                 dp_labeled_system:DpLabeledSystem,
                 structure_indices:List[int],
                 rcut:float, 
@@ -490,18 +583,43 @@ class NormalizerPremise(object):
                 - e.g. 计算多个结构的 Li-Li, Li-Si 的 $\tilde{R}$ 并合并
                     - Li-Li: (48, 100, 4) -- (num_centers, max_num_nbrs, 4)
                     - Li-Si: (48, 80, 4)  -- (num_centers, max_num_nbrs, 4)
-                    - 取10个结构并计算`avg`和`std`。最终的 concated_tildeRs.shape = (48, 1800, 4)
+                    - 取10个结构并计算`avg`和`std`。
+                    - (48, 100, 4) + (48, 80, 4) -> (48, 180, 4) -- Environment Matrix
+                    - Terminal Result = (48, 180 * num_frames, 4)
         
         Parameters
         ----------
-            1. 
+            1. dp_labeled_system: DpLabeledSystem
+                - 
+            2. structure_indices: List[int]
+                - 选取哪些结构，计算 statistic data -- avg, std
+            3. rcut: float
+                - rcutoff in DeepPot-SE
+            4. rcut_smooth: float
+                - rcutoff smooth in DeepPot-SE
+            5. center_atomic_number: int
+                - 中心原子的元素种类
+            6. nbr_atomic_numbers: List[int]
+                - 近邻原子的元素种类，所有近邻元素种类
+            7. max_num_nbrs: List[int],
+                - 最大近邻原子数，需要与 `nbr_atomic_numbers` 对应
+            8. scaling_matrix: List[int]
+                - 扩包倍数
+            
+        Return 
+        ------ 
+            1. tildeRs_array: np.ndarray
+                - shape = (num_centers, num_frames * max_num_nbrs, 4)
+            2. tildeR_derivatives_array: np.ndarray
+                - shape = (num_centers, num_frames * max_num_nbrs, 4, 3)
         '''
         ### Step 1. 得到 DStructure 的列表
         structures_lst = [
             dp_labeled_system.structures_lst[tmp_idx] for tmp_idx in structure_indices
         ]
         
-        ### Step 2. 
+        ### Step 2. 合并获取 `tildeRs_array`, `tildeR_derivatives_array`
+        # shape = (num_centers, num*frames * max_num_nbrs, 4)
         all_structures_tildeRs_lst = []    # 所有结构的 $\tilde{R}$
         for tmp_structure in structures_lst:
             tmp_struct_nbr = StructureNeighborsDescriptor.create(
@@ -525,14 +643,14 @@ class NormalizerPremise(object):
                             rcut_smooth=rcut_smooth).get_tildeR(
                                     max_num_nbrs=max_num_nbrs[tmp_idx_nbr_an])
                 tmp_all_nbrs_tildeRs_lst.append(tmp_nbr_tildeR)
+            
             # tmp_tildeR: Li-Li&Si
             # shape = (48, 180, 4)
             tmp_structure_tildeR = np.concatenate(tmp_all_nbrs_tildeRs_lst, axis=1)
-        
             all_structures_tildeRs_lst.append(tmp_structure_tildeR)
             
         # tildeR_tot: all structures for Li-Li/Si
-        # shape = (48, 1800, 4)
+        # shape = (48, 180 * 10, 4)
         tildeRs_array = np.concatenate(all_structures_tildeRs_lst, axis=1)
         
         return tildeRs_array

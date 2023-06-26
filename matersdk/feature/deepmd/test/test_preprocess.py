@@ -56,8 +56,12 @@ class TildeRNormalizerTest(unittest.TestCase):
         ### Step 3.
         print()
         print("Step 3. Normalize: ")
-        tildeR_dict = tilde_r_normalizer.normalize(structure=movement.get_frame_structure(idx_frame=100))
+        tildeR_dict, tildeR_derivative_dict = tilde_r_normalizer.normalize(structure=movement.get_frame_structure(idx_frame=100))
+        print("Step 3.1. The Rij:")
         for tmp_key, tmp_value in tildeR_dict.items():
+            print("\t", tmp_key, ": ", tmp_value.shape)
+        print("Step 3.2. The derivative of Rij with respect to x, y, z:")
+        for tmp_key, tmp_value in tildeR_derivative_dict.items():
             print("\t", tmp_key, ": ", tmp_value.shape)
             
             
@@ -92,11 +96,13 @@ class TildRPairNormalizerTest(unittest.TestCase):
         coords_are_cartesian = True
 
         center_atomic_number = 3    # Li
-        nbr_atomic_number = 14      # Si
+        nbr_atomic_numbers = [3, 14]      # Li, Si
+        max_num_nbrs = [100, 80]
         rcut = 6.5
         rcut_smooth = 6.0
         
         ### Step 0. 计算某个结构的 TildeR
+        ### Step 0.1. Li-Li's Rij
         struct_nbr = StructureNeighborsDescriptor.create(
                         'v1',
                         structure=structure,
@@ -108,21 +114,22 @@ class TildRPairNormalizerTest(unittest.TestCase):
                         'v1',
                         structure_neighbors=struct_nbr,
                         center_atomic_number=center_atomic_number,
-                        nbr_atomic_number=3,
+                        nbr_atomic_number=nbr_atomic_numbers[0],
                         rcut=rcut,
                         rcut_smooth=rcut_smooth)
-        #print(dpse_tildeR_pair.dp_feature_pair_tildeR)
-        tildeRs_array_Li = dpse_tildeR_pair_Li.get_tildeR(max_num_nbrs=100)
+        tildeRs_array_Li = dpse_tildeR_pair_Li.get_tildeR(max_num_nbrs=max_num_nbrs[0])
         
+        ### Step 0.2. Li-Si's Rij
         dpse_tildeR_pair_Si = DpseTildeRPairDescriptor.create(
                         'v1',
                         structure_neighbors=struct_nbr,
                         center_atomic_number=center_atomic_number,
-                        nbr_atomic_number=nbr_atomic_number,
+                        nbr_atomic_number=nbr_atomic_numbers[1],
                         rcut=rcut,
                         rcut_smooth=rcut_smooth)
-        #print(dpse_tildeR_pair.dp_feature_pair_tildeR)
-        tildeRs_array_Si = dpse_tildeR_pair_Si.get_tildeR(max_num_nbrs=80)
+        tildeRs_array_Si = dpse_tildeR_pair_Si.get_tildeR(max_num_nbrs=max_num_nbrs[1])
+        
+        ### Step 0.3. 合并 Li-Li's Rij and Li-Si's Rij
         # (48, 100, 4) + (48, 80, 4) = (48, 180, 4)
         tildeRs_array = np.concatenate([tildeRs_array_Li, tildeRs_array_Si], axis=1)
 
@@ -152,18 +159,30 @@ class TildRPairNormalizerTest(unittest.TestCase):
                         'v1',
                         structure_neighbors=new_struct_nbr,
                         center_atomic_number=center_atomic_number,
-                        nbr_atomic_number=nbr_atomic_number,
+                        nbr_atomic_number=nbr_atomic_numbers[1],
                         rcut=rcut,
                         rcut_smooth=rcut_smooth)
-        #print(dpse_tildeR_pair.dp_feature_pair_tildeR)
-        new_tildeRs_array = new_dpse_tildeR_pair.dp_feature_pair_tildeR
+        
+        ### 计算 Li-Si 的Rij -- max_num_nbrs=80
+        # shape = (48, 80, 4)
+        new_tildeRs_array = new_dpse_tildeR_pair.get_tildeR(max_num_nbrs=max_num_nbrs[1])
+        # shape = (48, 80, 4, 3)
+        new_tildeR_derivatives_array = new_dpse_tildeR_pair.calc_derivative(max_num_nbrs=max_num_nbrs[1])
         
         print()
-        print("Step 2. Using a new environment matrix, after normalize...")
-        print("Step 2.1. The max value of environment is : ", end="\t")
+        print("Step 2. Normalize the Rij of DeepPot-SE:")
+        print("Step 2.1. Normalized tildeR.shape = ", end="\t")
+        print(normalizer.normalize(tildeRs_array=new_tildeRs_array).shape)
+        print("Step 2.2. The max value of Rij is : ", end="\t")
         print(np.max(normalizer.normalize(tildeRs_array=new_tildeRs_array)))
-        print("Step 2.2. The min value of environment is : ", end="\t")
+        print("Step 2.3. The min value of Rij is : ", end="\t")
         print(np.min(normalizer.normalize(tildeRs_array=new_tildeRs_array)))
+        
+        print()
+        print("Step 3. Normalize the derivative of Rij with respect to x, y, z:")
+        normalized_deriv = normalizer.normalize_derivative(tildeR_derivatives_array=new_tildeR_derivatives_array)
+        print("Step 3.1. Normalized drivative of tildeR with respect to x, y, z, shape = ", end='\t')
+        print(normalized_deriv.shape)
 
                 
 class NormalizerPremiseTest(unittest.TestCase):
@@ -186,8 +205,8 @@ class NormalizerPremiseTest(unittest.TestCase):
         max_num_nbrs = [100, 80]
         scaling_matrix = [3, 3, 3]
         print()
-        print("Step 2. NormalizerPremise.concat_tildeRs():")
-        tildeRs_array = NormalizerPremise.concat_tildeRs(
+        print("Step 2. NormalizerPremise.concat_tildeRs4calc_stats():")
+        tildeRs_array = NormalizerPremise.concat_tildeRs4calc_stats(
                             dp_labeled_system=dpsys,
                             structure_indices=structure_indices,
                             rcut=rcut,
@@ -200,8 +219,24 @@ class NormalizerPremiseTest(unittest.TestCase):
         print("\nStep 2.1. The shape of tildeRs of {0} structures = {1}".format(
                         10, tildeRs_array.shape
         ))
-    
-    
+
+        ### Step 3.
+        print()
+        print("Step 3. NormalizerPremise.concat_tildeRs4calc_stats():")
+        tildeRs_array = NormalizerPremise.concat_tildeRs4normalize(
+                        dp_labeled_system=dpsys,
+                        structure_indices=structure_indices,
+                        rcut=rcut,
+                        rcut_smooth=rcut_smooth,
+                        center_atomic_number=center_atomic_number,
+                        nbr_atomic_numbers=nbr_atomic_numbers,
+                        max_num_nbrs=max_num_nbrs,
+                        scaling_matrix=scaling_matrix
+        )
+        print("\nStep 3.1. The shape of tildeRs of {0} structures = {1}".format(
+                        10, tildeRs_array.shape
+        ))
+
 
 
 if __name__ == "__main__":

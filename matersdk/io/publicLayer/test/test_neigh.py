@@ -92,7 +92,7 @@ class StructureNeighborUtilsTest(unittest.TestCase):
                         coords_are_cartesian=coords_are_cartesian,
                         )
         center_atomic_number = 42
-        nbr_atomic_number = 16
+        nbr_atomic_number = 42
         
         neigh_list = StructureNeighborsUtils.get_nbrs_indices(
                             struct_nbr=struct_nbr,
