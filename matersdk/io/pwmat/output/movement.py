@@ -27,6 +27,7 @@ class Movement(Trajectory):
         Note
         ----
             1. MOVEMENT 第一步与其他步的 chunksize 不同。
+                - chunksize 值得是每个 frame 在 MOVEMENT 中占用的行数
         '''
         self.movement_path = movement_path
         self.chunksizes_lst = self.get_chunksize()
@@ -111,40 +112,7 @@ class Movement(Trajectory):
                     break
                 
         return tmp_chunk
-        
-    
-    def get_frame_structure_(self, idx_frame:int):
-        '''
-        Description
-        -----------
-            1. 将某一帧的结构抽取出来，构建成 DStrucure 对象
-        
-        Parameters
-        ----------
-            1. idx_frame: int
-                - 第几帧（从 0 开始计数）
-        
-        Return
-        ------
-            1. structure: DStructure
-                - 
-        '''
-        warnings.warn("This function will be deprecated and will be removed in the future.")
-        
-        str_frame = self._get_frame_str(idx_frame=idx_frame)
-        structure = None
-        
-        with CreateAndRemove() as context:
-            with open(context.tmp_struct_file, 'w') as f:
-                f.write(str_frame)
-                f.seek(0)   # restart
-                structure = DStructure.from_file(
-                            file_path=context.tmp_struct_file,
-                            file_format="pwmat",
-                            coords_are_cartesian=False
-                            )
-        return structure
-    
+            
     
     def get_all_frame_structures(self):
         '''
