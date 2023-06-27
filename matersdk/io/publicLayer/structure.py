@@ -599,3 +599,27 @@ class DStructure(Structure):
                 return tmp_idx + 1
 
         return 0
+    
+    
+    def get_centroid(self):
+        '''
+        Description
+        -----------
+            1. 计算这个结构的质心
+        
+        E.g.
+        ----
+            1. 假设有 4 个点 (1, 3), (4, 2), (2, 5), (6, 1)
+            2. 分别计算和：
+                sum_x = 1 + 4 + 2 + 6 = 13
+                sum_y = 3 + 2 + 5 + 1 = 11
+            3. 计算质心：
+                centroid_x = 13 / 4 = 3.25
+                centroid_y = 11 / 4 = 2.75
+        
+        Return
+        ------
+            1. centroid_array: np.ndarray
+                - shape = (3,)
+        '''
+        return np.sum(self.cart_coords, axis=0) / self.num_sites

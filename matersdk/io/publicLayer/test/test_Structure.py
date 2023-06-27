@@ -192,7 +192,7 @@ class StructureTest(unittest.TestCase):
         #print(key_idxs)
         
  
-    def test_get_site_index(self):
+    def get_site_index(self):
         file_format = "pwmat"
         # 1. 初始化结构
         file_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/atom.config"
@@ -236,6 +236,14 @@ class StructureTest(unittest.TestCase):
         ##print(tmp_coord)
         #structure.get_site_index(site_coord=tmp_coord)
 
+
+    def test_get_centroid(self):
+        movement_path = "/data/home/liuhanyu/hyliu/code/mlff/test/demo2/PWdata/data1/MOVEMENT"
+        movement = Movement(movement_path=movement_path)
+        structure = movement.get_frame_structure(idx_frame=0)
+        print("The cooordinate of structure is : ")
+        print(structure.get_centroid())
+    
 
 if __name__ == "__main__":
     unittest.main()

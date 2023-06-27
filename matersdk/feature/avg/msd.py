@@ -12,7 +12,7 @@ from ...io.pwmat.output.movement import Movement
 class Msd(object):
     def __init__(self, trajectory:Trajectory):
         self.structures_lst = trajectory.get_all_frame_structures()
-    
+        
     
     def calc_msd(self):
         '''

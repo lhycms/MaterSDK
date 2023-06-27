@@ -13,8 +13,12 @@ from ....io.pwmat.output.movement import Movement
 class MsdTest(unittest.TestCase):
     def test_all(self):
         movement_path = "/data/home/liuhanyu/hyliu/code/mlff/test/demo2/PWdata/data1/MOVEMENT"
-        movement_path = "/data/home/liuhanyu/hyliu/pwmat_demo/xhm/MOVEMENT"
+        #movement_path = "/data/home/liuhanyu/hyliu/pwmat_demo/xhm/MOVEMENT"
         movement = Movement(movement_path=movement_path)
+        
+        ### Step 1. calc_msd()
+        print()
+        print("Step 1. calc_msd():")
         msd_object = Msd(trajectory=movement)
         msd_values_lst = msd_object.calc_msd()
         print(msd_values_lst)
