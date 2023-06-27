@@ -214,7 +214,7 @@ private:
 }
 
 
-static Vec3 operator*(double lhs, Vec3 rhs) {
+Vec3 operator*(double lhs, Vec3 rhs) {
     return Vec3(rhs[0]*lhs, rhs[1]*lhs, rhs[2]*lhs);
 }
 

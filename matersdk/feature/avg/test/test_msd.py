@@ -3,15 +3,28 @@ import numpy as np
 
 # python3 -m matersdk.feature.avg.test.test_msd
 from ..msd import (
+                DiffractionIntensity,
                 Msd,
                 MsdParallelFunction
 )
 from ....io.pwmat.output.movement import Movement
 
 
+class DiffractionIntensityTest(unittest.TestCase):
+    def test_all(self):
+        q = 1
+        movement_path = "/data/home/liuhanyu/hyliu/code/mlff/test/demo2/PWdata/data1/MOVEMENT"
+        #movement_path = "/data/home/liuhanyu/hyliu/pwmat_demo/xhm/MOVEMENT"
+        movement = Movement(movement_path=movement_path)
+        di_object = DiffractionIntensity(trajectory=movement, q=q)
+        
+        ### Step 1. calc_di()
+        di_array = di_object.calc_di()
+        print(di_array)
+
 
 class MsdTest(unittest.TestCase):
-    def test_all(self):
+    def all(self):
         movement_path = "/data/home/liuhanyu/hyliu/code/mlff/test/demo2/PWdata/data1/MOVEMENT"
         #movement_path = "/data/home/liuhanyu/hyliu/pwmat_demo/xhm/MOVEMENT"
         movement = Movement(movement_path=movement_path)

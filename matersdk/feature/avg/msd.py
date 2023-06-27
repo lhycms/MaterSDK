@@ -7,8 +7,48 @@ from ...io.publicLayer.structure import DStructure
 from ...io.publicLayer.traj import Trajectory
 
 
+class DiffractionIntensity(object):
+    '''
+    Description
+    -----------
+        1. We calculate the `time-dependent diffraction intensity` based on the atomic trajectories produced by 
+        the rt-TDDFT simulations according to the Debye-Waller factor.
+    '''
+    def __init__(self, trajectory:Trajectory, q:float):
+        '''
+        Description
+        -----------
+            1. 
+        
+        Parameters
+        ----------
+            1. trajectory: Trajectory
+                - 轨迹对象
+            2. q: float
+                - q is the magnitude of the reciprocal lattice vector for the diffraction spot.
+        '''
+        self.q = q
+        self.msd_array = np.array( Msd(trajectory=trajectory).calc_msd() )
+    
+    
+    def calc_di(self):
+        '''
+        Description
+        -----------
+            1. 
+        '''
+        di_array = np.exp(-self.q**2 * self.msd_array / 3)
+        return di_array
+        
+    
+
 
 class Msd(object):
+    '''
+    Description
+    -----------
+        1. 根据轨迹文件计算 Mean Squared Displacement.
+    '''
     def __init__(self, trajectory:Trajectory):
         self.structures_lst = trajectory.get_all_frame_structures()
         
