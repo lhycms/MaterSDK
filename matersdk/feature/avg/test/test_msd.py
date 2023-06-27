@@ -18,10 +18,16 @@ class MsdTest(unittest.TestCase):
         
         ### Step 1. calc_msd()
         print()
-        print("Step 1. calc_msd():")
+        print("Step 1. Without subtracting centroid, MSD:")
         msd_object = Msd(trajectory=movement)
         msd_values_lst = msd_object.calc_msd()
-        print(msd_values_lst)
+        print(np.sum(msd_values_lst))
+
+        ### Step 2. calc_msd_sub_centroid()
+        print()
+        print("Step 2. After subtracting centroid, MSD:")
+        msd_values_lst = msd_object.calc_msd_sub_centroid()
+        print(np.sum(msd_values_lst))
 
 
 class ParallelFunctionTest(unittest.TestCase):
@@ -31,11 +37,20 @@ class ParallelFunctionTest(unittest.TestCase):
         structure_1 = movement.get_frame_structure(idx_frame=0)
         structure_2 = movement.get_frame_structure(idx_frame=100)
         
+        
+        ### Step 1. calc_msd_s
         msd_value = MsdParallelFunction.calc_msd_s(
                             structure_1=structure_1,
                             structure_2=structure_2)
-        print("msd_value: ", msd_value)
+        print("Step 1. Without subtracting centroid, MSD for structure_{0} and structure_{1} = {2}".format(0, 100, msd_value))
         
+        
+        ### Step 2. calc_msd_sub_centroid_s
+        msd_value = MsdParallelFunction.calc_msd_sub_centroid_s(
+                            structure_1=structure_1,
+                            structure_2=structure_2)
+        print("Step 1. After subtracting centroid, MSD for structure_{0} and structure_{1} = {2}".format(0, 100, msd_value))
+
 
 
 if __name__ == "__main__":
