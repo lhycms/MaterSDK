@@ -55,32 +55,38 @@ class TildeRNormalizerTest(unittest.TestCase):
         
         ### Step 3.
         print()
-        print("Step 3. Normalize: ")
-        tildeR_dict, tildeR_derivative_dict = tilde_r_normalizer.normalize(structure=movement.get_frame_structure(idx_frame=100))
+        print("Step 3. ._normalize: ")
+        tildeR_dict, tildeR_derivative_dict = tilde_r_normalizer._normalize(structure=movement.get_frame_structure(idx_frame=100))
         print("Step 3.1. The Rij:")
         for tmp_key, tmp_value in tildeR_dict.items():
             print("\t", tmp_key, ": ", tmp_value.shape)
         print("Step 3.2. The derivative of Rij with respect to x, y, z:")
         for tmp_key, tmp_value in tildeR_derivative_dict.items():
             print("\t", tmp_key, ": ", tmp_value.shape)
-            
-            
+        
+        
         ### Step 4.
         print()
-        print("Step 4. Save TildeRNormalizer to hdf5 file...")
+        print("Step 4. normalize:")
+        tildeR, tildeR_derivative = tilde_r_normalizer.normalize(structure=movement.get_frame_structure(idx_frame=100))
+        print(tildeR.shape, tildeR_derivative.shape)
+            
+        ### Step 5.
+        print()
+        print("Step 5. Save TildeRNormalizer to hdf5 file...")
         hdf5_file_path = "/data/home/liuhanyu/hyliu/code/matersdk/test_data/deepmd/normalizer/LiSi_norm.h5"
         tilde_r_normalizer.to(hdf5_file_path=hdf5_file_path)
         
         
-        ### Step 5. 
+        ### Step 6. 
         print()
-        print("Step 5. TildeRNormalizer.from_file()")
+        print("Step 6. TildeRNormalizer.from_file()")
         new_tilde_r_normalizer = TildeRNormalizer.from_file(hdf5_file_path=hdf5_file_path)
         print(new_tilde_r_normalizer.davgs)
         
         
-        ### Step 6.
-        print("Step 6. self.__repr__():")
+        ### Step 7.
+        print("Step 7. self.__repr__():")
         print(new_tilde_r_normalizer)
 
 

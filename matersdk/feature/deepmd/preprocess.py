@@ -257,7 +257,7 @@ class TildeRNormalizer(object):
     
     
     
-    def normalize(self, structure:DStructure):
+    def _normalize(self, structure:DStructure):
         '''
         Description
         -----------
@@ -335,6 +335,50 @@ class TildeRNormalizer(object):
         return tildeR_dict, tildeR_derivative_dict
         
         
+    def normalize(self, structure):
+        '''
+        Description
+        -----------
+            1. self._normalize() 返回：
+                1. tildeRs_dict: 
+                    1) (48, 100, 4)
+                    2) (48, 80, 4)
+                    3) (24, 100, 4)
+                    4) (24, 80, 4)
+                2. tildeR_derivatives_dict: 
+                    1) (48, 100, 4, 3)
+                    2) (48, 80, 4, 3)
+                    3) (24, 100, 4, 3)
+                    4) (24, 80, 4, 3)
+            2. 合并为： 
+                1. tildeR
+                    1) (72, 180, 4)
+                2. tildeR_derivative:
+                    1) (72, 180, 4, 3)
+        '''
+        tildeRs_dict, tildeR_derivatives_dict = self._normalize(structure=structure) 
+
+        tildeRs_lst = []
+        tildeR_derivatives_lst = []
+        for tmp_center_an in self.center_atomic_numbers:
+            tmp_center_tildeRs_lst = []
+            tmp_center_tildeR_derivatives_lst = []
+            for tmp_nbr_an in self.center_atomic_numbers:
+                tmp_key = "{0}_{1}".format(tmp_center_an, tmp_nbr_an)
+                tmp_center_tildeRs_lst.append(tildeRs_dict[tmp_key])
+                tmp_center_tildeR_derivatives_lst.append(tildeR_derivatives_dict[tmp_key])
+            
+            tmp_center_tildeRs_array = np.concatenate(tmp_center_tildeRs_lst, axis=1)
+            tildeRs_lst.append(tmp_center_tildeRs_array)
+            tmp_center_tildeR_derivatives_array = np.concatenate(tmp_center_tildeR_derivatives_lst, axis=1)
+            tildeR_derivatives_lst.append(tmp_center_tildeR_derivatives_array)
+        
+        tildeR = np.concatenate(tildeRs_lst, axis=0)
+        tildeR_derivative = np.concatenate(tildeR_derivatives_lst, axis=0)
+        
+        return tildeR, tildeR_derivative
+        
+                
 
 
 class TildeRPairNormalizer(object):

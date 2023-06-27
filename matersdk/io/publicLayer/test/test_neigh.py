@@ -99,18 +99,30 @@ class StructureNeighborUtilsTest(unittest.TestCase):
         nbr_atomic_number = 3
         ### Step 3.1. 
         print("Step 3.1. With max_num_nbrs = 100:", end='\t')
-        neigh_list = StructureNeighborsUtils.get_nbrs_indices(
+        dR_neigh_list = StructureNeighborsUtils._get_nbrs_indices(
                             struct_nbr=struct_nbr,
                             center_atomic_number=center_atomic_number,
                             nbr_atomic_number=nbr_atomic_number,
                             max_num_nbrs=100)
-        print(neigh_list.shape)
+        print(dR_neigh_list.shape)
         print("Step 3.2. Without max_num_nbrs:", end='\t')
-        neigh_list = StructureNeighborsUtils.get_nbrs_indices(
+        dR_neigh_list = StructureNeighborsUtils._get_nbrs_indices(
                             struct_nbr=struct_nbr,
                             center_atomic_number=center_atomic_number,
                             nbr_atomic_number=nbr_atomic_number)
-        print(neigh_list.shape)
+        print(dR_neigh_list.shape)
+        
+        
+        ### Step 4. 
+        print()
+        print("Step 4. After concat, 获取 neigh_list:")
+        dR_neigh_list = StructureNeighborsUtils.get_nbrs_indices(
+                        struct_nbr=struct_nbr,
+                        center_atomic_numbers=[3, 14],
+                        nbr_atomic_numbers=[3, 14],
+                        max_num_nbrs=[100, 80]
+        )
+        print(dR_neigh_list.shape)
 
     
 if __name__ == "__main__":

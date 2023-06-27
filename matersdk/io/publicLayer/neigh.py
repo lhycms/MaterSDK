@@ -109,11 +109,11 @@ class StructureNeighborsUtils(object):
     
     
     @staticmethod
-    def get_nbrs_indices(
+    def _get_nbrs_indices(
                 struct_nbr,
                 center_atomic_number:int,
                 nbr_atomic_number:int,
-                max_num_nbrs:Union[bool,int]=False):
+                max_num_nbrs:Union[bool, int]=False):
         '''
         Description
         -----------
@@ -208,6 +208,52 @@ class StructureNeighborsUtils(object):
             return neigh_list_zero_padding
         
         return neigh_list
+
+
+    @staticmethod
+    def get_nbrs_indices(
+                struct_nbr,
+                center_atomic_numbers:List[int],
+                nbr_atomic_numbers:List[int],
+                max_num_nbrs:Union[bool, List[int]]=False):
+        '''
+        Description
+        -----------
+            1. 合并 pair 的 neigh_list:
+                1. Li:
+                    1) Li-Li : (48, 100)
+                    2) Li-Si : (48, 80)
+                2. Si
+                    1) Si-Li: (24, 100)
+                    2) Si-Si: (24, 80)
+            2. 合并后：
+                1. 
+                    1) (72, 180)
+        
+        Return 
+        ------
+            1. neigh_list: np.ndarray
+                - .shape = (72, 180)
+        '''
+        neigh_lists_lst = []
+        for tmp_center_an in center_atomic_numbers:
+            tmp_center_neigh_lists_lst = []
+            for tmp_nbr_an_idx, tmp_nbr_an in enumerate(nbr_atomic_numbers):
+                tmp_nbr_neigh_list:np.ndarray = \
+                        StructureNeighborsUtils._get_nbrs_indices(
+                            struct_nbr=struct_nbr,
+                            center_atomic_number=tmp_center_an,
+                            nbr_atomic_number=tmp_nbr_an,
+                            max_num_nbrs=max_num_nbrs[tmp_nbr_an_idx],
+                        )
+                tmp_center_neigh_lists_lst.append(tmp_nbr_neigh_list)
+            tmp_center_neigh_lists_array = np.concatenate(tmp_center_neigh_lists_lst, axis=1)
+            neigh_lists_lst.append(tmp_center_neigh_lists_array)
+        
+        neigh_list = np.concatenate(neigh_lists_lst, axis=0)
+        
+        return neigh_list
+                
 
 
 class StructureNeighborsDescriptor(object):
