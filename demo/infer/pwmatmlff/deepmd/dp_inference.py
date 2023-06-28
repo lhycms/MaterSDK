@@ -75,13 +75,22 @@ Ri, Ri_d = tildeR_normalizer.normalize(structure=structure)
 Ri = np.expand_dims(Ri, axis=0)
 # shape = (1, num_centers, max_num_nbrs, 4, 3)
 Ri_d = np.expand_dims(Ri_d, axis=0)
+print("Step 2.1. Ri.shape = ", end='\t')
+print(Ri.shape)
+print("Step 2.2. Ri_d.shape = ", end='\t')
+print(Ri_d.shape)
 
 
-### Step 3. dR_neigh_list
-dR_neigh_list = StructureNeighborsUtils.get_nbrs_indices(
+### Step 3. neigh_list
+neigh_list = StructureNeighborsUtils.get_nbrs_indices(
                             struct_nbr=struct_nbr,
-                            center_atomic_number=center_atomic_numbers[0],
-                            nbr_atomic_number=nbr_atomic_numbers[0],
-                            max_num_nbrs=max_num_nbrs[0]
+                            center_atomic_numbers=center_atomic_numbers,
+                            nbr_atomic_numbers=nbr_atomic_numbers,
+                            max_num_nbrs=max_num_nbrs
 )
-print(dR_neigh_list)
+print("Step 3. neigh_list.shape = ", end='\t');
+print(neigh_list.shape)
+
+
+### Step 4. 
+structure

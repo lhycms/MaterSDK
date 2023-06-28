@@ -237,13 +237,25 @@ class StructureTest(unittest.TestCase):
         #structure.get_site_index(site_coord=tmp_coord)
 
 
-    def test_get_centroid(self):
+    def get_centroid(self):
         movement_path = "/data/home/liuhanyu/hyliu/code/mlff/test/demo2/PWdata/data1/MOVEMENT"
         movement = Movement(movement_path=movement_path)
         structure = movement.get_frame_structure(idx_frame=0)
         print("The cooordinate of structure is : ")
         print(structure.get_centroid())
     
+    
+    def test_get_natoms(self):
+        movement_path = "/data/home/liuhanyu/hyliu/code/mlff/test/demo2/PWdata/data1/MOVEMENT"
+        movement = Movement(movement_path=movement_path)
+        structure = movement.get_frame_structure(idx_frame=0)
+        
+        print("Step 1. 原子数目按照默认顺序 (从小到大排列):", end='\t')
+        print(structure.get_natoms())
+        
+        print("Step 2. 原子数目按照 [14, 3] 顺序排列:", end='\t')
+        print(structure.get_natoms(atomic_numbers_order=[14, 3]))
+
 
 if __name__ == "__main__":
     unittest.main()

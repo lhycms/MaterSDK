@@ -1,5 +1,7 @@
 import numpy as np
 from pymatgen.core import Structure
+from collections import Counter
+from typing import List, Union
 
 from ..pwmat.utils.atomConfigExtractor import (
                                             AtomConfigExtractor,
@@ -623,3 +625,40 @@ class DStructure(Structure):
                 - shape = (3,)
         '''
         return np.sum(self.cart_coords, axis=0) / self.num_sites
+    
+
+    def get_natoms(
+                self, 
+                atomic_numbers_order:Union[bool, List[int]]=False):
+        '''
+        Description
+        -----------
+            1. 得到 [总原子数, 元素1的原子数, 元素2的原子数, ...]
+        
+        Description
+        -----------
+            1. atomic_numbers_order: Union[bool, List[int]]
+                - 元素的排序，关系到 `natoms` 的顺序
+                - False: 按照原子序数从小到大的顺序
+                - List[int]: [14, 3] -- 按照先 Si 后 Li 的顺序
+        
+        Return
+        ------
+            1. natoms: List[int]
+                - e.g. 72 原子的 Li2Si : [72, 48, 24]
+        '''
+        atomic_number_lst = [tmp_specie.Z for tmp_specie in self.species]
+        # e.g. Counter({3: 48, 14: 24})
+        an_counter = Counter(atomic_number_lst)
+        
+        if atomic_numbers_order:
+            pass
+        else:
+            # list( dict_keys([3, 14]) )
+            atomic_numbers_order:List[int] = list( an_counter.keys() )
+            
+        natoms:List[int] = [an_counter[tmp_an] for tmp_an in atomic_numbers_order]
+        natoms.insert(0, self.num_sites)
+    
+        # natoms: [72, 48, 24]
+        return natoms
