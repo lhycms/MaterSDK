@@ -106,21 +106,26 @@ class DpFeaturePairPremiseV1(DpFeaturePairPremiseBase):
         
         ### Step 1.5. 有效行数
         mask_efficient_rows = np.where(
-                            np.count_nonzero(mask_total),
+                np.count_nonzero(mask_center, axis=1),
+                True,
+                False
         )
+        num_efficient_rows = np.count_nonzero(mask_efficient_rows)
         
 
-        
         ### Step 2.
-        setattr( self, "num_centers", np.count_nonzero(np.count_nonzero(mask_total, axis=1)) )
-        setattr( self, "max_num_nbrs_real_element", np.max(np.count_nonzero(mask_total, axis=1)))
+        setattr( self, "num_centers", num_efficient_rows )
+        setattr( self, "max_num_nbrs_real_element", max_num_nbrs_real)
         
         ### Step 3. 初始化返回的数组 (这些数组都不包括中心原子自身)
         #       1. `dp_feature_pair_an`:
         #       2. `dp_feature_pair_d`:
         #       3. `dp_feature_pair_rc`:
+        # shape = (num_efficient_rows, max_num_nbrs_reals) -- num_efficient_rows < num_centers
         dp_feature_pair_an = np.zeros((self.num_centers, self.max_num_nbrs_real_element))
+        # shape = (num_efficient_rows, max_num_nbrs_reals) -- num_efficient_rows < num_centers
         dp_feature_pair_d = np.zeros((self.num_centers, self.max_num_nbrs_real_element))
+        # shape = (num_efficient_rows, max_num_nbrs_reals, 3) -- num_efficient_rows < num_centers
         dp_feature_pair_rc = np.zeros((self.num_centers, self.max_num_nbrs_real_element, 3))
 
         ### Step 4. 计算相对坐标
@@ -133,19 +138,15 @@ class DpFeaturePairPremiseV1(DpFeaturePairPremiseBase):
         relative_coords = self.structure_neighbors.key_nbr_coords - center_coords
         
         ### Step 5. 根据筛选条件 `mask_total` 填充 Step 3 的三个数组
-        real_center_i = 0
-        for tmp_i in range(mask_total.shape[0]):
-            tmp_num_nbrs = np.count_nonzero(mask_total[tmp_i, :])
-            if tmp_num_nbrs == 0:
-                '''
-                0; 0; 0; 0; 0; 0; 0; 0; 6; 6; 6; 6
-                '''
-                continue
-            print("***", self.structure_neighbors.key_nbr_atomic_numbers[tmp_i][mask_total[tmp_i, :]])
-            dp_feature_pair_an[real_center_i, :tmp_num_nbrs] = self.structure_neighbors.key_nbr_atomic_numbers[tmp_i][mask_total[tmp_i, :]]
-            dp_feature_pair_d[real_center_i, :tmp_num_nbrs] = self.structure_neighbors.key_nbr_distances[tmp_i][mask_total[tmp_i, :]]
-            dp_feature_pair_rc[real_center_i, :tmp_num_nbrs, :] = relative_coords[tmp_i][mask_total[tmp_i, :]]
-            real_center_i += 1
+        efficient_center_idx = 0    # 记录填写到第几个有效行
+        for tmp_center in range(relative_coords.shape[0]):
+            tmp_mask = mask_total[tmp_center, :]
+            if mask_efficient_rows[tmp_center]:
+                tmp_max_num_nbrs_real = np.count_nonzero(tmp_mask)
+                dp_feature_pair_an[efficient_center_idx, :tmp_max_num_nbrs_real] = self.structure_neighbors.key_nbr_atomic_numbers[tmp_center][tmp_mask]
+                dp_feature_pair_d[efficient_center_idx, :tmp_max_num_nbrs_real] = self.structure_neighbors.key_nbr_distances[tmp_center][tmp_mask]
+                dp_feature_pair_rc[efficient_center_idx, :tmp_max_num_nbrs_real, :] = relative_coords[tmp_center][tmp_mask][:]
+                efficient_center_idx += 1
         
         return dp_feature_pair_an, dp_feature_pair_d, dp_feature_pair_rc
     
