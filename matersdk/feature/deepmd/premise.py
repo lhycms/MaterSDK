@@ -147,6 +147,7 @@ class DpFeaturePairPremiseV1(DpFeaturePairPremiseBase):
                 dp_feature_pair_d[efficient_center_idx, :tmp_max_num_nbrs_real] = self.structure_neighbors.key_nbr_distances[tmp_center][tmp_mask]
                 dp_feature_pair_rc[efficient_center_idx, :tmp_max_num_nbrs_real, :] = relative_coords[tmp_center][tmp_mask][:]
                 efficient_center_idx += 1
+        assert (efficient_center_idx == num_efficient_rows)
         
         return dp_feature_pair_an, dp_feature_pair_d, dp_feature_pair_rc
     
