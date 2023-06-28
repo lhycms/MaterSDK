@@ -140,3 +140,38 @@ class DpFeaturePairPremiseV1(DpFeaturePairPremiseBase):
             real_center_i += 1
         
         return dp_feature_pair_an, dp_feature_pair_d, dp_feature_pair_rc
+    
+
+    def expand_rc(
+                self,
+                center_atomic_number:int,
+                nbr_atomic_number:int,
+                max_num_nbrs:int):
+        '''
+        Description
+        -----------
+            1. This function is just aimed to fit Siyu's PWmatMLFF
+            2. 根据`max_num_nbrs`, 扩展 `dp_feature_pair_rc` 
+                - 需要先调用 `self.extract_feature_pair()` 获取 `dp_feature_pair_rc`
+            
+        Return
+        ------
+            1. expanded_rc: np.ndarray
+                - .shape = (num_centers, max_num_nbrs, 4)
+        '''        
+        dp_feature_pair_an, dp_feature_pair_d, dp_feature_pair_rc = \
+                self.extract_feature_pair(
+                        center_atomic_number=center_atomic_number,
+                        nbr_atomic_number=nbr_atomic_number
+                )
+        del dp_feature_pair_an
+        del dp_feature_pair_d
+        assert(max_num_nbrs >= dp_feature_pair_rc.shape[1])
+        
+        num_centers = dp_feature_pair_rc.shape[0]
+        max_num_nbrs_real = dp_feature_pair_rc.shape[1]
+        expanded_rc  = np.zeros((num_centers, max_num_nbrs, 3))
+        
+        expanded_rc[:, :max_num_nbrs_real, :] = dp_feature_pair_rc
+        
+        return expanded_rc

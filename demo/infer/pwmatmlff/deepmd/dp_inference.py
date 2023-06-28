@@ -82,15 +82,19 @@ print(Ri_d.shape)
 
 
 ### Step 3. neigh_list
-neigh_list = StructureNeighborsUtils.get_nbrs_indices(
+neigh_list_ = StructureNeighborsUtils.get_nbrs_indices(
                             struct_nbr=struct_nbr,
                             center_atomic_numbers=center_atomic_numbers,
                             nbr_atomic_numbers=nbr_atomic_numbers,
                             max_num_nbrs=max_num_nbrs
 )
-print("Step 3. neigh_list.shape = ", end='\t');
+neigh_list = np.expand_dims(neigh_list_, axis=0)
+print("Step 3. neigh_list.shape = ", end='\t')
 print(neigh_list.shape)
 
 
-### Step 4. 
-structure
+### Step 4. e.g. 72原子的Li2Si -- natoms = [72, 48, 24]
+natoms = structure.get_natoms()
+natoms_img = np.repeat(natoms[np.newaxis, :], 1, axis=0)
+print("Step 4. natoms_img.shape = ", end='\t');
+print(natoms_img.shape)

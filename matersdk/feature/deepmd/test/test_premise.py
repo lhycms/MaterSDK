@@ -53,6 +53,17 @@ class DpFeatureTest(unittest.TestCase):
         print()
         print("1.3. Coords -- dp_feature_pair_rc:", end='\t')
         print(dp_feature_pair_rc.shape)
+        
+        
+        ### Step 2. expand_rc: For siyu's PWmatMLFF
+        print()
+        print("Step 2. ")
+        expanded_rc = dp_feature.expand_rc(
+                    center_atomic_number=center_atomic_number,
+                    nbr_atomic_number=nbr_atomic_number,
+                    max_num_nbrs=100
+        )
+        print(expanded_rc.shape)
 
         
 

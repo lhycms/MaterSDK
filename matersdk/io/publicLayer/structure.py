@@ -644,7 +644,7 @@ class DStructure(Structure):
         
         Return
         ------
-            1. natoms: List[int]
+            1. natoms: np.ndarray
                 - e.g. 72 原子的 Li2Si : [72, 48, 24]
         '''
         atomic_number_lst = [tmp_specie.Z for tmp_specie in self.species]
@@ -659,6 +659,6 @@ class DStructure(Structure):
             
         natoms:List[int] = [an_counter[tmp_an] for tmp_an in atomic_numbers_order]
         natoms.insert(0, self.num_sites)
-    
+        natoms = np.array(natoms)
         # natoms: [72, 48, 24]
         return natoms

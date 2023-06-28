@@ -93,7 +93,7 @@ class DpseTildeRPairV1(DpseTildeRPairBase):
                             center_atomic_number=center_atomic_number,
                             nbr_atomic_number=nbr_atomic_number)
         self.dp_feature_pair_tildeR = self._get_tildeR(rcut=rcut, rcut_smooth=rcut_smooth)
-        
+    
     
     def _get_premise(
                     self,
