@@ -4,6 +4,7 @@ from typing import List
 from ....io.publicLayer.structure import DStructure
 from ....io.publicLayer.neigh import StructureNeighborsUtils
 from ....io.publicLayer.neigh import StructureNeighborsDescriptor
+from ....feature.deepmd.premise import DpFeaturePairPremiseDescriptor
 from ....feature.deepmd.preprocess import TildeRNormalizer
 
 
@@ -55,6 +56,10 @@ class InferPreprocessor(object):
                 reformat_mark=reformat_mark,
                 coords_are_cartesian=coords_are_cartesian     
         )
+        self.dp_pair_premise = DpFeaturePairPremiseDescriptor.create(
+                'v1',
+                structure_neighbors=self.struct_nbr
+        )
         self.tildeR_normalizer = TildeRNormalizer(
                 rcut=rcut,
                 rcut_smooth=rcut_smooth,
@@ -68,7 +73,21 @@ class InferPreprocessor(object):
     
     
     def expand_rc(self):
-        pass
+        rcs_lst = []
+        for tmp_center_an in self.center_atomic_numbers:
+            tmp_center_rcs_lst = []
+            for tmp_nbr_an_idx, tmp_nbr_an in enumerate(self.nbr_atomic_numbers):
+                tmp_rc = self.dp_pair_premise.expand_rc(
+                            center_atomic_number=tmp_center_an,
+                            nbr_atomic_number=tmp_nbr_an,
+                            max_num_nbrs=self.max_num_nbrs[tmp_nbr_an_idx]
+                )
+                tmp_center_rcs_lst.append(tmp_rc)
+            tmp_center_rcs_array = np.concatenate(tmp_center_rcs_lst, axis=1)
+            rcs_lst.append(tmp_center_rcs_array)
+        rcs_array = np.concatenate(rcs_lst, axis=0)
+        rc = np.expand_dims(rcs_array, axis=0)
+        return rc
     
     
     def expand_tildeR(self):

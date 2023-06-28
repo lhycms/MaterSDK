@@ -54,20 +54,22 @@ class InferPreprocessorTest(unittest.TestCase):
         
         
         ### Step 1. 
+        ImageDR = infer_preprocessor.expand_rc()
+        print("1. ImageDR.shape = ", ImageDR.shape)
         
         
         ### Step 2.
         Ri, Ri_d = infer_preprocessor.expand_tildeR()
-        print("Ri.shape = ", Ri.shape)
-        print("Ri_d.shape =", Ri_d.shape)
+        print("2. Ri.shape = ", Ri.shape)
+        print("3. Ri_d.shape =", Ri_d.shape)
 
         ### Step 3.
         list_neigh = infer_preprocessor.expand_list_neigh()
-        print("list_neigh.shape = ", list_neigh.shape)
+        print("4. list_neigh.shape = ", list_neigh.shape)
         
         ### Step 4. 
         natoms_img = infer_preprocessor.expand_natoms_img()
-        print("natoms_img = ", natoms_img.shape)
+        print("5. natoms_img = ", natoms_img.shape)
 
 if __name__ == "__main__":
     unittest.main()
