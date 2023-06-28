@@ -17,7 +17,7 @@ max_num_nbrs = [100, 100]    # 近邻原子的最大数目，与 nbr_atomic_numb
 reformat_mark = True            # 永远都是True
 coords_are_cartesian = True # 永远都是True
 
-movement = Movement(movement_path=movement_path)    
+movement = Movement(movement_path=movement_path)
 ### 计算 Rij 的 davg, dstd
 if (not davg) or (not dstd):
     dpsys = DpLabeledSystem.from_trajectory_s(trajectory_object=movement)

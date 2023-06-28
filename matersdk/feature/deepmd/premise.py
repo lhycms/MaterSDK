@@ -134,6 +134,7 @@ class DpFeaturePairPremiseV1(DpFeaturePairPremiseBase):
                 0; 0; 0; 0; 0; 0; 0; 0; 6; 6; 6; 6
                 '''
                 continue
+            print("***", self.structure_neighbors.key_nbr_atomic_numbers[tmp_i][mask_total[tmp_i, :]])
             dp_feature_pair_an[real_center_i, :tmp_num_nbrs] = self.structure_neighbors.key_nbr_atomic_numbers[tmp_i][mask_total[tmp_i, :]]
             dp_feature_pair_d[real_center_i, :tmp_num_nbrs] = self.structure_neighbors.key_nbr_distances[tmp_i][mask_total[tmp_i, :]]
             dp_feature_pair_rc[real_center_i, :tmp_num_nbrs, :] = relative_coords[tmp_i][mask_total[tmp_i, :]]

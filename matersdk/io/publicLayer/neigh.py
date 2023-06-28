@@ -170,7 +170,7 @@ class StructureNeighborsUtils(object):
         ### Step 1.5.1. 确定 center_atomic_number 的行数
         # e.g. [ True  True  True  True  True  True  True  True False False False False]
         mask_efficient_rows = np.where(
-                                np.count_nonzero(mask_tot, axis=1),
+                                np.count_nonzero(mask_center, axis=1),
                                 True,
                                 False
         )

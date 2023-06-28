@@ -96,7 +96,7 @@ class StructureNeighborUtilsTest(unittest.TestCase):
                         coords_are_cartesian=coords_are_cartesian,
                         )
         center_atomic_number = 3
-        nbr_atomic_number = 3
+        nbr_atomic_number = 15
         ### Step 3.1. 
         print("Step 3.1. With max_num_nbrs = 100:", end='\t')
         dR_neigh_list = StructureNeighborsUtils._get_nbrs_indices(
