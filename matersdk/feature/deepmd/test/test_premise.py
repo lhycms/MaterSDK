@@ -18,7 +18,7 @@ class DpFeatureTest(unittest.TestCase):
         coords_are_cartesian = True
         rcut = 3.2
         center_atomic_number = 42
-        nbr_atomic_number = 41
+        nbr_atomic_number = 42
         
         
         structure = DStructure.from_file(

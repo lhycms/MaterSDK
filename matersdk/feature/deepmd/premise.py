@@ -102,7 +102,14 @@ class DpFeaturePairPremiseV1(DpFeaturePairPremiseBase):
         [False False False False False False False  True  True  True  True  True True]]
         '''
         mask_total[:, 0] = False
-        #print(mask_total)
+        max_num_nbrs_real = np.max(np.count_nonzero(mask_total, axis=1))
+        
+        ### Step 1.5. 有效行数
+        mask_efficient_rows = np.where(
+                            np.count_nonzero(mask_total),
+        )
+        
+
         
         ### Step 2.
         setattr( self, "num_centers", np.count_nonzero(np.count_nonzero(mask_total, axis=1)) )

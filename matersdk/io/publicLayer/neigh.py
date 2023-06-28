@@ -166,7 +166,7 @@ class StructureNeighborsUtils(object):
         max_num_nbrs_real = np.max(np.count_nonzero(mask_tot, axis=1))
         
         ### Step 1.5. 根据 `mask_center & mask_nbr` 取出
-        #           - key_nbr_coords
+        #          - key_nbr_coords
         ### Step 1.5.1. 确定 center_atomic_number 的行数
         # e.g. [ True  True  True  True  True  True  True  True False False False False]
         mask_efficient_rows = np.where(
