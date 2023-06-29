@@ -1,3 +1,5 @@
+import torch
+import numpy as np
 from matersdk.io.pwmat.output.movement import Movement
 from matersdk.data.deepmd.data_system import DpLabeledSystem
 from matersdk.feature.deepmd.preprocess import TildeRNormalizer
@@ -47,21 +49,47 @@ infer_preprocessor = InferPreprocessor(
             coords_are_cartesian=coords_are_cartesian
 )
 
+device = "cuda:0"
 
 ### Step 1. 
 ImageDR = infer_preprocessor.expand_rc()
 print("1. ImageDR.shape = ", ImageDR.shape)
-
+ImageDR_tensor = torch.from_numpy(ImageDR).double().to(device).requires_grad_()
 
 ### Step 2.
 Ri, Ri_d = infer_preprocessor.expand_tildeR()
 print("2. Ri.shape = ", Ri.shape)
 print("3. Ri_d.shape =", Ri_d.shape)
+Ri_tensor = torch.from_numpy(Ri).double().to(device).requires_grad_()
+Ri_d_tensor = torch.from_numpy(Ri_d).double().to(device).requires_grad_()
 
 ### Step 3.
 list_neigh = infer_preprocessor.expand_list_neigh()
 print("4. list_neigh.shape = ", list_neigh.shape)
+list_neigh_tensor = torch.from_numpy(list_neigh).double().to(device).requires_grad_()
 
 ### Step 4. 
-natoms_img = infer_preprocessor.expand_natoms_img()
-print("5. natoms_img = ", natoms_img.shape)
+natoms_image = infer_preprocessor.expand_natoms_img()
+print("5. natoms_img = ", natoms_image.shape)
+#natoms_image_tensor = torch.from_numpy(natoms_img).float()
+
+### Step 5. 
+#model = torch.load(f="/data/home/liuhanyu/hyliu/code/mlff/PWmatMLFF_dev/test/demo2/record/best.pth.tar", map_location="cpu")
+model = torch.load(f="/data/home/liuhanyu/hyliu/code/mlff/PWmatMLFF_dev/test/demo2/record/checkpoint.pt")
+model.to(device)
+model.eval()
+
+
+result = model(
+            ImageDR_tensor, 
+            Ri_tensor, 
+            Ri_d_tensor, 
+            list_neigh_tensor,
+            natoms_image
+)
+print("\n\n")
+print("Inference Result:")
+print("\tStep 1. Etot = " , result[0].item())
+print("\tStep 2. Ei.shape = ", result[1].shape)
+print("\tStep 3. F.shape = ", result[2].shape)
+print("\tStep 4. Virial.shape = \n", result[3].view((3, 3)))
