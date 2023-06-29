@@ -60,7 +60,7 @@ class DpseTildeRPairTest(unittest.TestCase):
         print()
         print("Step 4.")
         print("\t1. deepmd_se_r.get_tildeR(max_num_nbrs=24).shape = ", dpse_tildeR_pair.get_tildeR(max_num_nbrs=24).shape)
-        print(dpse_tildeR_pair.get_tildeR(max_num_nbrs=24))
+        print(dpse_tildeR_pair.get_tildeR(max_num_nbrs=24).shape)
         
         
         ### Step 5.
@@ -72,7 +72,7 @@ class DpseTildeRPairTest(unittest.TestCase):
         
         print("\t2. Calculate the derivative of tilde_R...")
         tildeR_derivative_ = dpse_tildeR_pair.calc_derivative(max_num_nbrs=24)
-        print("\t\t - After zero-padding, The shape of derivative of tildeR: ", tildeR_derivative_.shape)         
+        print("\t\t - After zero-padding, The shape of derivative of tildeR: ", tildeR_derivative_.shape)
 
 if __name__ == "__main__":
     unittest.main()
