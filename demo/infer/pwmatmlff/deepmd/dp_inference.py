@@ -1,13 +1,14 @@
-import torch
-import numpy as np
 from matersdk.io.pwmat.output.movement import Movement
 from matersdk.data.deepmd.data_system import DpLabeledSystem
 from matersdk.feature.deepmd.preprocess import TildeRNormalizer
-from matersdk.infer.pwmatmlff.deepmd.preprocess import InferPreprocessor
+from matersdk.infer.pwmatmlff.deepmd.inference import DpInfer
 
 
 
+### Step 0. 自定义参数
 movement_path = "/data/home/liuhanyu/hyliu/code/mlff/test/demo2/PWdata/data1/MOVEMENT"  # 产生训练集、验证集的 MOVEMENT
+pt_file_path = "/data/home/liuhanyu/hyliu/code/mlff/PWmatMLFF_dev/test/demo2/record/checkpoint.pt"
+device = "cuda:0"
 rcut = 6.0                      # Rmax
 rcut_smooth = 5.5               # Rmin
 scaling_matrix = [3, 3, 3]      # 三维体系：[3, 3, 3]; 二维体系: [3, 3, 1]
@@ -18,78 +19,44 @@ nbr_atomic_numbers = [3, 14] # 体系内所有元素的原子序数，从小到�
 max_num_nbrs = [100, 100]    # 近邻原子的最大数目，与 nbr_atomic_numbers 对应
 reformat_mark = True            # 永远都是True
 coords_are_cartesian = True # 永远都是True
-
 movement = Movement(movement_path=movement_path)
-### 计算 Rij 的 davg, dstd
-if (not davg) or (not dstd):
-    dpsys = DpLabeledSystem.from_trajectory_s(trajectory_object=movement)
-    tildeR_normalizer = TildeRNormalizer.from_dp_labeled_system(
-                        dp_labeled_system=dpsys,
-                        structure_indices=[*(range(10))],
-                        rcut=rcut,
-                        rcut_smooth=rcut_smooth,
-                        center_atomic_numbers=center_atomic_numbers,
-                        nbr_atomic_numbers=nbr_atomic_numbers,
-                        max_num_nbrs=max_num_nbrs,
-                        scaling_matrix=scaling_matrix
-    )
-    davg, dstd = tildeR_normalizer.davgs, tildeR_normalizer.dstds
+new_structure = movement.get_frame_structure(idx_frame=500) # 需要做 inference 的结构
 
-infer_preprocessor = InferPreprocessor(
-            structure=movement.get_frame_structure(idx_frame=100),
-            rcut=rcut,
-            rcut_smooth=rcut_smooth,
-            scaling_matrix=scaling_matrix,
-            davg=davg,
-            dstd=dstd,
-            center_atomic_numbers=center_atomic_numbers,
-            nbr_atomic_numbers=nbr_atomic_numbers,
-            max_num_nbrs=max_num_nbrs,
-            reformat_mark=reformat_mark,
-            coords_are_cartesian=coords_are_cartesian
+
+### Step 1. 计算 `davg`, `dstd`
+
+### Step 1.1. 计算 Rij 的 davg, dstd
+dpsys = DpLabeledSystem.from_trajectory_s(trajectory_object=movement)
+tildeR_normalizer = TildeRNormalizer.from_dp_labeled_system(
+                    dp_labeled_system=dpsys,
+                    structure_indices=[*(range(10))],
+                    rcut=rcut,
+                    rcut_smooth=rcut_smooth,
+                    center_atomic_numbers=center_atomic_numbers,
+                    nbr_atomic_numbers=nbr_atomic_numbers,
+                    max_num_nbrs=max_num_nbrs,
+                    scaling_matrix=scaling_matrix
+)
+davg, dstd = tildeR_normalizer.davgs, tildeR_normalizer.dstds
+
+
+### Step 2. 
+dp_infer = DpInfer(
+    pt_file_path=pt_file_path,
+    device=device,
+    rcut=rcut,
+    rcut_smooth=rcut_smooth,
+    davg=davg,
+    dstd=dstd,
+    center_atomic_numbers=center_atomic_numbers,
+    nbr_atomic_numbers=nbr_atomic_numbers,
+    max_num_nbrs=max_num_nbrs,
+    scaling_matrix=scaling_matrix
 )
 
-device = "cuda:0"
 
-### Step 1. 
-ImageDR = infer_preprocessor.expand_rc()
-print("1. ImageDR.shape = ", ImageDR.shape)
-ImageDR_tensor = torch.from_numpy(ImageDR).double().to(device).requires_grad_()
-
-### Step 2.
-Ri, Ri_d = infer_preprocessor.expand_tildeR()
-print("2. Ri.shape = ", Ri.shape)
-print("3. Ri_d.shape =", Ri_d.shape)
-Ri_tensor = torch.from_numpy(Ri).double().to(device).requires_grad_()
-Ri_d_tensor = torch.from_numpy(Ri_d).double().to(device).requires_grad_()
-
-### Step 3.
-list_neigh = infer_preprocessor.expand_list_neigh()
-print("4. list_neigh.shape = ", list_neigh.shape)
-list_neigh_tensor = torch.from_numpy(list_neigh).double().to(device).requires_grad_()
-
-### Step 4. 
-natoms_image = infer_preprocessor.expand_natoms_img()
-print("5. natoms_img = ", natoms_image.shape)
-#natoms_image_tensor = torch.from_numpy(natoms_img).float()
-
-### Step 5. 
-#model = torch.load(f="/data/home/liuhanyu/hyliu/code/mlff/PWmatMLFF_dev/test/demo2/record/best.pth.tar", map_location="cpu")
-model = torch.load(f="/data/home/liuhanyu/hyliu/code/mlff/PWmatMLFF_dev/test/demo2/record/checkpoint.pt")
-model.to(device)
-model.eval()
-
-
-result = model(
-            ImageDR_tensor, 
-            Ri_tensor, 
-            Ri_d_tensor, 
-            list_neigh_tensor,
-            natoms_image
-)
-print("\n\n")
-print("Inference Result:")
-print("\tStep 1. Etot = " , result[0].item())
-print("\tStep 2. Ei.shape = ", result[1].shape)
-print("\tStep 3. F.shape = ", result[2].shape)
-print("\tStep 4. Virial.shape = \n", result[3].view((3, 3)))
+e_tot, e_atoms, f_atoms, virial = dp_infer.infer(structure=new_structure)
+print( "S 2.1. e_tot = {0} eV".format(e_tot.item()) )
+print( "S 2.2. e_atoms.shape = ", e_atoms.shape )
+print( "S 2.3. f_atoms.shape = ", f_atoms.shape )
+print( "S 2.4. virial = \n", virial )      
