@@ -5,7 +5,7 @@ from ...io.publicLayer.neigh import StructureNeighborsV1
 from .premise import DpFeaturePairPremiseDescriptor
 
 import warnings
-warnings.filterwarnings("ignore")
+warnings.filterwarnings("ignore", category=RuntimeWarning, message="divide by zero encountered in reciprocal")
 
 
 class DpseTildeRPairBase(ABC):
