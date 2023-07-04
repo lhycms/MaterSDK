@@ -95,6 +95,100 @@ TEST_F(Vec3Test, SelfPlus) {
     EXPECT_EQ((*ptr_vec3_1), matersdk::Vec3(2.0, 4.0, 6.0));
 }
 
+/**
+ * @brief Construct a new test f object
+ * for `matersdk::Vec3::operator-` (unary minus)
+ * 
+ */
+TEST_F(Vec3Test, UnaryMinus) {
+    EXPECT_EQ(-(*ptr_vec3_1), matersdk::Vec3(-1.0, -2.0, -3.0));
+}
+
+
+/**
+ * @brief Construct a new test f object
+ * for `matersdk::Vec3::operator-` (binary minus)
+ * 
+ */
+TEST_F(Vec3Test, BinaryMinus) {
+    matersdk::Vec3 result = (*ptr_vec3_1) - (*ptr_vec3_2);
+    EXPECT_EQ(result, matersdk::Vec3(0.0, 0.0, 0.0));
+}
+
+
+/**
+ * @brief Construct a new test f object
+ * for `matersdk::Vec3::operator-=`
+ */
+TEST_F(Vec3Test, SelfMinus) {
+    (*ptr_vec3_1) -= (*ptr_vec3_2);
+    EXPECT_EQ((*ptr_vec3_1), matersdk::Vec3(0.0, 0.0, 0.0));
+}
+
+/**
+ * @brief Construct a new test f object
+ * for `matersdk::Vec3` scalar product
+ * 
+ */
+TEST_F(Vec3Test, MultiScalar) {
+    matersdk::Vec3 result = (*ptr_vec3_1) * 3;
+    EXPECT_EQ(result, matersdk::Vec3(3.0, 6.0, 9.0));
+}
+
+/**
+ * @brief Construct a new test f object
+ * for `matersdk::Vec3` self scalar product
+ * 
+ */
+TEST_F(Vec3Test, SelfMultiScalar) {
+    (*ptr_vec3_1) *= 3;
+    EXPECT_EQ((*ptr_vec3_1), matersdk::Vec3(3.0, 6.0, 9.0));
+}
+
+
+/**
+ * @brief Construct a new test f object
+ * for `matersdk::Vec3` scalar division
+ * 
+ */
+TEST_F(Vec3Test, DivScalar) {
+    matersdk::Vec3 result = (*ptr_vec3_1) / 0.5;
+    EXPECT_EQ(result, matersdk::Vec3(2.0, 4.0, 6.0));
+}
+
+/**
+ * @brief Construct a new test f object
+ * for `matersdk::Vec3` self scalar division
+ * 
+ */
+TEST_F(Vec3Test, SelfDivScalar) {
+    (*ptr_vec3_1) /= 0.5;
+    EXPECT_EQ((*ptr_vec3_1), matersdk::Vec3(2.0, 4.0, 6.0));
+}
+
+
+/**
+ * @brief Construct a new test f object
+ * for `matersdk::Vec3` dot
+ * 
+ */
+TEST_F(Vec3Test, Dot) {
+    double result = ptr_vec3_1->dot(*ptr_vec3_1);
+    EXPECT_EQ(result, 14.0);
+}
+
+
+/**
+ * @brief Construct a new test f object
+ * for `matersdk::Vec3` cross
+ * 
+ */
+TEST_F(Vec3Test, Cross) {
+    matersdk::Vec3 vec3_3(2.0, 3.0, 4.0);
+    matersdk::Vec3 result = ptr_vec3_1->cross(vec3_3);
+    EXPECT_EQ(result, matersdk::Vec3(-1, 2, -1));
+}
+
 
 
 int main(int argc, char **argv) {
