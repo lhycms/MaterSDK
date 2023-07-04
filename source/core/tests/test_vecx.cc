@@ -190,6 +190,21 @@ TEST_F(Vec3Test, Cross) {
 }
 
 
+/**
+ * @brief Construct a new test f object
+ * for `matersdk::operator*(double, const Vec3&)`
+ * 
+ */
+TEST_F(Vec3Test, ScalarMulti) {
+    matersdk::Vec3 result = 2.0 * (*ptr_vec3_1);
+    EXPECT_EQ(result, matersdk::Vec3(2.0, 4.0, 6.0));
+}
+
+TEST_F(Vec3Test, PrintVec3) {
+    std::cout << (*ptr_vec3_1) << std::endl;
+}
+
+
 
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);

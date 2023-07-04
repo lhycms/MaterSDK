@@ -2,7 +2,7 @@
 #ifndef CORE_VECX_H
 #define CORE_VECX_H
 
-
+#include <iostream>
 #include <cassert>
 
 
@@ -207,6 +207,27 @@ private:
 };
 
 
+/**
+ * @brief 
+ * 
+ * @param lhs 
+ * @param rhs 
+ * @return Vec3 
+ */
+Vec3 operator*(double lhs, const Vec3 &rhs) {
+    return Vec3(rhs[0]*lhs, rhs[1]*lhs, rhs[2]*lhs);
 }
 
-#endif
+
+std::ostream& operator<<(std::ostream &COUT, const Vec3 &rhs) {
+    COUT << "[" << rhs[0] << ", " << rhs[1] << ", " << rhs[2] << "]";
+    return COUT;
+}
+
+
+}   // namespace `matersdk`
+
+
+
+
+#endif /* CORE_VECX_H */
