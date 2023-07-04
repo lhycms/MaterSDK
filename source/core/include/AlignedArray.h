@@ -28,6 +28,38 @@ namespace matersdk {
 template <typename T>
 class AlignedArray {
 public:
+    /**
+     * @brief Default constructor, to allow AlignedArrays to be used inside collections
+     * 
+     */
+    AlignedArray() : dataSize(0), baseData(0), data(0)
+    {};
+
+    /**
+     * @brief Create an Aligned array that contains a specified number of elements.
+     * 
+     */
+    AlignedArray(int size) {
+        this->allocate(size);
+    }
+
+    /**
+     * @brief Destructor
+     * 
+     */
+    ~AlignedArray() {
+        if (baseData != 0) {
+            this->dataSize = 0;
+            delete[] this->baseData;
+        }
+    }
+
+    /**
+     * @brief Get the number of elements in the array.
+     */
+    int size() const {
+        return this->dataSize;
+    }
 
 private:
     /**

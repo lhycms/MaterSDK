@@ -12,6 +12,9 @@ file(MAKE_DIRECTORY ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
 if(BUILD_TEST)
     add_executable(test_vecx ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_vecx.cc)
     target_link_libraries(test_vecx PRIVATE gtest_main gtest)
+
+    add_executable(test_AlignedArray ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_AlignedArray.cc)
+    target_link_libraries(test_AlignedArray PRIVATE gtest_main gtest)
     
     gtest_discover_tests(test_vecx)
 endif()
