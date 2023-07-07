@@ -9,12 +9,12 @@ from ..perturbation import (
 
 class BatchPerturbStructureTest(unittest.TestCase):
     def test_all(self):
-        Systems_2be_perturbed = ['/data/home/liuhanyu/hyliu/code/test']
+        Perturbed = ['/data/home/liuhanyu/hyliu/code/test']
         pert_num = 50
         cell_pert_fraction = 0.03
         atom_pert_distance = 0.01
         BatchPerturbStructure.batch_perturb(
-            systems_2be_perturbed=Systems_2be_perturbed,
+            Perturbed=Perturbed,
             pert_num=pert_num,
             cell_pert_fraction=cell_pert_fraction,
             atom_pert_distance=atom_pert_distance

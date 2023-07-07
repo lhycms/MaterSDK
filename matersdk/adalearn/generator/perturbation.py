@@ -112,11 +112,11 @@ class PerturbStructure(object):
 class BatchPerturbStructure(object):
     @staticmethod
     def batch_perturb(
-            systems_2be_perturbed:List[str],
+            Perturbed:List[str],
             pert_num:int,
             cell_pert_fraction:float,
             atom_pert_distance:float):
-        for tmp_system in systems_2be_perturbed:
+        for tmp_system in Perturbed:
             tmp_structure = DStructure.from_file(tmp_system + "/atom.config", "pwmat")
             perturbed_obj = PerturbStructure(tmp_structure)
             perturbed_structs = perturbed_obj.perturb(
