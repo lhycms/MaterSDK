@@ -8,36 +8,39 @@
  * @copyright Copyright (c) 2023
  * 
  * @ref 1. https://github.com/openmm/openmm/blob/644dc1ecc9e95b3c8e831803bb3e2ac925999f74/platforms/cpu/include/AlignedArray.h#L4
- */
+ *      2. Array align at 16-byte boundary: https://philippegroarke.com/blog/2017/02/19/quicktip-understanding-16-byte-memory-alignment-detection/
+ *      3. Array align at 16-byte boundary: http://www.songho.ca/misc/alignment/dataalign.html
+ */    
 #ifndef CORE_ALIGNED_ARRAY_H
 #define CORE_ALIGNED_ARRAY_H
 
+
 namespace matersdk {
 
+
 /**
- * @brief 
- * 1. This class represents an array in memory whose `starting point is guaranted to
- * be aligned with a 16 bytes boundary` -- `it means that the memory address where the array begins 
- * is divisible by 16`. This can improve the performance of vectorized code, since loads and 
- * stores are more efficient.
- * 2. 通过将数组与 16 字节边界对齐，可以确保在执行向量化操作时，数据可以有效地加载到 SIMD 寄存器中。
- * 3. SIMD 指令设计用于同时操作多个数据元素，并且它们通常要求数据与特定边界对齐以获得最佳性能。
- * 4. In th case of `16-byte boundary`, it means that memory address divisible by 16 are 
- * considered aligned address.
+ * @brief This class represents an array in memory whose starting 
+ * point is guaranteed to be aligned with a 16 byte boundary. 
+ * This can improve the performance of vectorized code, since 
+ * loads and stores are more efficient.
+ * 
+ * @tparam T 
  */
 template <typename T>
 class AlignedArray {
+
 public:
     /**
-     * @brief Default constructor, to allow AlignedArrays to be used inside collections
-     * 
+     * @brief Default constructor, to allow AlignedArrays to be 
+     * used inside collections
      */
-    AlignedArray() : dataSize(0), baseData(0), data(0)
+    AlignedArray() : data_size(0), base_ptr(0), data(0)
     {};
 
+
     /**
-     * @brief Create an Aligned array that contains a specified number of elements.
-     * 
+     * @brief Create an Aligned Array that contains a specified
+     * number of elements
      */
     AlignedArray(int size) {
         this->allocate(size);
@@ -45,55 +48,67 @@ public:
 
     /**
      * @brief Destructor
-     * 
      */
     ~AlignedArray() {
-        if (baseData != 0) {
-            this->dataSize = 0;
-            delete[] this->baseData;
-        }
+        delete [] this->base_ptr;
     }
 
     /**
-     * @brief Get the number of elements in the array.
+     * @brief Get the number of elements in the array 
      */
-    int size() const {
-        return this->dataSize;
+    const int size() const {
+        return this->data_size;
     }
+
+    /**
+     * @brief Change the size of the array. 
+     * 
+     * @note This may cause all contents to be lost.
+     * 
+     */
+    void resize(int size) {
+        if (this->data_size == size)
+            return;
+        if (this->base_ptr != 0)
+            delete [] this->base_ptr;
+        this->allocate(size);
+    }
+
+    /**
+     * @brief Get the reference to an element of the array.
+     */
+    T& operator[](int index) {
+        return this->data[index];
+    }
+
+    /**
+     * @brief Get a const reference to an element of the array
+     */
+    const T& operator[](int index) const {
+        return this->data[index];
+    }
+
 
 private:
-    /**
-     * @brief This function is responsible for allocating memory for the aligned array.
-     * 
-     * @param size representing the number of elements to allocate
-     */
-    void allocate(int size) {
-        this->dataSize = size;  // `this->dataSize` member variable stores the provided size.
-        /* 
-            * The size of allocated memory is calculated as `size*sizeof(T)+16`.
-            * The additional 16 bytes ensure that starting address of the array will be aligned to 
-            * a 16-byte boundary.
-        */
-        this->baseData = new char[size*sizeof(T)+16];
-        /*
-            * `offsetData` is set to point to the allocated memory plus 15 bytes.
-            * This is done to ensure that the offset is `a multiple of 16`.
-        */
-        char *offsetData = this->baseData + 15;
-        /*
-            * The expression `(long long)offsetData & 0xF` calculates the lower 4 bits
-        */
-        offsetData -= (long long)offsetData & 0xF;
-        this->data = (T*) offsetData;
-    }
-    int dataSize;
-    char* baseData;
+    int data_size;
+    char* base_ptr;
     T* data;
 
-}; /* class: AlignedArray */
+    /**
+     * @brief Get `this->size`, `this->base_ptr`, `this->data` and allocate memory
+     * 
+     * @param size The memory's size of data(pointer[T]) to point
+     */
+    void allocate(int size) {
+        this->data_size = size;
+        this->base_ptr = new char[sizeof(T) * size + 15];
+        char* expanded_ptr = this->base_ptr + 15;
+        char* aligned_ptr = (char*)( ( (long long)expanded_ptr ) & (~0x0F) );
+        this->data = (T*)aligned_ptr;
+    }
+};  /* class: AlignedArray */
 
 
 } /* namespace: matersdk */
-
 
 #endif

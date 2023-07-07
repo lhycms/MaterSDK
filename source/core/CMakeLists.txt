@@ -10,6 +10,8 @@ file(MAKE_DIRECTORY ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
 
 # 5. 
 if(BUILD_TEST)
+    list(APPEND CMAKE_CXX_FLAGS "-g")
+    
     add_executable(test_vecx ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_vecx.cc)
     target_link_libraries(test_vecx PRIVATE gtest_main gtest)
 
