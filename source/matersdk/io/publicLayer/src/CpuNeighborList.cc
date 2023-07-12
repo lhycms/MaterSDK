@@ -89,17 +89,24 @@ public:
     /**
      * @brief Get the voxel index containing a particular location.
      * 
-     * @param location 
+     * @param location The cart coordinates of atom.
      */
     VoxelIndex getVoxelIndex(const float* location) const {
-        float yperiodic, zperiodic;
+        float y_periodic, z_periodic;
         if (!this->usePeriodic) {
             yperiodic = location[1] - miny;
             zperiodic = location[2] - minz;
         } else {
-            
+            float shiftAlongZ = floorf(location[2] * this->recipBoxSize[2]);
+            z_periodic = location[2] - this->periodicBoxVectors[2][2] * shiftAlongZ;
+            y_periodic = location[1] - this->periodicBoxVectors[2][1] * shiftAlongZ;
+            float shiftAlongY = floorf(y_periodic * this->recipBoxSize[1]);
+            y_periodic -= this->periodicBoxVectors[1][1] * shiftAlongY;
         }
+        int voxel_index_y = std::max(0, std::min(this->ny - 1, int(floorf(y_periodic/this->voxelSizeY))));
+        int voxel_index_z = std::max(0, std::min(this->nz - 1, int(floorf(z_periodic/this->voxelSizeZ))));
 
+        return VoxelIndex(voxel_index_y, voxel_index_z);
     }
 
 
