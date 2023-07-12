@@ -17,6 +17,11 @@ if(BUILD_TEST)
 
     add_executable(test_AlignedArray ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_AlignedArray.cc)
     target_link_libraries(test_AlignedArray PRIVATE gtest_main gtest)
+
+    add_executable(test_hardware ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_hardware.cc)
+    target_link_libraries(test_hardware PRIVATE gtest_main gtest)
     
     gtest_discover_tests(test_vecx)
+    gtest_discover_tests(test_AlignedArray)
+    gtest_discover_tests(test_hardware)
 endif()
