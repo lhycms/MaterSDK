@@ -49,14 +49,14 @@ public:
          * @brief Construct a new Voxels object
          * 
          * @param blockSize 
-         * @param vsy 
-         * @param vsz 
-         * @param miny 
-         * @param maxy 
-         * @param minz 
-         * @param maxz 
-         * @param boxVectors 
-         * @param usePeriodic 
+        * @param vsy           Voxel Size along Y axis
+        * @param vsz           Voxel Size along Z axis
+        * @param miny          min y
+        * @param maxy          max y
+        * @param minz          min z
+        * @param maxz          max z
+        * @param boxVectors    box Vectors
+        * @param usePeriodic   Is periodic or not
          */
         Voxels(int blockSize, 
             float vsy, float vsz, 
@@ -65,12 +65,13 @@ public:
 
 
         /**
-         * @brief Get the Voxel Index object
+         * @brief Get the voxel index containing a particular location.
          * 
-         * @param location 
+         * @param The cart coordinates of atom.
          * @return VoxelIndex 
          */
         VoxelIndex getVoxelIndex(const float* location) const;
+
 
     private:
         int blockSize;

@@ -6,7 +6,7 @@
 namespace matersdk {
 
 /**
- * @brief 
+ * @brief Construct a new Voxels object
  * 
  * @param blockSize 
  * @param vsy           Voxel Size along Y axis
@@ -45,7 +45,7 @@ CpuNeighborList::Voxels::Voxels(
     this->recipBoxSize[2] = (float)(1.0 / boxVectors[2][2]);
 
     // Step 3. 判断Box是否是三斜的 (triclinic)
-    bool triclinic = (
+    this->triclinic = (
             boxVectors[0][1] != 0.0 || boxVectors[0][2] != 0.0 ||
             boxVectors[1][0] != 0.0 || boxVectors[1][2] != 0.0 ||
             boxVectors[2][0] != 0.0 || boxVectors[2][1] != 0.0
@@ -71,6 +71,7 @@ CpuNeighborList::Voxels::Voxels(
  * @brief Get the voxel index containing a particular location.
  * 
  * @param location The cart coordinates of atom.
+ * @return VoxelIndex 
  */
 VoxelIndex CpuNeighborList::Voxels::getVoxelIndex(const float* location) const 
 {
