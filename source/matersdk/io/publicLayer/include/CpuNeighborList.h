@@ -16,7 +16,6 @@
 
 #include <cmath>
 #include <vector>
-#include <pair>
 
 #include "../../../../core/include/vecx.h"
 #include "../../../../core/include/hardware.h"

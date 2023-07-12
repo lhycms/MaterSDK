@@ -26,15 +26,15 @@ public:
     /**
      * @brief 
      * 
-     * @param blockSize
-     * @param vsy
-     * @param vsz
-     * @param miny
-     * @param maxy
-     * @param minz
-     * @param maxz
-     * @param boxVectors
-     * @param usePeriodic
+     * @param blockSize 
+     * @param vsy           Voxel Size along Y axis
+     * @param vsz           Voxel Size along Z axis
+     * @param miny          min y
+     * @param maxy          max y
+     * @param minz          min z
+     * @param maxz          max z
+     * @param boxVectors    box Vectors
+     * @param usePeriodic   Is periodic or not
      */
     Voxels(int blockSize, 
             float vsy, float vsz, 
@@ -48,8 +48,8 @@ public:
         // Step 1. Initialize `this->periodicBoxVectors`
         for (int ii=0; ii<3; ii++) {
             for (int jj=0; jj<3; jj++) {
-                float temp = (float)boxVectors[i][j];
-                this->periodicBoxVectors[i][j] = temp;
+                float temp = (float)boxVectors[ii][jj];
+                this->periodicBoxVectors[ii][jj] = temp;
             }
         }
         this->periodicBoxSize[0] = (float)boxVectors[0][0];
@@ -75,15 +75,14 @@ public:
             this->voxelSizeY = boxVectors[1][1] / this->ny;
             this->voxelSizeY = boxVectors[2][2] / this->nz;
         } else {
-            ny = NULL;
+            
         }
 
         this->bins.resize(ny);
         for (int ii=0; ii<ny; ii++) {
             this->bins[ii].resize(nz);
         }
-
-    } // class: Voxels
+    } 
 
 
     /**
@@ -91,11 +90,12 @@ public:
      * 
      * @param location The cart coordinates of atom.
      */
-    VoxelIndex getVoxelIndex(const float* location) const {
+    VoxelIndex getVoxelIndex(const float* location) const 
+    {
         float y_periodic, z_periodic;
         if (!this->usePeriodic) {
-            yperiodic = location[1] - miny;
-            zperiodic = location[2] - minz;
+            y_periodic = location[1] - miny;
+            z_periodic = location[2] - minz;
         } else {
             float shiftAlongZ = floorf(location[2] * this->recipBoxSize[2]);
             z_periodic = location[2] - this->periodicBoxVectors[2][2] * shiftAlongZ;
