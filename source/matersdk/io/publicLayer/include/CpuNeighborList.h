@@ -24,11 +24,68 @@
 
 namespace matersdk {
 
+/**
+ * @brief The Index of Voxel.
+ * 
+ */
+class VoxelIndex {
+public:
+    VoxelIndex() : y(0), z(0)
+    {};
+
+    VoxelIndex(int y, int z): y(y), z(z)
+    {};
+
+    int y;
+    int z;
+};  // class VoxelIndex
+
+
 class CpuNeighborList {
 public:
-    class Voxels;
-    class NeighborIterator;
-    CpuNeighborList(int blockSize);
+    class Voxels {
+    public:
+        /**
+         * @brief Construct a new Voxels object
+         * 
+         * @param blockSize 
+         * @param vsy 
+         * @param vsz 
+         * @param miny 
+         * @param maxy 
+         * @param minz 
+         * @param maxz 
+         * @param boxVectors 
+         * @param usePeriodic 
+         */
+        Voxels(int blockSize, 
+            float vsy, float vsz, 
+            float miny, float maxy, float minz, float maxz,
+            const Vec3* boxVectors, bool usePeriodic);
+
+
+        /**
+         * @brief Get the Voxel Index object
+         * 
+         * @param location 
+         * @return VoxelIndex 
+         */
+        VoxelIndex getVoxelIndex(const float* location) const;
+
+    private:
+        int blockSize;
+        float voxelSizeY, voxelSizeZ;
+        float miny, maxy, minz, maxz;
+        int ny, nz;
+        float periodicBoxSize[3], recipBoxSize[3];
+        bool triclinic;
+        float periodicBoxVectors[3][3];
+        const bool usePeriodic;
+        std::vector<std::vector<std::vector<std::pair<float, int>>>> bins;
+    }; // class Voxels
+
+    //class NeighborIterator;
+    //CpuNeighborList(int blockSize);
     /**
      * @brief Compute the neighbor list based on the current positions of atoms
      * 
@@ -40,6 +97,7 @@ public:
 
 private:
     int blockSize;
+    int num;
 };
 
 
