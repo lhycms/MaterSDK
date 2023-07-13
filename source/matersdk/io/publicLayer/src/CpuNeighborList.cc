@@ -108,5 +108,23 @@ void CpuNeighborList::Voxels::insert(const int &atom, const float *location) {
 }
 
 
+/**
+ * @brief Sort the atom in each voxel by X coordinate
+ * 
+ * @example std::cout << item.first << ", " << item.second << std::endl;
+ *      0.8, 1
+ *      0.9, 2
+ *      1, 0
+ */
+void CpuNeighborList::Voxels::sortItems() {
+    for (int ii=0; ii<this->ny; ii++) {
+        for (int jj=0; jj<this->nz; jj++) {
+            std::sort(this->bins[ii][jj].begin(), this->bins[ii][jj].end());
+        }
+    }
+
+}
+
+
 
 } // namespace: matersdk

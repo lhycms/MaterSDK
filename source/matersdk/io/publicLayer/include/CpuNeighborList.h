@@ -17,6 +17,7 @@
 #include <cmath>
 #include <vector>
 #include <utility>
+#include <algorithm>
 
 #include "../../../../core/include/vecx.h"
 #include "../../../../core/include/hardware.h"
@@ -87,6 +88,12 @@ public:
          * @param location  The cart coordinate of atom
          */
         void insert(const int &atom, const float *location);
+
+
+        /**
+         * @brief Sort the particle in each voxel by X coordinate
+         */
+        void sortItems();
 
 
     private:

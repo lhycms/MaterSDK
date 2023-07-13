@@ -79,10 +79,32 @@ TEST_F(CpuNeighborListTest, insert) {
     float location_0[3] = {1.0, 1.99, 1.99};
     voxels.insert(atom_0, location_0);
 
-    int atom_1 = 0;
+    int atom_1 = 1;
     float location_1[3] = {1.0, 0.8, 1.2};
     voxels.insert(atom_1, location_1);
 }
+
+
+TEST_F(CpuNeighborListTest, sortItems) {
+    matersdk::CpuNeighborList::Voxels voxels(
+                                blockSize, 
+                                vsy, vsz,
+                                miny, maxy, minz, maxz,
+                                boxVectors, usePeriodic);
+    int atom_0 = 0;
+    float location_0[3] = {1.0, 0.8, 0.4};
+    int atom_1 = 1;
+    float location_1[3] = {0.8, 0.8, 0.3};
+    int atom_2 = 2;
+    float location_2[3] = {0.9, 0.8, 0.3};
+
+    voxels.insert(atom_0, location_0);
+    voxels.insert(atom_1, location_1);
+    voxels.insert(atom_2, location_2);
+
+    voxels.sortItems();
+}
+
 
 
 int main(int argc, char **argv) {
