@@ -15,7 +15,7 @@ namespace matersdk {
  * @param maxy          max y
  * @param minz          min z
  * @param maxz          max z
- * @param boxVectors    box Vectors
+ * @param boxVectors    box Vectors (3*3)
  * @param usePeriodic   Is periodic or not
  */
 CpuNeighborList::Voxels::Voxels(
@@ -53,6 +53,7 @@ CpuNeighborList::Voxels::Voxels(
 
     // Step 4. 
     if (this->usePeriodic) {
+        // Note: 四舍五入，让 Voxel 分的更均匀
         this->ny = (int) floorf(boxVectors[1][1] / this->voxelSizeY + 0.5f);
         this->nz = (int) floorf(boxVectors[2][2] / this->voxelSizeZ + 0.5f);
         this->voxelSizeY = boxVectors[1][1] / this->ny;
@@ -60,12 +61,13 @@ CpuNeighborList::Voxels::Voxels(
     } else {
         
     }
-
+    
     this->bins.resize(ny);
     for (int ii=0; ii<ny; ii++) {
         this->bins[ii].resize(nz);
     }
 } 
+
 
 /**
  * @brief Get the voxel index containing a particular location.
@@ -90,6 +92,19 @@ VoxelIndex CpuNeighborList::Voxels::getVoxelIndex(const float* location) const
     int voxel_index_z = std::max(0, std::min(this->nz - 1, int(floorf(z_periodic/this->voxelSizeZ))));
 
     return VoxelIndex(voxel_index_y, voxel_index_z);
+}
+
+
+/**
+ * @brief Insert a particle into voxel data structure
+ * 
+ * @param atom      The index of atom
+ * @param location  The cart coordinate of atom
+ */
+void CpuNeighborList::Voxels::insert(const int &atom, const float *location) {
+    VoxelIndex voxelIndex = this->getVoxelIndex(location);
+    //std::cout << voxelIndex.y << ", " << voxelIndex.z << std::endl;
+    this->bins[voxelIndex.y][voxelIndex.z].push_back(std::make_pair(location[0], atom));
 }
 
 

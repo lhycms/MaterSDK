@@ -9,7 +9,7 @@
 class CpuNeighborListTest : public ::testing::Test {
 protected:
     int blockSize = 10;
-    float vsy = 1;
+    float vsy = 1;  // 1.5
     float vsz = 1;
     float miny = 0;
     float maxy = 2;
@@ -38,7 +38,7 @@ protected:
         boxVectors[0][1] = 0.0;
         boxVectors[0][2] = 0.0;
         boxVectors[1][0] = 3.0;
-        boxVectors[1][1] = 2.0;
+        boxVectors[1][1] = 2.0; // 10.0
         boxVectors[1][2] = 0.0;
         boxVectors[2][0] = 0.0;
         boxVectors[2][1] = 1.0;
@@ -66,6 +66,22 @@ TEST_F(CpuNeighborListTest, getVoxelIndex) {
     float location_2[3] = {1.0, 4.0, 11.0};
     matersdk::VoxelIndex index_2 = voxels.getVoxelIndex(location_2);
     std::cout << index_2.y << ", " << index_2.z << std::endl;
+}
+
+
+TEST_F(CpuNeighborListTest, insert) {
+    matersdk::CpuNeighborList::Voxels voxels(
+                                blockSize, 
+                                vsy, vsz,
+                                miny, maxy, minz, maxz,
+                                boxVectors, usePeriodic);
+    int atom_0 = 0;
+    float location_0[3] = {1.0, 1.99, 1.99};
+    voxels.insert(atom_0, location_0);
+
+    int atom_1 = 0;
+    float location_1[3] = {1.0, 0.8, 1.2};
+    voxels.insert(atom_1, location_1);
 }
 
 

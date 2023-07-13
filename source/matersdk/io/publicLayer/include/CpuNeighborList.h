@@ -16,6 +16,7 @@
 
 #include <cmath>
 #include <vector>
+#include <utility>
 
 #include "../../../../core/include/vecx.h"
 #include "../../../../core/include/hardware.h"
@@ -43,6 +44,12 @@ public:
 
 class CpuNeighborList {
 public:
+    /**
+     * @brief This data structure organises the particles spatially. 
+     * It divides them into bins along Y and Z axes. Then sorts each bin
+     * along x axis so ranges can be identified quickly with bindary.
+     * 
+     */
     class Voxels {
     public:
         /**
@@ -71,6 +78,15 @@ public:
          * @return VoxelIndex 
          */
         VoxelIndex getVoxelIndex(const float* location) const;
+
+
+        /**
+         * @brief Insert a particle into voxel data structure
+         * 
+         * @param atom      The index of atom
+         * @param location  The cart coordinate of atom
+         */
+        void insert(const int &atom, const float *location);
 
 
     private:
