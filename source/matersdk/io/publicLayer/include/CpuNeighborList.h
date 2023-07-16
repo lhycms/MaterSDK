@@ -96,6 +96,39 @@ public:
         void sortItems();
 
 
+        /**
+         * @brief Find the index of the first particle in voxel (y, z)
+         * whose x coordinate is <= specified value 
+         * 
+         * @param y         The index of voxel along Y axis
+         * @param z         The index of voxel along Z axis
+         * @param x
+         * @param lower
+         * @param upper
+         */
+        int findLowerBound(int y, int z, double x, int lower, int upper) const;
+
+
+        /**
+         * @brief Find the index of the first particle in voxel (y, z)
+         * whose x coordinate is >= specified value 
+         * 
+         * @param y         The index of voxel along Y axis
+         * @param z         The index of voxel along Z axis
+         * @param x
+         * @param lower
+         * @param upper 
+         */
+        int findUpperBound(int y, int z, double x, int lower, int upper) const;
+
+
+        /**
+         * @brief 
+         * 
+         */
+        //void getNeighbors(std::vector<int> &neighbors, int blockIndex)
+
+
     private:
         int blockSize;
         float voxelSizeY, voxelSizeZ;

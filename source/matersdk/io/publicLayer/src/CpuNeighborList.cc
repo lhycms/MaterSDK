@@ -122,9 +122,57 @@ void CpuNeighborList::Voxels::sortItems() {
             std::sort(this->bins[ii][jj].begin(), this->bins[ii][jj].end());
         }
     }
-
 }
 
+
+/**
+ * @brief Find the index of the first particle in voxel (y, z)
+ * whose x coordinate is 
+ * 
+ * @param y         The index of voxel along Y axis
+ * @param z         The index of voxel along Z axis
+ * @param x
+ * @param lower
+ * @param upper
+ */
+int CpuNeighborList::Voxels::findLowerBound(
+                    int y, int z, double x, int lower, int upper) const {
+    const std::vector<std::pair<float, int>> &bin = this->bins[y][z];
+    while (lower < upper) {
+        int middle = (lower + upper) / 2;
+        if (bin[middle].first < x) {
+            lower = middle+1;
+        } else {
+            upper = middle;
+        }
+    }
+    return lower;
+}
+
+
+/**
+ * @brief Find the index of the first particle in voxel (y, z)
+ * whose x coordinate is >= specified value 
+ * 
+ * @param y         The index of voxel along Y axis
+ * @param z         The index of voxel along Z axis
+ * @param x
+ * @param lower
+ * @param upper 
+ */
+int CpuNeighborList::Voxels::findUpperBound(
+                    int y, int z, double x, int lower, int upper) const {
+    const std::vector<std::pair<float, int>> &bin = this->bins[y][z];
+    while (lower < upper) {
+        int middle = (lower + upper) / 2;
+        if (bin[middle].first > x) {
+            upper = middle;
+        } else {
+            lower = middle + 1;
+        }
+    }
+    return upper;
+}
 
 
 } // namespace: matersdk
