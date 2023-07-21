@@ -31,13 +31,6 @@ namespace matersdk {
  * 
  */
 class VoxelIndex {
-public:
-    VoxelIndex() : y(0), z(0)
-    {};
-
-    VoxelIndex(int y, int z): y(y), z(z)
-    {};
-
     int y;
     int z;
 };  // class VoxelIndex
