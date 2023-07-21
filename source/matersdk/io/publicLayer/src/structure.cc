@@ -14,6 +14,7 @@ namespace matersdk {
  */
 template <typename CoordType>
 Structure<CoordType>::Structure(int num_atoms) {
+    this->num_atoms = num_atoms;
     // Step 1. Allocate memory for `this->basis_vectors`
     this->basis_vectors = (CoordType**)malloc(sizeof(CoordType*) * 3);
     for (int ii=0; ii<3; ii++) {
@@ -45,6 +46,7 @@ Structure<CoordType>::Structure(
         int num_atoms,
         CoordType **basis_vectors, int *atomic_numbers, CoordType **cart_coords)
 {
+    this->num_atoms = num_atoms;
     // Step 1. Allocate memory for `this->basis_vectors` and assign
     this->basis_vectors = (CoordType**)malloc(sizeof(CoordType*) * 3);
     for (int ii=0; ii<3; ii++) {
@@ -69,14 +71,76 @@ Structure<CoordType>::Structure(
     for (int ii=0; ii<num_atoms ; ii++) {
         this->cart_coords[ii] = (CoordType*)malloc(sizeof(CoordType) * 3);
     }
+    // Step 3.1. Assign
     for (int ii=0; ii<num_atoms; ii++) {
         for (int jj=0; jj<3; jj++) {
             this->cart_coords[ii][jj] = cart_coords[ii][jj];
         }
     }
+}
+
+
+/**
+ * @brief Construct a new Structure< Coord Type>:: Structure object
+ * 
+ * @tparam CoordType 
+ * @param rhs 
+ */
+template <typename CoordType>
+Structure<CoordType>::Structure(const Structure &rhs)
+{  
+    this->num_atoms = rhs.num_atoms;
+    // Step 1. Allocate memory for `this->basis_vectors` and assign
+    this->basis_vectors = (CoordType**)malloc(sizeof(CoordType*) * 3);
+    for (int ii=0; ii<3; ii++) {
+        this->basis_vectors[ii] = (CoordType*)malloc(sizeof(CoordType) * 3);
+    }
+    for (int ii=0; ii<3; ii++) {
+        for (int jj=0; jj<3; jj++) {
+            this->basis_vectors[ii][jj] = rhs.basis_vectors[ii][jj];
+        }
+    }
+
+    // Step 2. Allocate memory for `this->atomic_numbers` and assign
+    this->atomic_numbers = (int*)malloc(sizeof(int) * this->num_atoms);
+    for (int ii=0; ii<this->num_atoms; ii++) {
+        this->atomic_numbers[ii] = rhs.atomic_numbers[ii];
+    }
+
+    // Step 3. Allocate memory for `this->cart_coords` and assign
+    this->cart_coords = (CoordType**)malloc(sizeof(CoordType*) * this->num_atoms);
+    for (int ii=0; ii<this->num_atoms; ii++) {
+        this->cart_coords[ii] = (CoordType*)malloc(sizeof(CoordType) * 3);
+    }
+    for (int ii=0; ii<this->num_atoms; ii++) {
+        for (int jj=0; jj<3; jj++) {
+            this->cart_coords[ii][jj] = rhs.cart_coords[ii][jj];
+        }
+    }
 
 }
 
+
+template <typename CoordType>
+Structure<CoordType>::~Structure() {
+    // Step 1. Deallocate `this->basis_vectors`
+    for (int ii=0; ii<3; ii++) {
+        free(this->basis_vectors[ii]);
+    }
+    free(this->basis_vectors);
+
+    // Step 2. Deallocate `this->atomic_numbers`
+    free(this->atomic_numbers);
+
+    // Step 3. Deallocate `this->cart_coords`
+    for (int ii=0; ii<this->num_atoms; ii++) {
+        free(this->cart_coords[ii]);
+    }
+    free(this->cart_coords);
+
+    // Step 4. `this->num_atoms = 0`
+    this->num_atoms = 0;
+}
 
 
 }   // namespace: matersdk
