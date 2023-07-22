@@ -118,7 +118,7 @@ Structure<CoordType>::Structure(
     if (is_cart_coords) {
         for (int ii=0; ii<num_atoms; ii++) {
             for (int jj=0; jj<3; jj++) {
-                this->cart_coords[ii][jj] = cart_coords[ii][jj];
+                this->cart_coords[ii][jj] = coords[ii][jj];
             }
         }
     } else {
@@ -127,6 +127,17 @@ Structure<CoordType>::Structure(
 }
 
 
+
+/**
+ * @brief Construct a new Structure< Coord Type>:: Structure object
+ * 
+ * @tparam CoordType 
+ * @param num_atoms 
+ * @param basis_vectors 
+ * @param atomic_numbers 
+ * @param coords 
+ * @param is_cart_coords 
+ */
 template <typename CoordType>
 Structure<CoordType>::Structure(int num_atoms,
         CoordType basis_vectors[3][3], int atomic_numbers[], CoordType coords[][3],
@@ -158,7 +169,7 @@ Structure<CoordType>::Structure(int num_atoms,
     if (is_cart_coords) {   // 如果 `coords` 是笛卡尔坐标
         for (int ii=0; ii<this->num_atoms; ii++) {
             for (int jj=0; jj<3; jj++) {
-                this->cart_coords[ii][jj] = cart_coords[ii][jj];
+                this->cart_coords[ii][jj] = coords[ii][jj];
             }
         }
     } else {    // 若如果不是笛卡尔坐标
