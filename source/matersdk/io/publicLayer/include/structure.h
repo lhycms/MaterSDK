@@ -86,7 +86,7 @@ Structure<CoordType>::Structure(int num_atoms) {
 template <typename CoordType>
 Structure<CoordType>::Structure(
         int num_atoms,
-        CoordType **basis_vectors, int *atomic_numbers, CoordType **cart_coords,
+        CoordType **basis_vectors, int *atomic_numbers, CoordType **coords,
         bool is_cart_coords)
 {
     this->num_atoms = num_atoms;
@@ -115,17 +115,21 @@ Structure<CoordType>::Structure(
         this->cart_coords[ii] = (CoordType*)malloc(sizeof(CoordType) * 3);
     }
     // Step 3.1. Assign
-    for (int ii=0; ii<num_atoms; ii++) {
-        for (int jj=0; jj<3; jj++) {
-            this->cart_coords[ii][jj] = cart_coords[ii][jj];
+    if (is_cart_coords) {
+        for (int ii=0; ii<num_atoms; ii++) {
+            for (int jj=0; jj<3; jj++) {
+                this->cart_coords[ii][jj] = cart_coords[ii][jj];
+            }
         }
+    } else {
+        this->calc_cart_coords(coords);
     }
 }
 
 
 template <typename CoordType>
 Structure<CoordType>::Structure(int num_atoms,
-        CoordType basis_vectors[3][3], int atomic_numbers[], CoordType cart_coords[][3],
+        CoordType basis_vectors[3][3], int atomic_numbers[], CoordType coords[][3],
         bool is_cart_coords)
 {
     this->num_atoms = num_atoms;
@@ -151,10 +155,14 @@ Structure<CoordType>::Structure(int num_atoms,
     for (int ii=0; ii<this->num_atoms; ii++) {
         this->cart_coords[ii] = (CoordType*)malloc(sizeof(CoordType) * 3);
     }
-    for (int ii=0; ii<this->num_atoms; ii++) {
-        for (int jj=0; jj<3; jj++) {
-            this->cart_coords[ii][jj] = cart_coords[ii][jj];
+    if (is_cart_coords) {   // 如果 `coords` 是笛卡尔坐标
+        for (int ii=0; ii<this->num_atoms; ii++) {
+            for (int jj=0; jj<3; jj++) {
+                this->cart_coords[ii][jj] = cart_coords[ii][jj];
+            }
         }
+    } else {    // 若如果不是笛卡尔坐标
+        this->calc_cart_coords(coords);
     }
 }
 
@@ -283,6 +291,11 @@ void Structure<CoordType>::calc_cart_coords(CoordType frac_coords[][3]) {
 }
 
 
+/**
+ * @brief Output the information of `Sturcture`
+ * 
+ * @tparam CoordType 
+ */
 template <typename CoordType>
 void Structure<CoordType>::show() {
     printf("Lattice\n");
@@ -293,7 +306,7 @@ void Structure<CoordType>::show() {
     printf("\nSite (Cartesian Coordinate)\n");
     printf("------------------------------------------------\n");
     for (int ii=0; ii<this->num_atoms; ii++)
-        printf(" %-4d  %-15.6f %-15.6f %-15.6f\n", this->atomic_numbers[ii], this->cart_coords[0][0], this->cart_coords[0][1], this->cart_coords[0][2]);
+        printf(" %-4d  %-15.6f %-15.6f %-15.6f\n", this->atomic_numbers[ii], this->cart_coords[ii][0], this->cart_coords[ii][1], this->cart_coords[ii][2]);
 }
 
 
