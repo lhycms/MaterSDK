@@ -20,9 +20,11 @@ public:
     void calc_cart_coords(CoordType **frac_coords);
 
     void calc_cart_coords(CoordType frac_coords[][3]);
-    
-    //void make_supercell(int *scaling_matix);
-    //
+
+    // Note: `0~this->num_atoms` are owned atoms; others are ghost atoms.
+    void make_supercell(const int *scaling_matix);   // Note: You can use `int[3]` to init it.
+
+    // void make_supercell(const int scaling_matrix[3]);
 
     void show();
 
@@ -302,6 +304,79 @@ void Structure<CoordType>::calc_cart_coords(CoordType frac_coords[][3]) {
 }
 
 
+template <typename CoordType>
+void Structure<CoordType>::make_supercell(const int *scaling_matrix) {
+    /*
+        1. 奇数: 
+            ( -\frac{num-1}{2}, \frac{num-1}{2})
+        2. 偶数: 
+            ( -(\frac{num}{2}-1), \frac{num}{2} )
+    */
+    int range[3][2];
+    for (int ii=0; ii<3; ii++) {
+        if (scaling_matrix[ii] % 2 == 0){   // 偶数
+            range[ii][0] = -scaling_matrix[ii]/2 - 1;
+            range[ii][1] = scaling_matrix[ii]/2;
+        } else {    // 奇数
+            range[ii][0] = -(scaling_matrix[ii]-1)/2;
+            range[ii][1] = (scaling_matrix[ii]-1)/2;
+        }
+    }
+
+    // Step 2. Allocate memory for `primitive_cell` and Reallocate memory for `supercell (this)`
+    // Step 2.1. 利用 `num_atoms_prim`, `atomic_numbers_prim`, `cart_coords_prim` 存储原胞的信息
+    int num_atoms_prim = num_atoms;
+    int *atomic_numbers_prim = (int*)malloc(sizeof(int) * num_atoms_prim);
+    for (int ii=0; ii<num_atoms_prim; ii++) {
+        atomic_numbers_prim[ii] = this->atomic_numbers[ii];
+    }
+
+    CoordType **cart_coords_prim = (CoordType**)malloc(sizeof(CoordType*) * num_atoms_prim);
+    for (int ii=0; ii<num_atoms_prim; ii++) {
+        cart_coords_prim[ii] = (CoordType*)malloc(sizeof(CoordType) * 3);
+    }
+    for (int ii=0; ii<num_atoms_prim; ii++) {
+        for (int jj=0; jj<3; jj++) {
+            cart_coords_prim[ii][jj] = this->cart_coords[ii][jj];
+        }
+    }
+
+    // Step 2.2. Reallocate memory for `this`
+    this->num_atoms = num_atoms_prim * scaling_matrix[0] * scaling_matrix[1] * scaling_matrix[2];
+    free(this->atomic_numbers);
+    this->atomic_numbers = (int*)malloc(sizeof(int) * this->num_atoms);
+    
+    for (int ii=0; ii<num_atoms_prim; ii++) {
+        free(this->cart_coords[ii]);
+    }
+    free(this->cart_coords);
+    this->cart_coords = (CoordType**)malloc(sizeof(CoordType*) * this->num_atoms);
+    for (int ii=0; ii<this->num_atoms; ii++) {
+        this->cart_coords[ii] = (CoordType*)malloc(sizeof(CoordType) * 3);
+    }
+
+
+    // Step 3. Reassign `basis_vectors`, `atomic_numbers`, `cart_coords`
+    // Step 3.1. Calculate `basis_vectors` and assign it to `this->basis_vectors`
+    for (int ii=0; ii<3; ii++) { // 三个基矢方向
+        this->basis_vectors[ii][0] *= scaling_matrix[ii];
+        this->basis_vectors[ii][1] *= scaling_matrix[ii];
+        this->basis_vectors[ii][2] *= scaling_matrix[ii];
+    }
+
+    // Step 3.2. Calculate `atomic_numbers` and assign it to `this->atomic_numbers`
+    for (int num_copies=0; num_copies<scaling_matrix[0]*scaling_matrix[1]*scaling_matrix[2]; num_copies++) {
+        for (int atom_idx=0; atom_idx<num_atoms_prim; atom_idx++) {
+            this->atomic_numbers[num_copies*num_atoms_prim + atom_idx] = atomic_numbers_prim[atom_idx];
+        }
+    }
+
+    // Step 3.3. 
+
+
+}
+
+
 /**
  * @brief Output the information of `Sturcture`
  * 
@@ -317,7 +392,7 @@ void Structure<CoordType>::show() {
     printf("\nSite (Cartesian Coordinate)\n");
     printf("------------------------------------------------\n");
     for (int ii=0; ii<this->num_atoms; ii++)
-        printf(" %-4d  %-15.6f %-15.6f %-15.6f\n", this->atomic_numbers[ii], this->cart_coords[ii][0], this->cart_coords[ii][1], this->cart_coords[ii][2]);
+        printf(" %-4d %-4d  %-15.6f %-15.6f %-15.6f\n", ii, this->atomic_numbers[ii], this->cart_coords[ii][0], this->cart_coords[ii][1], this->cart_coords[ii][2]);
 }
 
 
