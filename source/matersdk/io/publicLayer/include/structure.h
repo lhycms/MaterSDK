@@ -9,16 +9,23 @@ class Structure {
 public:
     Structure(int num_atoms);
     
-    Structure(int num_atoms, CoordType **basis_vectors, int *atomic_numbers, CoordType **cart_coords);
+    Structure(int num_atoms, CoordType **basis_vectors, int *atomic_numbers, CoordType **coords, bool is_cart_coords=true);
     
-    Structure(int num_atoms, CoordType basis_vectors[3][3], int atomic_number[], CoordType cart_coords[][3]);
+    Structure(int num_atoms, CoordType basis_vectors[3][3], int atomic_number[], CoordType coords[][3], bool is_cart_coords=true);
 
     Structure(const Structure &rhs);
     
     ~Structure();
+
+    void calc_cart_coords(CoordType **frac_coords);
+
+    void calc_cart_coords(CoordType frac_coords[][3]);
     
     //void make_supercell(int *scaling_matix);
     //
+
+    void show();
+
 
 private:
     int num_atoms;
@@ -38,7 +45,7 @@ private:
 
 
 
-// Definition of Structure function
+// Definition of Structure member function
 namespace matersdk {
 
 /**
@@ -79,7 +86,8 @@ Structure<CoordType>::Structure(int num_atoms) {
 template <typename CoordType>
 Structure<CoordType>::Structure(
         int num_atoms,
-        CoordType **basis_vectors, int *atomic_numbers, CoordType **cart_coords)
+        CoordType **basis_vectors, int *atomic_numbers, CoordType **cart_coords,
+        bool is_cart_coords)
 {
     this->num_atoms = num_atoms;
     // Step 1. Allocate memory for `this->basis_vectors` and assign
@@ -117,7 +125,8 @@ Structure<CoordType>::Structure(
 
 template <typename CoordType>
 Structure<CoordType>::Structure(int num_atoms,
-        CoordType basis_vectors[3][3], int atomic_numbers[], CoordType cart_coords[][3])
+        CoordType basis_vectors[3][3], int atomic_numbers[], CoordType cart_coords[][3],
+        bool is_cart_coords)
 {
     this->num_atoms = num_atoms;
     // Step 1. Allocate memory for `this->basis_vectors` and assign
@@ -133,6 +142,9 @@ Structure<CoordType>::Structure(int num_atoms,
 
     // Step 2. Allocate memory for `this->atomic_numbers`
     this->atomic_numbers = (int*)malloc(sizeof(int) * this->num_atoms);
+    for (int ii=0; ii<this->num_atoms; ii++) {
+        this->atomic_numbers[ii] = atomic_numbers[ii];
+    }
 
     // Step 3. Allocate memory for `this->cart_coords`
     this->cart_coords = (CoordType**)malloc(sizeof(CoordType*) * this->num_atoms);
@@ -215,10 +227,78 @@ Structure<CoordType>::~Structure() {
 }
 
 
+/**
+ * @brief Convert the `fractional coordinates` to `cartesian coordinates`
+ * 
+ * @tparam CoordType 
+ * @param frac_coords 
+ */
+template <typename CoordType>
+void Structure<CoordType>::calc_cart_coords(CoordType **frac_coords) {
+    for (int ii=0; ii<this->num_atoms; ii++) {
+        this->cart_coords[ii][0] = (
+            frac_coords[ii][0] * this->basis_vectors[0][0] + 
+            frac_coords[ii][1] * this->basis_vectors[1][0] + 
+            frac_coords[ii][2] * this->basis_vectors[2][0]
+        );
+        this->cart_coords[ii][1] = (
+            frac_coords[ii][0] * this->basis_vectors[0][1] + 
+            frac_coords[ii][1] * this->basis_vectors[1][1] + 
+            frac_coords[ii][2] * this->basis_vectors[2][1]
+        );
+        this->cart_coords[ii][2] = (
+            frac_coords[ii][0] * this->basis_vectors[0][2] + 
+            frac_coords[ii][1] * this->basis_vectors[1][2] +
+            frac_coords[ii][2] * this->basis_vectors[2][2]
+        );
+    }
+}
+
+
+/**
+ * @brief Convert the `fractional coordinates` to `cartesian coordinates`
+ * 
+ * @tparam CoordType 
+ * @param frac_coords 
+ */
+template <typename CoordType>
+void Structure<CoordType>::calc_cart_coords(CoordType frac_coords[][3]) {
+    for (int ii=0; ii<this->num_atoms; ii++) {
+        this->cart_coords[ii][0] = (
+            frac_coords[ii][0] * this->basis_vectors[0][0] + 
+            frac_coords[ii][1] * this->basis_vectors[1][0] + 
+            frac_coords[ii][2] * this->basis_vectors[2][0]
+        );
+        this->cart_coords[ii][1] = (
+            frac_coords[ii][0] * this->basis_vectors[0][1] +
+            frac_coords[ii][1] * this->basis_vectors[1][1] + 
+            frac_coords[ii][2] * this->basis_vectors[2][1]
+        );
+        this->cart_coords[ii][2] = (
+            frac_coords[ii][0] * this->basis_vectors[0][2] + 
+            frac_coords[ii][1] * this->basis_vectors[1][2] +
+            frac_coords[ii][2] * this->basis_vectors[2][2]
+        );
+    }
+}
+
+
+template <typename CoordType>
+void Structure<CoordType>::show() {
+    printf("Lattice\n");
+    printf("------------------------------------------------\n");
+    printf(" %-15.6f %-15.6f %-15.6f\n", this->basis_vectors[0][0], this->basis_vectors[0][1], this->basis_vectors[0][2]);
+    printf(" %-15.6f %-15.6f %-15.6f\n", this->basis_vectors[1][0], this->basis_vectors[1][1], this->basis_vectors[1][2]);
+    printf(" %-15.6f %-15.6f %-15.6f\n", this->basis_vectors[2][0], this->basis_vectors[2][1], this->basis_vectors[2][2]);
+    printf("\nSite (Cartesian Coordinate)\n");
+    printf("------------------------------------------------\n");
+    for (int ii=0; ii<this->num_atoms; ii++)
+        printf(" %-4d  %-15.6f %-15.6f %-15.6f\n", this->atomic_numbers[ii], this->cart_coords[0][0], this->cart_coords[0][1], this->cart_coords[0][2]);
+}
+
+
 
 }   // namespace: matersdk
-
-
 
 
 #endif
