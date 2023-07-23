@@ -104,8 +104,13 @@ TEST_F(StructureArrayTest, init) {
 
 TEST_F(StructureArrayTest, copy_constructor) {
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
-    matersdk::Structure<double> new_structure(structure);
-    //new_structure.show();
+    
+    matersdk::Structure<double> structure_1(structure);
+    //structure_1.show();
+
+    matersdk::Structure<double> structure_2;
+    structure_2 = structure;
+    structure_2.show();
 }
 
 

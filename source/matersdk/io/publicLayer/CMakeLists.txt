@@ -17,12 +17,16 @@ file(MAKE_DIRECTORY ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
 if (BUILD_TEST)
     list(APPEND CMAKE_CXX_FLAGS "-g")
 
-    #add_executable(test_CpuNeighborList ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_CpuNeighborList.cc)
-    #target_link_libraries(test_CpuNeighborList PRIVATE gtest_main gtest CpuNeighborList)
+    # add_executable(test_CpuNeighborList ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_CpuNeighborList.cc)
+    # target_link_libraries(test_CpuNeighborList PRIVATE gtest_main gtest CpuNeighborList)
 
     add_executable(test_structure ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_structure.cc)
     target_link_libraries(test_structure gtest_main gtest)
 
-    #gtest_discover_tests(test_CpuNeighborList)    
+    add_executable(test_binLinkedList ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_binLinkedList.cc)
+    target_link_libraries(test_binLinkedList gtest_main gtest)
+
+    # gtest_discover_tests(test_CpuNeighborList)    
     gtest_discover_tests(test_structure)
+    gtest_discover_tests(test_binLinkedList)
 endif()
