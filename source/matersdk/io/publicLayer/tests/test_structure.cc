@@ -109,6 +109,13 @@ TEST_F(StructureArrayTest, copy_constructor) {
 }
 
 
+TEST_F(StructureArrayTest, copy_assignment) {
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    matersdk::Structure<double> new_structure = structure;
+    new_structure.show();
+}
+
+
 TEST_F(StructureArrayTest, calc_cart_coords_array) {
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
     //structure.show();
@@ -119,7 +126,7 @@ TEST_F(StructureArrayTest, make_supercell) {
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
     int scaling_matrix[3] = {3, 3, 1};
     structure.make_supercell(scaling_matrix);
-    structure.show();
+    //structure.show();
 }
 
 

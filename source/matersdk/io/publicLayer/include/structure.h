@@ -14,6 +14,8 @@ public:
     Structure(int num_atoms, CoordType basis_vectors[3][3], int atomic_number[], CoordType coords[][3], bool is_cart_coords=true);
 
     Structure(const Structure &rhs);
+
+    Structure& operator=(const Structure &rhs);
     
     ~Structure();
 
@@ -222,6 +224,47 @@ Structure<CoordType>::Structure(const Structure &rhs)
 
 
 /**
+ * @brief Copy assignment operator
+ * 
+ * @tparam CoordType 
+ * @param rhs 
+ * @return Structure<CoordType>& 
+ */
+template <typename CoordType>
+Structure<CoordType>& Structure<CoordType>::operator=(const Structure &rhs) {
+    this->num_atoms = rhs.num_atoms;
+    // Step 1. Allocate memory for `this->basis_vectors` and assign it
+    this->basis_vectors = (CoordType**)malloc(sizeof(CoordType*) * 3);
+    for (int ii=0; ii<3; ii++) {
+        this->basis_vectors[ii] = (CoordType*)malloc(sizeof(CoordType) * 3);
+    }
+    for (int ii=0; ii<3; ii++) {
+        this->basis_vectors[ii][0] = rhs.basis_vectors[ii][0];
+        this->basis_vectors[ii][1] = rhs.basis_vectors[ii][1];
+        this->basis_vectors[ii][2] = rhs.basis_vectors[ii][2];
+    }
+
+    // Step 2. Allocate memory for `this->atomic_numbers` and assign it
+    this->atomic_numbers = (int*)malloc(sizeof(int) * this->num_atoms);
+    for (int ii=0; ii<this->num_atoms; ii++) {
+        this->atomic_numbers[ii] = rhs.atomic_numbers[ii];
+    }
+
+    // Step 3. Allocate memory for `this->cart_coords` and assign it 
+    this->cart_coords = (CoordType**)malloc(sizeof(CoordType*) * this->num_atoms);
+    for (int ii=0; ii<this->num_atoms; ii++) {
+        this->cart_coords[ii] = (CoordType*)malloc(sizeof(CoordType) * 3);
+    }
+    for (int ii=0; ii<this->num_atoms; ii++) {
+        this->cart_coords[ii][0] = rhs.cart_coords[ii][0];
+        this->cart_coords[ii][1] = rhs.cart_coords[ii][1];
+        this->cart_coords[ii][2] = rhs.cart_coords[ii][2];
+    }
+
+}
+
+
+/**
  * @brief Destroy the Structure< Coord Type>:: Structure object
  * 
  * @tparam CoordType 
@@ -304,6 +347,12 @@ void Structure<CoordType>::calc_cart_coords(CoordType frac_coords[][3]) {
 }
 
 
+/**
+ * @brief make supercell
+ * 
+ * @tparam CoordType 
+ * @param scaling_matrix 
+ */
 template <typename CoordType>
 void Structure<CoordType>::make_supercell(const int *scaling_matrix) {
     /*
