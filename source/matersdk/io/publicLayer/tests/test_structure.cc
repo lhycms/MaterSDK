@@ -120,7 +120,7 @@ TEST_F(StructureArrayTest, copy_assignment) {
     matersdk::Structure<double> new_structure;
 
     new_structure = structure;
-    //new_structure.show();
+    new_structure.show();
 }
 
 

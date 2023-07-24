@@ -329,6 +329,8 @@ Structure<CoordType>& Structure<CoordType>::operator=(const Structure &rhs) {
             this->cart_coords[ii][2] = rhs.cart_coords[ii][2];
         }
     }
+
+    return *this;
 }
 
 

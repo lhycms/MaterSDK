@@ -17,7 +17,9 @@ public:
 
     //Supercell(Structure<CoordType> Structure, int scaling_matrix[3]);
     
-    //Supercell(const Structure &rhs);
+    //Supercell(const Supercell &rhs);
+
+    //Supercell& operator=(const Supercell &rhs);
 
     ~Supercell();
 
