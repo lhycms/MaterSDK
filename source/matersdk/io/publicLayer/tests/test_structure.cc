@@ -96,6 +96,11 @@ protected:
 };
 
 
+//TEST_F(StructureArrayTest, default_constructor) {
+//    matersdk::Structure<double> structure;
+//}
+
+
 TEST_F(StructureArrayTest, init) {
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
     //structure.show();
@@ -104,20 +109,18 @@ TEST_F(StructureArrayTest, init) {
 
 TEST_F(StructureArrayTest, copy_constructor) {
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
-    
-    matersdk::Structure<double> structure_1(structure);
-    //structure_1.show();
 
-    matersdk::Structure<double> structure_2;
-    structure_2 = structure;
-    structure_2.show();
+    matersdk::Structure<double> structure_1(structure);     // Note: You should init `this->num_atoms` in private region
+    structure_1.show();
 }
 
 
 TEST_F(StructureArrayTest, copy_assignment) {
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
-    matersdk::Structure<double> new_structure = structure;
-    new_structure.show();
+    matersdk::Structure<double> new_structure;
+
+    new_structure = structure;
+    //new_structure.show();
 }
 
 

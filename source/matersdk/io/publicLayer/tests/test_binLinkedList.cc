@@ -102,7 +102,6 @@ protected:
 TEST_F(SupercellTest, init) {
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
     matersdk::Supercell<double> supercell(structure, scaling_matrix);
-    
 }
 
 

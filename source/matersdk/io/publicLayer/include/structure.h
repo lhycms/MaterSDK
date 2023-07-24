@@ -34,7 +34,7 @@ public:
 
 
 private:
-    int num_atoms;
+    int num_atoms = 0;  // Note: 初始化为0，防止 `matersdk::Structure<double> structure;` 后，拷贝赋值函数无法得到正确的 `this->num_atoms`
     CoordType **basis_vectors;
     int *atomic_numbers;
     CoordType **cart_coords;
@@ -55,9 +55,14 @@ private:
 namespace matersdk {
 
 
+/**
+ * @brief Construct a new Structure< Coord Type>:: Structure object
+ * 
+ * @tparam CoordType 
+ */
 template <typename CoordType>
 Structure<CoordType>::Structure() {
-    this->num_atoms = 0;
+    // this->num_atoms = 0;
 }
 
 
@@ -201,23 +206,24 @@ template <typename CoordType>
 Structure<CoordType>::Structure(const Structure &rhs)
 {  
     // Step 1. Free memory
-    // Step 1.1. `this->basis_vectors`
-    for (int ii=0; ii<3; ii++) {
-        free(this->basis_vectors[ii]);
+    if (this->num_atoms != 0) {
+        // Step 1.1. `this->basis_vectors`
+        for (int ii=0; ii<3; ii++) {
+            free(this->basis_vectors[ii]);
+        }
+        free(this->basis_vectors);
+
+        // Step 1.2. `this->atomic_numbers`
+        free(this->atomic_numbers);
+
+        // Step 1.3. `this->cart_coords`
+        for (int ii=0; ii<this->num_atoms; ii++) {
+            free(this->cart_coords[ii]);
+        }
+        free(this->cart_coords);
+        // Step 1.4. `this->num_atoms = 0`
+        this->num_atoms = 0;
     }
-    free(this->basis_vectors);
-
-    // Step 1.2. `this->atomic_numbers`
-    free(this->atomic_numbers);
-
-    // Step 1.3. `this->cart_coords`
-    for (int ii=0; ii<this->num_atoms; ii++) {
-        free(this->cart_coords[ii]);
-    }
-    free(this->cart_coords);
-    // Step 1.4. `this->num_atoms = 0`
-    this->num_atoms = 0;
-
 
     // Step 2. Reallocate and Reasign
     this->num_atoms = rhs.num_atoms;
@@ -262,24 +268,25 @@ Structure<CoordType>::Structure(const Structure &rhs)
 template <typename CoordType>
 Structure<CoordType>& Structure<CoordType>::operator=(const Structure &rhs) {
     // Step 1. Free memory 
-    // Step 1.1. `this->basis_vectors`
-    for (int ii=0; ii<3; ii++) {
-        free(this->basis_vectors[ii]);
+    if (this->num_atoms != 0) {
+        // Step 1.1. `this->basis_vectors`
+        for (int ii=0; ii<3; ii++) {
+            free(this->basis_vectors[ii]);
+        }
+        free(this->basis_vectors);
+
+        // Step 1.2. `this->atomic_numbers`
+        free(this->atomic_numbers);
+
+        // Step 1.3. `this->cart_coords`
+        for (int ii=0; ii<this->num_atoms; ii++) {
+            free(this->cart_coords[ii]);
+        }
+        free(this->cart_coords);
+
+        // Step 1.4. `this->num_atoms = 0`
+        this->num_atoms = 0;
     }
-    free(this->basis_vectors);
-
-    // Step 1.2. `this->atomic_numbers`
-    free(this->atomic_numbers);
-
-    // Step 1.3. `this->cart_coords`
-    for (int ii=0; ii<this->num_atoms; ii++) {
-        free(this->cart_coords[ii]);
-    }
-    free(this->cart_coords);
-
-    // Step 1.4. `this->num_atoms = 0`
-    this->num_atoms = 0;
-
 
     // Step 2. Reallocate and reassign
     this->num_atoms = rhs.num_atoms;
@@ -321,23 +328,25 @@ Structure<CoordType>& Structure<CoordType>::operator=(const Structure &rhs) {
  */
 template <typename CoordType>
 Structure<CoordType>::~Structure() {
-    // Step 1. Deallocate `this->basis_vectors`
-    for (int ii=0; ii<3; ii++) {
-        free(this->basis_vectors[ii]);
+    if (this->num_atoms) {
+        // Step 1. Deallocate `this->basis_vectors`
+        for (int ii=0; ii<3; ii++) {
+            free(this->basis_vectors[ii]);
+        }
+        free(this->basis_vectors);
+
+        // Step 2. Deallocate `this->atomic_numbers`
+        free(this->atomic_numbers);
+
+        // Step 3. Deallocate `this->cart_coords`
+        for (int ii=0; ii<this->num_atoms; ii++) {
+            free(this->cart_coords[ii]);
+        }
+        free(this->cart_coords);
+
+        // Step 4. `this->num_atoms = 0`
+        this->num_atoms = 0;
     }
-    free(this->basis_vectors);
-
-    // Step 2. Deallocate `this->atomic_numbers`
-    free(this->atomic_numbers);
-
-    // Step 3. Deallocate `this->cart_coords`
-    for (int ii=0; ii<this->num_atoms; ii++) {
-        free(this->cart_coords[ii]);
-    }
-    free(this->cart_coords);
-
-    // Step 4. `this->num_atoms = 0`
-    this->num_atoms = 0;
 }
 
 
@@ -422,7 +431,6 @@ void Structure<CoordType>::make_supercell(const int *scaling_matrix) {
         }
     }
 
-
     // Step 2. Allocate memory for `primitive_cell` and Reallocate memory for `supercell (this)`
     // Step 2.1. 利用 `num_atoms_prim`, `atomic_numbers_prim`, `cart_coords_prim` 存储原胞的信息
     int num_atoms_prim = this->num_atoms;
@@ -458,7 +466,6 @@ void Structure<CoordType>::make_supercell(const int *scaling_matrix) {
         this->cart_coords[ii] = (CoordType*)malloc(sizeof(CoordType) * 3);
     }
 
-    
     // Step 3. Reassign `basis_vectors`, `atomic_numbers`, `cart_coords`
     // Step 3.1. Calculate `atomic_numbers` and assign it to `this->atomic_numbers`
     for (int num_copies=0; num_copies<scaling_matrix[0]*scaling_matrix[1]*scaling_matrix[2]; num_copies++) {
@@ -466,6 +473,7 @@ void Structure<CoordType>::make_supercell(const int *scaling_matrix) {
             this->atomic_numbers[num_copies*num_atoms_prim + atom_idx] = atomic_numbers_prim[atom_idx];
         }
     }
+
 
     // Step 3.2. Calculate `cart_coords` and assign it to `this->cart_coords`
     int atom_idx = 0;

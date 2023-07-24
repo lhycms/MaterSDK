@@ -19,7 +19,7 @@ public:
 
     //~Supercell();
     
-    void show() const;
+    //void show() const;
 
 private:
     Structure<CoordType> structure;
@@ -32,12 +32,16 @@ private:
 
 
 
-
-
 template <typename CoordType>
 matersdk::Supercell<CoordType>::Supercell(Structure<CoordType>& structure, int *scaling_matrix)
 {
     this->structure = structure;
+    for (int ii=0; ii<3; ii++) {
+        this->scaling_matrix[ii] = scaling_matrix[ii];
+    }
+
+    this->structure.make_supercell(this->scaling_matrix);
+    this->structure.show();
 }
 
 
