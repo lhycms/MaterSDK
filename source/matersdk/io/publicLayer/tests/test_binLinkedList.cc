@@ -101,7 +101,7 @@ protected:
 
 TEST_F(SupercellTest, default_constructor) {
     matersdk::Supercell<double> supercell;
-    supercell.show();
+    //supercell.show();
 }
 
 
@@ -109,6 +109,28 @@ TEST_F(SupercellTest, constuctor_1) {
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
     matersdk::Supercell<double> supercell(structure, scaling_matrix);
     //supercell.show();
+}
+
+TEST_F(SupercellTest, assignment_operator) {
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    matersdk::Supercell<double> supercell(structure, scaling_matrix);
+
+    matersdk::Supercell<double> supercell_1;
+    supercell_1 = supercell;
+    //supercell_1.show();
+
+    matersdk::Supercell<double> supercell_2(structure, scaling_matrix);
+    supercell_2 = supercell;
+    supercell_2.show();
+}
+
+
+TEST_F(SupercellTest, copy_constructor) {
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    matersdk::Supercell<double> supercell;
+
+    matersdk::Supercell<double> supercell_1(supercell);
+    supercell_1.show();
 }
 
 

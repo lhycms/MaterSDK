@@ -13,13 +13,13 @@ class Supercell {
 public:
     Supercell();
 
-    Supercell(Structure<CoordType>& structure, int *scaling_matrix);
+    Supercell(Structure<CoordType>& structure, int *scaling_matrix); // Note `Structure<CoordType> &structure` is a reference.
 
     //Supercell(Structure<CoordType> Structure, int scaling_matrix[3]);
     
-    //Supercell(const Supercell &rhs);
+    Supercell(const Supercell &rhs);
 
-    //Supercell& operator=(const Supercell &rhs);
+    Supercell& operator=(const Supercell &rhs);
 
     ~Supercell();
 
@@ -55,7 +55,11 @@ private:
 
 
 
-
+/**
+ * @brief Construct a new matersdk::Supercell<Coord Type>::Supercell object
+ * 
+ * @tparam CoordType 
+ */
 template <typename CoordType>
 matersdk::Supercell<CoordType>::Supercell() {
     this->structure = Structure<CoordType>();
@@ -101,6 +105,56 @@ matersdk::Supercell<CoordType>::Supercell(Structure<CoordType>& structure, int *
     this->structure.make_supercell(this->scaling_matrix);
 }
 
+
+/**
+ * @brief Construct a new Supercell< Coord Type>:: Supercell object
+ * 
+ * @tparam CoordType 
+ * @param rhs 
+ */
+template <typename CoordType>
+Supercell<CoordType>::Supercell(const Supercell &rhs) {
+    if (this->num_atoms != 0) {
+        free(this->owned_atom_idxs);
+    }
+
+    this->structure = rhs.structure;
+    this->num_atoms = rhs.num_atoms;
+    this->prim_num_atoms = rhs.prim_num_atoms;
+    this->prim_cell_idx = rhs.prim_cell_idx;
+    this->prim_cell_idx_xyz[0] = rhs.prim_cell_idx_xyz[0];
+    this->prim_cell_idx_xyz[1] = rhs.prim_cell_idx_xyz[1];
+    this->prim_cell_idx_xyz[2] = rhs.prim_cell_idx_xyz[2];
+    if (this->num_atoms != 0) {
+        this->owned_atom_idxs = (int*)malloc(sizeof(int) * rhs.prim_num_atoms);
+        for (int ii=0; ii<rhs.prim_num_atoms; ii++) {
+            this->owned_atom_idxs[ii] = rhs.owned_atom_idxs[ii];
+        }
+    }
+}
+
+
+template <typename CoordType>
+Supercell<CoordType>& Supercell<CoordType>::operator=(const Supercell<CoordType> &rhs) {
+    if (this->num_atoms != 0) 
+        free(this->owned_atom_idxs);
+    
+    this->structure = rhs.structure;
+    this->num_atoms = rhs.num_atoms;
+    this->prim_num_atoms = rhs.prim_num_atoms;
+    this->prim_cell_idx = rhs.prim_cell_idx;
+    this->prim_cell_idx_xyz[0] = rhs.prim_cell_idx_xyz[0];
+    this->prim_cell_idx_xyz[1] = rhs.prim_cell_idx_xyz[1];
+    this->prim_cell_idx_xyz[2] = rhs.prim_cell_idx_xyz[2];
+    if (rhs.num_atoms != 0) {
+        this->owned_atom_idxs = (int*)malloc(sizeof(int) * rhs.prim_num_atoms);
+        for (int ii=0; ii<rhs.prim_num_atoms; ii++) {
+            this->owned_atom_idxs[ii] = rhs.owned_atom_idxs[ii];
+        }
+    }
+    
+    return *this;
+}
 
 /**
  * @brief Destroy the Supercell< Coord Type>:: Supercell object
