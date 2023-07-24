@@ -99,9 +99,16 @@ protected:
 
 
 
-TEST_F(SupercellTest, init) {
+TEST_F(SupercellTest, default_constructor) {
+    matersdk::Supercell<double> supercell;
+    supercell.show();
+}
+
+
+TEST_F(SupercellTest, constuctor_1) {
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
     matersdk::Supercell<double> supercell(structure, scaling_matrix);
+    //supercell.show();
 }
 
 
