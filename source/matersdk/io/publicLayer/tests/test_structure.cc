@@ -111,7 +111,7 @@ TEST_F(StructureArrayTest, copy_constructor) {
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
 
     matersdk::Structure<double> structure_1(structure);     // Note: You should init `this->num_atoms` in private region
-    structure_1.show();
+    //structure_1.show();
 }
 
 
@@ -137,6 +137,46 @@ TEST_F(StructureArrayTest, make_supercell) {
     //structure.show();
 }
 
+
+TEST_F(StructureArrayTest, get_num_atoms) {
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    //std::cout << "num_atoms = " << structure.get_num_atoms() << std::endl;
+}
+
+
+TEST_F(StructureArrayTest, get_basis_vectors) {
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    const double** basis_vectors_ = structure.get_basis_vectors();
+    
+    EXPECT_EQ(basis_vectors_[0][0], basis_vectors[0][0]);
+    EXPECT_EQ(basis_vectors_[0][1], basis_vectors[0][1]);
+    EXPECT_EQ(basis_vectors_[0][2], basis_vectors[0][2]);
+    EXPECT_EQ(basis_vectors_[1][0], basis_vectors[1][0]);
+    EXPECT_EQ(basis_vectors_[1][1], basis_vectors[1][1]);
+    EXPECT_EQ(basis_vectors_[1][2], basis_vectors[1][2]);
+    EXPECT_EQ(basis_vectors_[2][0], basis_vectors[2][0]);
+    EXPECT_EQ(basis_vectors_[2][1], basis_vectors[2][1]);
+    EXPECT_EQ(basis_vectors_[2][2], basis_vectors[2][2]);
+}
+
+
+TEST_F(StructureArrayTest, get_atomic_numbers) {
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    const int* atomic_numbers_ = structure.get_atomic_numbers();
+    for (int ii=0; ii<structure.get_num_atoms(); ii++) {
+        EXPECT_EQ(atomic_numbers_[ii], atomic_numbers[ii]);
+    }
+}
+
+
+TEST_F(StructureArrayTest, get_cart_coords) {
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    const double** cart_coords_ = structure.get_cart_coords();
+    //structure.show();
+    for (int ii=0; ii<structure.get_num_atoms(); ii++) {
+        //printf("%-12.6f\t%-12.6f\t%-12.6f\n", cart_coords_[ii][0], cart_coords_[ii][1], cart_coords_[ii][2]);
+    }
+}
 
 
 // Part II.

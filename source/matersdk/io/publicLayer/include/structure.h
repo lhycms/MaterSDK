@@ -32,6 +32,14 @@ public:
 
     void show() const;
 
+    const int get_num_atoms() const;
+
+    const CoordType** get_basis_vectors() const; // Returns a pointer to a pointer to a constant double value.
+
+    const int* get_atomic_numbers() const;      // Returns a pointer to a constant double value.
+
+    const CoordType** get_cart_coords() const;  // Returns a pointer to a pointer to a constant double value.
+
 
 private:
     int num_atoms = 0;  // Note: 初始化为0，防止 `matersdk::Structure<double> structure;` 后，拷贝赋值函数无法得到正确的 `this->num_atoms`
@@ -535,6 +543,38 @@ void Structure<CoordType>::show() const {
         printf(" %-4d %-4d  %-15.6f %-15.6f %-15.6f\n", ii, this->atomic_numbers[ii], this->cart_coords[ii][0], this->cart_coords[ii][1], this->cart_coords[ii][2]);
 }
 
+
+template <typename CoordType>
+const int Structure<CoordType>::get_num_atoms() const {
+    return this->num_atoms;
+}
+
+
+/**
+ * @brief Convert `this->basis_vectors` to const value, and return it
+ * 
+ * @tparam CoordType 
+ * @return const CoordType** 
+ * 
+ * @note You can't return `this->vectors` directly, because 
+ *          - error: invalid conversion from `double**` to `const double**`
+ */
+template <typename CoordType>
+const CoordType** Structure<CoordType>::get_basis_vectors() const {
+    return (const double**)this->basis_vectors;  // Note: You'd better not use implicit conversion
+}
+
+
+template <typename CoordType>
+const int* Structure<CoordType>::get_atomic_numbers() const {
+    return this->atomic_numbers;
+}
+
+
+template <typename CoordType>
+const CoordType** Structure<CoordType>::get_cart_coords() const {
+    return (const double**)this->cart_coords;
+}
 
 
 }   // namespace: matersdk
