@@ -23,7 +23,9 @@ public:
 
     void calc_prim_cell_idx_xyz();
 
-    void calc_prim_cell_idx();   // Call this function after `this->calc_prim_cell_idx_xyz()`
+    void calc_prim_cell_idx();      // Call this function after `this->calc_prim_cell_idx_xyz()`
+
+    void calc_owned_atom_idxs();    // Call this function after `this->`
 
     const int* get_prim_cell_idx_xyz() const;
 
@@ -32,6 +34,9 @@ public:
     const int get_prim_num_atoms() const;
 
     const int get_num_atoms() const;
+
+    const int* get_owned_atom_idxs() const;
+
 
 private:
     Structure<CoordType> structure;
@@ -57,7 +62,9 @@ matersdk::Supercell<CoordType>::Supercell(Structure<CoordType>& structure, int *
     this->prim_num_atoms = this->structure.get_num_atoms();
     this->calc_prim_cell_idx_xyz();  // Assign `this->prim_cell_idx_xyz`
     this->calc_prim_cell_idx();      // Assign `this->prim_cell_idx`
-    
+    this->owned_atom_idxs = (int*)malloc(sizeof(int) * this->prim_num_atoms);
+    this->calc_owned_atom_idxs();
+
     // Step 3. make_supercell
     this->structure.make_supercell(this->scaling_matrix);
 }
@@ -103,6 +110,14 @@ void Supercell<CoordType>::calc_prim_cell_idx() {
 
 
 template <typename CoordType>
+void Supercell<CoordType>::calc_owned_atom_idxs() {
+    for (int ii=0; ii<this->prim_num_atoms; ii++) {
+        this->owned_atom_idxs[ii] = this->prim_cell_idx * this->prim_num_atoms + ii;
+    }
+}
+
+
+template <typename CoordType>
 const int* Supercell<CoordType>::get_prim_cell_idx_xyz() const {
     return (const int*)this->prim_cell_idx_xyz;   // Type conversion : `int[]` -> `int*`
 }
@@ -125,6 +140,11 @@ const int Supercell<CoordType>::get_num_atoms() const {
     return (const int)(this->prim_num_atoms * this->scaling_matrix[0] * this->scaling_matrix[1] * this->scaling_matrix[2]);
 }
 
+
+template <typename CoordType>
+const int* Supercell<CoordType>::get_owned_atom_idxs() const {
+    return (const int*)this->owned_atom_idxs;
+}
 
 
 } // namespace: matersdk

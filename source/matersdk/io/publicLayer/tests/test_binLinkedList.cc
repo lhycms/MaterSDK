@@ -156,6 +156,33 @@ TEST_F(SupercellTest, get_num_atoms) {
 }
 
 
+TEST_F(SupercellTest, get_owned_atom_idxs) {
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    scaling_matrix[0] = 3;
+    scaling_matrix[1] = 3;
+    scaling_matrix[2] = 1;
+    matersdk::Supercell<double> supercell(structure, scaling_matrix);
+    /*
+        72~83   84~95   96~107
+        36~47   48~59   60~71
+         0~11   12~23   24~35
+    */
+    const int* owned_atom_idxs = supercell.get_owned_atom_idxs();
+    EXPECT_EQ(owned_atom_idxs[0], 48);
+    EXPECT_EQ(owned_atom_idxs[1], 49);
+    EXPECT_EQ(owned_atom_idxs[2], 50);
+    EXPECT_EQ(owned_atom_idxs[3], 51);
+    EXPECT_EQ(owned_atom_idxs[4], 52);
+    EXPECT_EQ(owned_atom_idxs[5], 53);
+    EXPECT_EQ(owned_atom_idxs[6], 54);
+    EXPECT_EQ(owned_atom_idxs[7], 55);
+    EXPECT_EQ(owned_atom_idxs[8], 56);
+    EXPECT_EQ(owned_atom_idxs[9], 57);
+    EXPECT_EQ(owned_atom_idxs[10], 58);
+    EXPECT_EQ(owned_atom_idxs[11], 59);
+}
+
+
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
