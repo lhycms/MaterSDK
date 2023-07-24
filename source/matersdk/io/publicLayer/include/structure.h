@@ -533,12 +533,12 @@ void Structure<CoordType>::make_supercell(const int *scaling_matrix) {
 template <typename CoordType>
 void Structure<CoordType>::show() const {
     printf("Lattice\n");
-    printf("------------------------------------------------\n");
+    printf("-------------------------------------------------------\n");
     printf(" %-15.6f %-15.6f %-15.6f\n", this->basis_vectors[0][0], this->basis_vectors[0][1], this->basis_vectors[0][2]);
     printf(" %-15.6f %-15.6f %-15.6f\n", this->basis_vectors[1][0], this->basis_vectors[1][1], this->basis_vectors[1][2]);
     printf(" %-15.6f %-15.6f %-15.6f\n", this->basis_vectors[2][0], this->basis_vectors[2][1], this->basis_vectors[2][2]);
     printf("\nSite (Cartesian Coordinate)\n");
-    printf("------------------------------------------------\n");
+    printf("-------------------------------------------------------\n");
     for (int ii=0; ii<this->num_atoms; ii++)
         printf(" %-4d %-4d  %-15.6f %-15.6f %-15.6f\n", ii, this->atomic_numbers[ii], this->cart_coords[ii][0], this->cart_coords[ii][1], this->cart_coords[ii][2]);
 }
@@ -557,7 +557,7 @@ const int Structure<CoordType>::get_num_atoms() const {
  * @return const CoordType** 
  * 
  * @note You can't return `this->vectors` directly, because 
- *          - error: invalid conversion from `double**` to `const double**`
+ *          - error: invalid implicit conversion from `double**` to `const double**`
  */
 template <typename CoordType>
 const CoordType** Structure<CoordType>::get_basis_vectors() const {

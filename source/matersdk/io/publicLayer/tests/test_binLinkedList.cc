@@ -105,6 +105,57 @@ TEST_F(SupercellTest, init) {
 }
 
 
+TEST_F(SupercellTest, calc_prim_cell_idx_xyz_even) {
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    // Test 1: Scaling factor 是奇数
+    scaling_matrix[0] = 5;
+    scaling_matrix[1] = 7;
+    scaling_matrix[2] = 9;
+    matersdk::Supercell<double> supercell(structure, scaling_matrix);
+    // supercell.calc_prim_cell_idx_xyz();
+    // supercell.calc_prim_cell_idx();
+    const int* prim_cell_idx_xyz = supercell.get_prim_cell_idx_xyz();
+
+    EXPECT_EQ(prim_cell_idx_xyz[0], 2);
+    EXPECT_EQ(prim_cell_idx_xyz[1], 3);
+    EXPECT_EQ(prim_cell_idx_xyz[2], 4);
+
+    const int prim_cell_idx = supercell.get_prim_cell_idx();
+    std::cout << prim_cell_idx << std::endl;
+}
+
+
+TEST_F(SupercellTest, calc_cell_idx_xyz_odd) {
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    // Test 1: Scaling factor 是偶数
+    scaling_matrix[0] = 6;
+    scaling_matrix[1] = 8;
+    scaling_matrix[2] = 10;
+    matersdk::Supercell<double> supercell(structure, scaling_matrix);
+    // supercell.calc_prim_cell_idx_xyz();
+    // supercell.calc_prim_cell_idx();
+    const int* prim_cell_idx_xyz = supercell.get_prim_cell_idx_xyz();
+    EXPECT_EQ(prim_cell_idx_xyz[0], 2);
+    EXPECT_EQ(prim_cell_idx_xyz[1], 3);
+    EXPECT_EQ(prim_cell_idx_xyz[2], 4);
+
+    const int prim_cell_idx = supercell.get_prim_cell_idx();
+    std::cout << prim_cell_idx << std::endl;
+}
+
+
+TEST_F(SupercellTest, get_num_atoms) {
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    scaling_matrix[0] = 6;
+    scaling_matrix[1] = 8;
+    scaling_matrix[2] = 10;
+    matersdk::Supercell<double> supercell(structure, scaling_matrix);
+    
+    EXPECT_EQ(supercell.get_prim_num_atoms(), 12);
+    EXPECT_EQ(supercell.get_num_atoms(), 12 * scaling_matrix[0] * scaling_matrix[1] * scaling_matrix[2]);
+}
+
+
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
