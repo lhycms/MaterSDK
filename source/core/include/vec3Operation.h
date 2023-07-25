@@ -11,15 +11,26 @@ namespace vec3Operation
 
 
 template <typename CoordType>
-CoordType* dot(CoordType* vec1, CoordType* vec2);
+CoordType dot(CoordType* vec1, CoordType* vec2);
 
 template <typename CoordType>
 CoordType* cross(CoordType* vec1, CoordType* vec2);
 
 template <typename CoordType>
-CoordType* norm(CoordType* vec);
+CoordType* normalize(CoordType* vec);
+
+template <typename CoordType>
+CoordType norm(CoordType* vec);
 
 
+
+
+
+template <typename CoordType>
+CoordType dot(CoordType* vec1, CoordType* vec2) {
+    CoordType inner_product = vec1[0]*vec2[0] + vec1[1]*vec2[1] + vec1[2]*vec2[2];
+    return inner_product;
+}
 
 
 template <typename CoordType>
@@ -33,7 +44,7 @@ CoordType* cross(CoordType* vec1, CoordType* vec2) {
 
 
 template <typename CoordType>
-CoordType* norm(CoordType* vec) {
+CoordType* normalize(CoordType* vec) {
     CoordType* unit_vec = (CoordType*)malloc(sizeof(CoordType) * 3);
     CoordType vec_length = std::sqrt( pow(vec[0], 2) + std::pow(vec[1], 2) + std::pow(vec[2], 2) );
     unit_vec[0] = vec[0] / vec_length;
@@ -41,6 +52,14 @@ CoordType* norm(CoordType* vec) {
     unit_vec[2] = vec[2] / vec_length;
 
     return unit_vec;
+}
+
+
+template <typename CoordType>
+CoordType norm(CoordType* vec) {
+    return std::sqrt(
+        std::pow(vec[0], 2) + std::pow(vec[1], 2) + std::pow(vec[2], 2) 
+    );
 }
 
 

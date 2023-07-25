@@ -40,18 +40,44 @@ protected:
 };
 
 
-TEST_F(Vec3OperationPointerTest, cross) {
-    double *vertical_vec = matersdk::vec3Operation::cross(vec1, vec2);
+TEST_F(Vec3OperationPointerTest, dot) {
+    double inner_product = matersdk::vec3Operation::dot<double>(vec1, vec2);
+    EXPECT_EQ(inner_product, 20);
+}
 
-    printf("vertical_vector = [%f, %f, %f]\n", vertical_vec[0], vertical_vec[1], vertical_vec[2]);
+
+TEST_F(Vec3OperationPointerTest, cross) {
+    double *vertical_vec = matersdk::vec3Operation::cross<double>(vec1, vec2);
+
+    EXPECT_EQ(matersdk::vec3Operation::dot<double>(vertical_vec, vec1), 0);
+    EXPECT_EQ(matersdk::vec3Operation::dot<double>(vertical_vec, vec2), 0);
 
     free(vertical_vec);
 }
 
 
 TEST_F(Vec3OperationPointerTest, norm) {
-
+    double vec_length_1 = matersdk::vec3Operation::norm<double>(vec1);
+    printf("vec_length_1 = %f\n", vec_length_1);
 }
+
+
+
+TEST_F(Vec3OperationPointerTest, normalize) {
+    double* unit_vec_1 = matersdk::vec3Operation::normalize(vec1);
+    double* unit_vec_2 = matersdk::vec3Operation::normalize(vec2);
+
+    double vec_length_1 = matersdk::vec3Operation::norm(unit_vec_1);
+    double vec_length_2 = matersdk::vec3Operation::norm(unit_vec_2);
+    printf("%f\n", vec_length_1);
+    printf("%f\n", vec_length_2);
+    //EXPECT_EQ(vec_length_1, 1.0);
+    //EXPECT_EQ(vec_length_2, 1.0);
+
+    free(unit_vec_1);
+    free(unit_vec_2);
+}
+
 
 
 int main(int argc, char** argv) {
