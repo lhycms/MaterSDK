@@ -80,6 +80,57 @@ TEST_F(Vec3OperationPointerTest, normalize) {
 
 
 
+
+
+class Vec3OperationArrayTest : public ::testing::Test {
+protected:
+    double vec1[3];
+    double vec2[3];
+
+    static void SetUpTestSuite() {
+        std::cout << "Vec3OperationArrayTest is setting up...\n";
+    }
+
+
+    static void TearDownTestSuite() {
+        std::cout << "Vec3OperationArrayTest is tearing down...\n";
+    }
+
+
+    void SetUp() override {
+        vec1[0] = 1;
+        vec1[1] = 2;
+        vec1[2] = 3;
+        vec2[0] = 2;
+        vec2[1] = 3;
+        vec2[2] = 4;
+    }
+
+
+    void TearDown() override {
+
+    }
+};  // class: vec3Operation
+
+
+TEST_F(Vec3OperationArrayTest, dot) {
+    double inner_product = matersdk::vec3Operation::dot<double>(vec1, vec2);
+    EXPECT_EQ(inner_product, 20);
+}
+
+
+TEST_F(Vec3OperationArrayTest, cross) {
+    /*
+        error: array must be initialized with a brace-enclosed initializer
+    */
+
+    // double vertical_vec[3] = matersdk::vec3Operation::cross<double>(vec1, vec2);
+    // EXPECT_EQ(matersdk::vec3Operation::dot<double>(vertical_vec, vec1), 0);
+    // EXPECT_EQ(matersdk::vec3Operation::dot<double>(vertical_vec, vec2), 0);
+}
+
+
+
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
