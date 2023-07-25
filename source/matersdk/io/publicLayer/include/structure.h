@@ -1,6 +1,9 @@
 #ifndef MATERSDK_STRUCTURE_H
 #define MATERSDK_STRUCTURE_H
 
+#include <stdio.h>
+#include <stdlib.h>
+
 
 namespace matersdk {
 
@@ -40,6 +43,7 @@ public:
 
     const CoordType** get_cart_coords() const;  // Returns a pointer to a pointer to a constant double value.
 
+    //CoordType* get_interplane_distances() const;
 
 private:
     int num_atoms = 0;  // Note: 初始化为0，防止 `matersdk::Structure<double> structure;` 后，拷贝赋值函数无法得到正确的 `this->num_atoms`

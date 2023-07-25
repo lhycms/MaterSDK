@@ -20,8 +20,12 @@ if(BUILD_TEST)
 
     add_executable(test_hardware ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_hardware.cc)
     target_link_libraries(test_hardware PRIVATE gtest_main gtest)
+
+    add_executable(test_vec3Operation ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_vec3Operation.cc)
+    target_link_libraries(test_vec3Operation gtest gtest_main)
     
     gtest_discover_tests(test_vecx)
     gtest_discover_tests(test_AlignedArray)
     gtest_discover_tests(test_hardware)
+    gtest_discover_tests(test_vec3Operation)
 endif()

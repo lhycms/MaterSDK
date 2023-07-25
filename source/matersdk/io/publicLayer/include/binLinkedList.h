@@ -44,14 +44,35 @@ public:
 
 private:
     Structure<CoordType> structure;
-    int scaling_matrix[3];      // 扩包倍数；x, y, z 方向上的 primitive_cell 个数
+    int scaling_matrix[3] = {1, 1, 1};      // 扩包倍数；x, y, z 方向上的 primitive_cell 个数
     int num_atoms = 0;
-    int prim_num_atoms;         // primitive cell 的元素数目
-    int prim_cell_idx;          // primitive cell 对应的 cell index
-    int prim_cell_idx_xyz[3];   // 
-    int *owned_atom_idxs;       // 
+    int prim_num_atoms = 0;         // primitive cell 的元素数目
+    int prim_cell_idx = 0;          // primitive cell 对应的 cell index
+    int prim_cell_idx_xyz[3] = {0, 0, 0};   // 
+    int *owned_atom_idxs;           // 
 
 }; // class: Supercell
+
+
+
+
+template <typename CoordType>
+class BinLinkedList {
+public:
+    // BinLinkedList();
+
+    BinLinkedList(Structure<CoordType>& structure, CoordType* bin_sizes);
+
+private:
+    Structure<CoordType> structure;
+    CoordType bin_sizes[3] = {0, 0, 0};
+    int num_bins_xyz[3] = {0, 0, 0};
+    int num_bins = 0;
+};
+
+
+
+
 
 
 
@@ -268,6 +289,22 @@ template <typename CoordType>
 const int* Supercell<CoordType>::get_owned_atom_idxs() const {
     return (const int*)this->owned_atom_idxs;
 }
+
+
+
+
+
+/*
+template <typename CoordType>
+BinLinkedList<CoordType>::BinLinkedList(Structure<CoordType>& structure, CoordType* bin_sizes) {
+    this->structure = structure;
+    for (int ii=0; ii<3; ii++) {
+        this->bin_sizes[ii] = bin_sizes[ii];
+        this->num_bins[ii] = this->structure.get
+    }
+}
+*/
+
 
 
 } // namespace: matersdk
