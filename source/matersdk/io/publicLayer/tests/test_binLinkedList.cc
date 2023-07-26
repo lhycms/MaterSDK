@@ -108,7 +108,7 @@ TEST_F(SupercellTest, default_constructor) {
 TEST_F(SupercellTest, constuctor_1) {
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
     matersdk::Supercell<double> supercell(structure, scaling_matrix);
-    //supercell.show();
+    supercell.show();
 }
 
 TEST_F(SupercellTest, assignment_operator) {
@@ -118,7 +118,7 @@ TEST_F(SupercellTest, assignment_operator) {
 
     matersdk::Supercell<double> supercell_1;
     supercell_1 = supercell;
-    supercell_1.show();
+    //supercell_1.show();
 
     supercell_1 = supercell_null;
     //supercell_1.show();
