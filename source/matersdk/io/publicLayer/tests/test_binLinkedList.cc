@@ -4,6 +4,138 @@
 #include "../include/binLinkedList.h"
 
 
+class BasicStructureInfoTest : public ::testing::Test {
+protected:
+    int num_atoms;
+    double basis_vectors[3][3];
+    int atomic_numbers[12];
+    double frac_coords[12][3];
+
+
+    static void SetUpTestSuite() {
+        std::cout << "BasicStructureInfo is setting up...\n";
+    }
+
+
+    static void TearDownTestSuite() {
+        std::cout << "BasicStructureInfo is tearing down...\n";
+    }
+
+
+    void SetUp() override {
+        num_atoms = 12;
+        
+        basis_vectors[0][0] = 3.1903157348;
+        basis_vectors[0][1] = 5.5257885468;
+        basis_vectors[0][2] = 0.0000000000;
+        basis_vectors[1][0] = -6.3806307800;
+        basis_vectors[1][1] = 0.0000000000;
+        basis_vectors[1][2] = 0.0000000000;
+        basis_vectors[2][0] = 0.0000000000;
+        basis_vectors[2][1] = 0.0000000000;
+        basis_vectors[2][2] = 23.1297687334;
+
+        atomic_numbers[0] = 42;
+        atomic_numbers[1] = 16;
+        atomic_numbers[2] = 16;
+        atomic_numbers[3] = 42;
+        atomic_numbers[4] = 16;
+        atomic_numbers[5] = 16;
+        atomic_numbers[6] = 42;
+        atomic_numbers[7] = 16;
+        atomic_numbers[8] = 16;
+        atomic_numbers[9] = 42; 
+        atomic_numbers[10] = 16;
+        atomic_numbers[11] = 16;
+
+        frac_coords[0][0] = 0.333333333333;
+        frac_coords[0][1] = 0.166666666667;
+        frac_coords[0][2] = 0.500000000000;
+        frac_coords[1][0] = 0.166666666667;
+        frac_coords[1][1] = 0.333333333333;
+        frac_coords[1][2] = 0.432343276548;
+        frac_coords[2][0] = 0.166666666667;
+        frac_coords[2][1] = 0.333333333333;
+        frac_coords[2][2] = 0.567656723452;
+        frac_coords[3][0] = 0.333333333333;
+        frac_coords[3][1] = 0.666666666667;
+        frac_coords[3][2] = 0.500000000000;
+        frac_coords[4][0] = 0.166666666667;
+        frac_coords[4][1] = 0.833333333333;
+        frac_coords[4][2] = 0.432343276548;
+        frac_coords[5][0] = 0.166666666667;
+        frac_coords[5][1] = 0.833333333333;
+        frac_coords[5][2] = 0.567656723452;
+        frac_coords[6][0] = 0.833333333333;
+        frac_coords[6][1] = 0.166666666667;
+        frac_coords[6][2] = 0.500000000000;
+        frac_coords[7][0] = 0.666666666667;
+        frac_coords[7][1] = 0.333333333333;
+        frac_coords[7][2] = 0.432343276548;
+        frac_coords[8][0] = 0.666666666667;
+        frac_coords[8][1] = 0.333333333333;
+        frac_coords[8][2] = 0.567656723452;
+        frac_coords[9][0] = 0.833333333333;
+        frac_coords[9][1] = 0.666666666667;
+        frac_coords[9][2] = 0.500000000000;
+        frac_coords[10][0] = 0.666666666667;
+        frac_coords[10][1] = 0.833333333333;
+        frac_coords[10][2] = 0.432343276548;
+        frac_coords[11][0] = 0.666666666667;
+        frac_coords[11][1] = 0.833333333333;
+        frac_coords[11][2] = 0.567656723452;
+    }
+
+    void TearDown() override {
+
+    }
+};  // class : BasicStructureInfo 
+
+
+
+TEST_F(BasicStructureInfoTest, default_init) {
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    matersdk::BasicStructureInfo<double> basic_structure_info;
+
+    //basic_structure_info.show();
+}
+
+
+TEST_F(BasicStructureInfoTest, copy_assignment) {
+    matersdk::Structure<double> structure_1(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    matersdk::Structure<double> structure_2;
+
+    matersdk::BasicStructureInfo<double> bst_1(structure_1);
+    matersdk::BasicStructureInfo<double> bst_2(structure_2);
+    matersdk::BasicStructureInfo<double> bst_3(bst_1);
+    matersdk::BasicStructureInfo<double> bst_4(bst_2);
+
+    //bst_3.show();
+    //bst_4.show();
+}
+
+
+TEST_F(BasicStructureInfoTest, assignment_operator) {
+    matersdk::Structure<double> structure_1(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    matersdk::Structure<double> structure_2;
+
+    matersdk::BasicStructureInfo<double> bst_1(structure_1);
+    matersdk::BasicStructureInfo<double> bst_2(structure_2);
+    matersdk::BasicStructureInfo<double> bst_3 = bst_1;
+    matersdk::BasicStructureInfo<double> bst_4 = bst_2;
+    bst_2 = bst_1; // or `bst_1 = bst_2;`
+
+    //bst_3.show();
+    //bst_4.show();
+    //bst_1.show();
+}
+
+
+
+
+
+
+
 
 class SupercellTest : public ::testing::Test {
 protected:
@@ -108,7 +240,7 @@ TEST_F(SupercellTest, default_constructor) {
 TEST_F(SupercellTest, constuctor_1) {
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
     matersdk::Supercell<double> supercell(structure, scaling_matrix);
-    supercell.show();
+    //supercell.show();
 }
 
 TEST_F(SupercellTest, assignment_operator) {

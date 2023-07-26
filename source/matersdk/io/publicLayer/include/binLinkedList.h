@@ -13,7 +13,7 @@ template <typename CoordType>
 class BasicStructureInfo {
 public:
     int num_atoms = 0;
-    CoordType* interplanar_distances;
+    CoordType interplanar_distances[3] = {0, 0, 0};
 
     BasicStructureInfo();
 
@@ -24,6 +24,8 @@ public:
     BasicStructureInfo(const BasicStructureInfo& rhs);
 
     ~BasicStructureInfo();
+
+    void show() const;
 };
 
 
@@ -74,9 +76,17 @@ private:
 
 
 
+/**
+ * @brief Construct a new Basic Structure Info< Coord Type>:: Basic Structure Info object
+ * 
+ * @tparam CoordType 
+ */
 template <typename CoordType>
 BasicStructureInfo<CoordType>::BasicStructureInfo() {
     this->num_atoms = 0;
+    this->interplanar_distances[0] = 0;
+    this->interplanar_distances[1] = 0;
+    this->interplanar_distances[2] = 0;
 }
 
 
@@ -89,7 +99,10 @@ BasicStructureInfo<CoordType>::BasicStructureInfo() {
 template <typename CoordType>
 BasicStructureInfo<CoordType>::BasicStructureInfo(Structure<CoordType> &structure) {
     this->num_atoms = structure.num_atoms;
-    this->interplanar_distances = structure.get_interplanar_distances();
+    CoordType* interplanar_distances_nonconst = (CoordType*)structure.get_interplanar_distances();
+    this->interplanar_distances[0] = interplanar_distances_nonconst[0];
+    this->interplanar_distances[1] = interplanar_distances_nonconst[1];
+    this->interplanar_distances[2] = interplanar_distances_nonconst[2];
 }
 
 
@@ -104,29 +117,33 @@ BasicStructureInfo<CoordType>::BasicStructureInfo(const BasicStructureInfo& rhs)
     this->num_atoms = rhs.num_atoms;
 
     if (this->num_atoms != 0) {
-        this->interplanar_distances = (CoordType*)malloc(sizeof(CoordType) * this->num_atoms);
-    }
-    for (int ii=0; ii<3; ii++) {
-        this->interplanar_distances[ii] = rhs.interplanar_distances[ii];
+        this->interplanar_distances[0] = rhs.interplanar_distances[0];
+        this->interplanar_distances[1] = rhs.interplanar_distances[1];
+        this->interplanar_distances[2] = rhs.interplanar_distances[2];
     }
 }
 
 
+/**
+ * @brief Overload assignment operator.
+ * 
+ * @tparam CoordType 
+ * @param rhs 
+ * @return BasicStructureInfo<CoordType>& 
+ */
 template <typename CoordType>
 BasicStructureInfo<CoordType>& BasicStructureInfo<CoordType>::operator=(const BasicStructureInfo& rhs) {
     if (this->num_atoms != 0) {
         this->num_atoms = 0;
-        free(this->interplanar_distances);
     }
 
     this->num_atoms = rhs.num_atoms;
 
-    if (this->num_atoms != 0) {
-        this->interplanar_distances = (CoordType*)malloc(sizeof(CoordType) * 3);
+    if (this->num_atoms != 0) {    
+        this->interplanar_distances[0] = rhs.interplanar_distances[0];
+        this->interplanar_distances[1] = rhs.interplanar_distances[1];
+        this->interplanar_distances[2] = rhs.interplanar_distances[2];
     }
-    this->interplanar_distances[0] = rhs.interplanar_distances[0];
-    this->interplanar_distances[1] = rhs.interplanar_distances[1];
-    this->interplanar_distances[2] = rhs.interplanar_distances[2];
 }
 
 
@@ -138,8 +155,27 @@ BasicStructureInfo<CoordType>& BasicStructureInfo<CoordType>::operator=(const Ba
 template <typename CoordType>
 BasicStructureInfo<CoordType>::~BasicStructureInfo() {
     if (this->num_atoms != 0)
-        free(this->interplanar_distances);
+        this->num_atoms = 0;
 }
+
+
+/**
+ * @brief Print out the information about `BasicStructureInfo`.
+ * 
+ * @tparam CoordType 
+ */
+template <typename CoordType>
+void BasicStructureInfo<CoordType>::show() const{
+    printf("num_atoms = %15d\n", this->num_atoms);
+    if (this->num_atoms != 0) {
+        printf("inter planar distances : \n");
+        printf("[%15f, %15f, %15f]\n", this->interplanar_distances[0], this->interplanar_distances[1], this->interplanar_distances[2]);
+    } else {
+        printf("This is a null basic_structure_info.\n");
+    }
+}
+
+
 
 
 

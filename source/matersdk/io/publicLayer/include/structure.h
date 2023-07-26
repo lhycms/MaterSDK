@@ -12,6 +12,9 @@ namespace matersdk {
 template <typename CoordType>
 class Supercell;
 
+template <typename CoordType>
+class BasicStructureInfo;
+
 
 
 template <typename CoordType>
@@ -55,6 +58,8 @@ public:
     const CoordType* get_interplanar_distances() const;
 
     friend class Supercell<CoordType>;
+
+    friend class BasicStructureInfo<CoordType>;
 
 private:
     int num_atoms = 0;  // Note: 初始化为0，防止 `matersdk::Structure<double> structure;` 后，拷贝赋值函数无法得到正确的 `this->num_atoms`
@@ -610,6 +615,16 @@ const CoordType** Structure<CoordType>::get_cart_coords() const {
  */
 template <typename CoordType>
 const CoordType* Structure<CoordType>::get_projected_lengths() const {
+    if (this->num_atoms == 0) {
+        CoordType* projected_lengths = (CoordType*)malloc(sizeof(CoordType) * 3);
+        projected_lengths[0] = 0;
+        projected_lengths[1] = 0;
+        projected_lengths[2] = 0;
+
+        return projected_lengths;
+    }
+
+
     CoordType* projected_lengths = (CoordType*)malloc(sizeof(CoordType) * 3);
     projected_lengths[0] = (
             std::abs(this->basis_vectors[0][0]) + 
@@ -639,6 +654,16 @@ const CoordType* Structure<CoordType>::get_projected_lengths() const {
  */
 template <typename CoordType>
 const CoordType* Structure<CoordType>::get_interplanar_distances() const {
+    if (this->num_atoms == 0) {
+        CoordType* interplanar_distances = (CoordType*)malloc(sizeof(CoordType) * 3);
+        interplanar_distances[0] = 0;
+        interplanar_distances[1] = 0;
+        interplanar_distances[2] = 0; 
+
+        return interplanar_distances;
+    }
+
+
     CoordType* vec_vertical_yz = vec3Operation::cross(this->basis_vectors[1], this->basis_vectors[2]);
     CoordType* vec_vertical_xz = vec3Operation::cross(this->basis_vectors[0], this->basis_vectors[2]);
     CoordType* vec_vertical_xy = vec3Operation::cross(this->basis_vectors[0], this->basis_vectors[1]);
