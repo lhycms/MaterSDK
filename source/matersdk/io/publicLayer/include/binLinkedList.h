@@ -317,7 +317,6 @@ void Supercell<CoordType>::calc_prim_projected_lengths() {
     unit_vector_z[1] = 0;
     unit_vector_z[2] = 1;
 
-
     this->prim_projected_lengths[0] = (
         std::abs( vec3Operation::dot(this->prim_basis_vectors[0], unit_vector_x) ) +
         std::abs( vec3Operation::dot(this->prim_basis_vectors[1], unit_vector_x) ) +
@@ -373,9 +372,6 @@ void Supercell<CoordType>::calc_prim_inter_planar_distances() {
 template <typename CoordType>
 void Supercell<CoordType>::show() const {
     this->structure.show();
-    printf("\n");
-    printf("scaling_matrix = [%4d, %4d, %4d]\n", this->scaling_matrix[0], this->scaling_matrix[1], this->scaling_matrix[2]);
-    printf("num_atoms = %15d\n", this->num_atoms);
     if (this->num_atoms != 0) {
         printf("prim_basis_vectors:\n");
         printf("[%15f, %15f, %15f]\n", this->prim_basis_vectors[0][0], this->prim_basis_vectors[0][1], this->prim_basis_vectors[0][2]);

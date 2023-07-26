@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "../../../../core/include/vec3Operation.h"
 
 
 namespace matersdk {
@@ -49,7 +50,9 @@ public:
 
     const CoordType** get_cart_coords() const;  // Returns a pointer to a pointer to a constant double value.
 
-    //CoordType* get_interplane_distances() const;
+    const CoordType* get_projected_lengths() const; //
+
+    const CoordType* get_interplanar_distances() const;
 
     friend class Supercell<CoordType>;
 
@@ -595,6 +598,67 @@ const int* Structure<CoordType>::get_atomic_numbers() const {
 template <typename CoordType>
 const CoordType** Structure<CoordType>::get_cart_coords() const {
     return (const double**)this->cart_coords;
+}
+
+
+
+/**
+ * @brief Get the length of sum basis vectors projected on x, y, z axis.
+ * 
+ * @tparam CoordType 
+ * @return const CoordType* 
+ */
+template <typename CoordType>
+const CoordType* Structure<CoordType>::get_projected_lengths() const {
+    CoordType* projected_lengths = (CoordType*)malloc(sizeof(CoordType) * 3);
+    projected_lengths[0] = (
+            std::abs(this->basis_vectors[0][0]) + 
+            std::abs(this->basis_vectors[1][0]) + 
+            std::abs(this->basis_vectors[2][0])
+    );
+    projected_lengths[1] = (
+            std::abs(this->basis_vectors[0][1]) + 
+            std::abs(this->basis_vectors[1][1]) + 
+            std::abs(this->basis_vectors[2][1])
+    );
+    projected_lengths[2] = (
+            std::abs(this->basis_vectors[0][2]) + 
+            std::abs(this->basis_vectors[1][2]) + 
+            std::abs(this->basis_vectors[2][2])
+    );
+
+    return (const CoordType*)projected_lengths;
+}
+
+
+/**
+ * @brief Get inter-planar distances for structure.
+ * 
+ * @tparam CoordType 
+ * @return const CoordType* 
+ */
+template <typename CoordType>
+const CoordType* Structure<CoordType>::get_interplanar_distances() const {
+    CoordType* vec_vertical_yz = vec3Operation::cross(this->basis_vectors[1], this->basis_vectors[2]);
+    CoordType* vec_vertical_xz = vec3Operation::cross(this->basis_vectors[0], this->basis_vectors[2]);
+    CoordType* vec_vertical_xy = vec3Operation::cross(this->basis_vectors[0], this->basis_vectors[1]);
+    CoordType* unit_vec_vertical_yz = vec3Operation::normalize(vec_vertical_yz);
+    CoordType* unit_vec_vertical_xz = vec3Operation::normalize(vec_vertical_xz);
+    CoordType* unit_vec_vertical_xy = vec3Operation::normalize(vec_vertical_xy);
+
+    CoordType* interplanar_distances = (CoordType*)malloc(sizeof(CoordType) * 3);
+    interplanar_distances[0] = std::abs( vec3Operation::dot(this->basis_vectors[0], unit_vec_vertical_yz) );
+    interplanar_distances[1] = std::abs( vec3Operation::dot(this->basis_vectors[1], unit_vec_vertical_xz) );
+    interplanar_distances[2] = std::abs( vec3Operation::dot(this->basis_vectors[2], unit_vec_vertical_xy) );
+    
+    free(vec_vertical_yz);
+    free(vec_vertical_xz);
+    free(vec_vertical_xy);
+    free(unit_vec_vertical_yz);
+    free(unit_vec_vertical_xz);
+    free(unit_vec_vertical_xy);
+
+    return (const CoordType*)interplanar_distances;
 }
 
 

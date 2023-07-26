@@ -179,6 +179,50 @@ TEST_F(StructureArrayTest, get_cart_coords) {
 }
 
 
+TEST_F(StructureArrayTest, get_projected_lengths) {
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    const double* projected_lengths = structure.get_projected_lengths();
+    const double** basis_vectors = structure.get_basis_vectors();
+    //printf("basis_vectors:\n");
+    //for (int ii=0; ii<3; ii++)
+    //    printf("[%15f, %15f, %15f]\n", structure.get_basis_vectors()[ii][0], structure.get_basis_vectors()[ii][1], structure.get_basis_vectors()[ii][2]);
+
+    //printf("projected_lengths:\n");
+    //printf("[%15f, %15f, %15f]\n", projected_lengths[0], projected_lengths[1], projected_lengths[2]);
+
+    EXPECT_EQ(
+        projected_lengths[0], 
+        std::abs(basis_vectors[0][0]) + std::abs(basis_vectors[1][0]) + std::abs(basis_vectors[2][0])
+    );
+    EXPECT_EQ(
+        projected_lengths[1],
+        std::abs(basis_vectors[0][1]) + std::abs(basis_vectors[1][1]) + std::abs(basis_vectors[1][2])
+    );
+    EXPECT_EQ(
+        projected_lengths[2],
+        std::abs(basis_vectors[0][2]) + std::abs(basis_vectors[1][2]) + std::abs(basis_vectors[2][2])
+    );
+
+    double *projected_lengths_nonconst = (double*)projected_lengths;
+    free(projected_lengths_nonconst);
+}
+
+
+TEST_F(StructureArrayTest, get_interplanar_distances) {
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    const double* interplanar_distances = structure.get_interplanar_distances();
+
+    printf("Interplanar distances:\n");
+    printf("[%15f, %15f, %15f]\n", interplanar_distances[0], interplanar_distances[1], interplanar_distances[2]);
+
+    double* interplanar_distances_noconst = (double*)interplanar_distances;
+    free(interplanar_distances_noconst);
+}
+
+
+
+
+
 // Part II.
 class StructurePointerTest : public ::testing::Test {
 protected:
