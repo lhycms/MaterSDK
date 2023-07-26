@@ -30,6 +30,10 @@ public:
 
     void calc_owned_atom_idxs();    // Call this function after `this->`
 
+    void calc_prim_projected_lengths();
+
+    void calc_prim_inter_planar_distances();
+
     void show() const;              // Print out information
 
     const int* get_prim_cell_idx_xyz() const;
@@ -42,8 +46,6 @@ public:
 
     const int* get_owned_atom_idxs() const;
 
-    const CoordType* get_projected_length_xyz();
-
 
 private:
     Structure<CoordType> structure;
@@ -53,12 +55,11 @@ private:
     int prim_num_atoms = 0;         // primitive cell 的元素数目
     int prim_cell_idx = 0;          // primitive cell 对应的 cell index
     int prim_cell_idx_xyz[3] = {0, 0, 0};   // 
+    CoordType prim_projected_lengths[3] = {0, 0, 0};
+    CoordType prim_inter_planar_distances[3] = {0, 0, 0};
     int *owned_atom_idxs;           // 
 
 }; // class: Supercell
-
-
-
 
 
 
@@ -115,10 +116,12 @@ matersdk::Supercell<CoordType>::Supercell(Structure<CoordType>& structure, int *
     }
 
     this->prim_num_atoms = this->structure.get_num_atoms();
-    this->calc_prim_cell_idx_xyz();  // Assign `this->prim_cell_idx_xyz`
-    this->calc_prim_cell_idx();      // Assign `this->prim_cell_idx`
+    this->calc_prim_cell_idx_xyz();             // Assign `this->prim_cell_idx_xyz`
+    this->calc_prim_cell_idx();                 // Assign `this->prim_cell_idx`
+    this->calc_prim_projected_lengths();        // Assign `this->prim_projected_lengths`
+    this->calc_prim_inter_planar_distances();   // Assign `this->prim_inter_planar_distances`
     this->owned_atom_idxs = (int*)malloc(sizeof(int) * this->prim_num_atoms);
-    this->calc_owned_atom_idxs();    // Assign `this->prim_owned_atom_idxs`
+    this->calc_owned_atom_idxs();               // Assign `this->prim_owned_atom_idxs`
 
     // Step 3. make_supercell
     this->structure.make_supercell(this->scaling_matrix);
@@ -133,15 +136,6 @@ matersdk::Supercell<CoordType>::Supercell(Structure<CoordType>& structure, int *
  */
 template <typename CoordType>
 Supercell<CoordType>::Supercell(const Supercell &rhs) {
-    if (this->num_atoms != 0) {
-        for (int ii=0; ii<3; ii++) {
-            free(this->prim_basis_vectors[ii]);
-        }
-        free(this->prim_basis_vectors);
-
-        free(this->owned_atom_idxs);
-    }
-
     this->structure = rhs.structure;
     for (int ii=0; ii<3; ii++) {
         this->scaling_matrix[ii] = rhs.scaling_matrix[ii];
@@ -153,6 +147,17 @@ Supercell<CoordType>::Supercell(const Supercell &rhs) {
     this->prim_cell_idx_xyz[0] = rhs.prim_cell_idx_xyz[0];
     this->prim_cell_idx_xyz[1] = rhs.prim_cell_idx_xyz[1];
     this->prim_cell_idx_xyz[2] = rhs.prim_cell_idx_xyz[2];
+
+    this->prim_projected_lengths[0] = rhs.prim_projected_lengths[0];
+    this->prim_projected_lengths[1] = rhs.prim_projected_lengths[1];
+    this->prim_projected_lengths[2] = rhs.prim_projected_lengths[2];
+
+    this->prim_inter_planar_distances[0] = rhs.prim_inter_planar_distances[0];
+    this->prim_inter_planar_distances[1] = rhs.prim_inter_planar_distances[1];
+    this->prim_inter_planar_distances[2] = rhs.prim_inter_planar_distances[2];
+
+    this->owned_atom_idxs = (int*)malloc(sizeof(int) * rhs.prim_num_atoms);
+
     if (this->num_atoms != 0) {
         this->prim_basis_vectors = (CoordType**)malloc(sizeof(CoordType*) * 3);
         for (int ii=0; ii<3; ii++) {
@@ -164,12 +169,11 @@ Supercell<CoordType>::Supercell(const Supercell &rhs) {
             this->prim_basis_vectors[ii][2] = rhs.prim_basis_vectors[ii][2];
         }
 
-    
-        this->owned_atom_idxs = (int*)malloc(sizeof(int) * rhs.prim_num_atoms);
         for (int ii=0; ii<rhs.prim_num_atoms; ii++) {
             this->owned_atom_idxs[ii] = rhs.owned_atom_idxs[ii];
         }
     }
+
 }
 
 
@@ -195,6 +199,15 @@ Supercell<CoordType>& Supercell<CoordType>::operator=(const Supercell<CoordType>
     this->prim_cell_idx_xyz[0] = rhs.prim_cell_idx_xyz[0];
     this->prim_cell_idx_xyz[1] = rhs.prim_cell_idx_xyz[1];
     this->prim_cell_idx_xyz[2] = rhs.prim_cell_idx_xyz[2];
+
+    this->prim_projected_lengths[0] = rhs.prim_projected_lengths[0];
+    this->prim_projected_lengths[1] = rhs.prim_projected_lengths[1];
+    this->prim_projected_lengths[2] = rhs.prim_projected_lengths[2];
+
+    this->prim_inter_planar_distances[0] = rhs.prim_inter_planar_distances[0];
+    this->prim_inter_planar_distances[1] = rhs.prim_inter_planar_distances[1];
+    this->prim_inter_planar_distances[2] = rhs.prim_inter_planar_distances[2];
+
     if (rhs.num_atoms != 0) {
         this->prim_basis_vectors = (CoordType**)malloc(sizeof(CoordType*) * 3);
         for (int ii=0; ii<3; ii++) {
@@ -284,6 +297,73 @@ void Supercell<CoordType>::calc_owned_atom_idxs() {
 }
 
 
+/**
+ * @brief Calculate the `this->prim_projected_lengths` and assign it.
+ * 
+ * @tparam CoordType 
+ */
+template <typename CoordType>
+void Supercell<CoordType>::calc_prim_projected_lengths() {
+    CoordType* unit_vector_x = (CoordType*)malloc(sizeof(CoordType) * 3);
+    unit_vector_x[0] = 1;
+    unit_vector_x[1] = 0;
+    unit_vector_x[2] = 0;
+    CoordType* unit_vector_y = (CoordType*)malloc(sizeof(CoordType) * 3);
+    unit_vector_y[0] = 0;
+    unit_vector_y[1] = 1;
+    unit_vector_y[2] = 0;
+    CoordType* unit_vector_z = (CoordType*)malloc(sizeof(CoordType) * 3);
+    unit_vector_z[0] = 0;
+    unit_vector_z[1] = 0;
+    unit_vector_z[2] = 1;
+
+
+    this->prim_projected_lengths[0] = (
+        std::abs( vec3Operation::dot(this->prim_basis_vectors[0], unit_vector_x) ) +
+        std::abs( vec3Operation::dot(this->prim_basis_vectors[1], unit_vector_x) ) +
+        std::abs( vec3Operation::dot(this->prim_basis_vectors[2], unit_vector_x) )
+    );
+    this->prim_projected_lengths[1] = (
+        std::abs( vec3Operation::dot(this->prim_basis_vectors[0], unit_vector_y) ) + 
+        std::abs( vec3Operation::dot(this->prim_basis_vectors[1], unit_vector_y) ) + 
+        std::abs( vec3Operation::dot(this->prim_basis_vectors[2], unit_vector_y) )
+    );
+    this->prim_projected_lengths[2] = (
+        std::abs( vec3Operation::dot(this->prim_basis_vectors[0], unit_vector_z) ) + 
+        std::abs( vec3Operation::dot(this->prim_basis_vectors[1], unit_vector_z) ) +
+        std::abs( vec3Operation::dot(this->prim_basis_vectors[2], unit_vector_z) )
+    );
+}
+
+
+template <typename CoordType>
+void Supercell<CoordType>::calc_prim_inter_planar_distances() {
+    CoordType *vec_vertical_yz = vec3Operation::normalize(
+                                    vec3Operation::cross(
+                                        this->prim_basis_vectors[1],
+                                        this->prim_basis_vectors[2])
+                                );
+    CoordType *vec_vertical_xz = vec3Operation::normalize( 
+                                    vec3Operation::cross(
+                                        this->prim_basis_vectors[0],
+                                        this->prim_basis_vectors[2])
+                                );
+    CoordType *vec_vertical_xy = vec3Operation::normalize(
+                                    vec3Operation::cross(
+                                        this->prim_basis_vectors[0],
+                                        this->prim_basis_vectors[1])
+                                );
+
+    
+    this->prim_inter_planar_distances[0] = 
+        std::abs( vec3Operation::dot(this->prim_basis_vectors[0], vec_vertical_yz) );
+    this->prim_inter_planar_distances[1] = 
+        std::abs( vec3Operation::dot(this->prim_basis_vectors[1], vec_vertical_xz) );
+    this->prim_inter_planar_distances[2] = 
+        std::abs( vec3Operation::dot(this->prim_basis_vectors[2], vec_vertical_xy) );
+
+}
+
 
 /**
  * @brief Print out the information of `this` (class = Supercell)
@@ -307,6 +387,8 @@ void Supercell<CoordType>::show() const {
     printf("prim_cell_idx_xyz = [%4d, %4d, %4d]\n", this->prim_cell_idx_xyz[0], this->prim_cell_idx_xyz[1], this->prim_cell_idx_xyz[2]);
     if (this->num_atoms != 0)
         printf("owned_atom_idxs range = %15d ~ %15d\n", this->owned_atom_idxs[0], this->owned_atom_idxs[this->prim_num_atoms-1]);
+    printf("prim_projected_lengths = [%15f, %15f, %15f]\n", this->prim_projected_lengths[0], this->prim_projected_lengths[1], this->prim_projected_lengths[2]);
+    printf("prim_inter_planar_distances = [%15f, %15f, %15f]\n", this->prim_inter_planar_distances[0], this->prim_inter_planar_distances[1], this->prim_inter_planar_distances[2]);
 }
 
 
@@ -339,14 +421,6 @@ template <typename CoordType>
 const int* Supercell<CoordType>::get_owned_atom_idxs() const {
     return (const int*)this->owned_atom_idxs;
 }
-
-
-template <typename CoordType>
-const CoordType* Supercell<CoordType>::get_projected_length_xyz() {
-    CoordType* prim_summation_vec = (CoordType*)malloc(sizeof(CoordType) * 3);
-    //prim_summation_vec[0] = this->
-}
-
 
 
 
