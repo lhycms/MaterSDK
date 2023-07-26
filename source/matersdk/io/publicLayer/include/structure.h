@@ -7,6 +7,12 @@
 
 namespace matersdk {
 
+// Forward declaration of class B for `friend class`
+template <typename CoordType>
+class Supercell;
+
+
+
 template <typename CoordType>
 class Structure {
 public:
@@ -44,6 +50,8 @@ public:
     const CoordType** get_cart_coords() const;  // Returns a pointer to a pointer to a constant double value.
 
     //CoordType* get_interplane_distances() const;
+
+    friend class Supercell<CoordType>;
 
 private:
     int num_atoms = 0;  // Note: 初始化为0，防止 `matersdk::Structure<double> structure;` 后，拷贝赋值函数无法得到正确的 `this->num_atoms`

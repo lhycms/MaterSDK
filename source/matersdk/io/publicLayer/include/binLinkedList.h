@@ -3,6 +3,7 @@
 
 
 #include "./structure.h"
+#include "../../../../core/include/vec3Operation.h"
 
 
 namespace matersdk {
@@ -41,34 +42,20 @@ public:
 
     const int* get_owned_atom_idxs() const;
 
+    const CoordType* get_projected_length_xyz();
+
 
 private:
     Structure<CoordType> structure;
     int scaling_matrix[3] = {1, 1, 1};      // 扩包倍数；x, y, z 方向上的 primitive_cell 个数
     int num_atoms = 0;
+    CoordType **prim_basis_vectors;
     int prim_num_atoms = 0;         // primitive cell 的元素数目
     int prim_cell_idx = 0;          // primitive cell 对应的 cell index
     int prim_cell_idx_xyz[3] = {0, 0, 0};   // 
     int *owned_atom_idxs;           // 
 
 }; // class: Supercell
-
-
-
-
-template <typename CoordType>
-class BinLinkedList {
-public:
-    // BinLinkedList();
-
-    BinLinkedList(Structure<CoordType>& structure, CoordType* bin_sizes);
-
-private:
-    Structure<CoordType> structure;
-    CoordType bin_sizes[3] = {0, 0, 0};
-    int num_bins_xyz[3] = {0, 0, 0};
-    int num_bins = 0;
-};
 
 
 
@@ -96,6 +83,7 @@ matersdk::Supercell<CoordType>::Supercell() {
     this->prim_cell_idx_xyz[1] = 0;
     this->prim_cell_idx_xyz[2] = 0;
 
+    // prim_basis_vectors
     // owned_atom_idxs
 }
 
@@ -114,13 +102,23 @@ matersdk::Supercell<CoordType>::Supercell(Structure<CoordType>& structure, int *
     for (int ii=0; ii<3; ii++) {
         this->scaling_matrix[ii] = scaling_matrix[ii];
     }
-
     this->num_atoms = this->structure.get_num_atoms() * this->scaling_matrix[0] * this->scaling_matrix[1] * this->scaling_matrix[2];
+
+    this->prim_basis_vectors = (CoordType**)malloc(sizeof(CoordType*) * 3);
+    for (int ii=0; ii<3; ii++) {
+        this->prim_basis_vectors[ii] = (CoordType*)malloc(sizeof(CoordType) * 3);
+    }
+    for (int ii=0; ii<3; ii++) {
+        this->prim_basis_vectors[ii][0] = this->structure.basis_vectors[ii][0];
+        this->prim_basis_vectors[ii][1] = this->structure.basis_vectors[ii][1];
+        this->prim_basis_vectors[ii][2] = this->structure.basis_vectors[ii][2];
+    }
+
     this->prim_num_atoms = this->structure.get_num_atoms();
     this->calc_prim_cell_idx_xyz();  // Assign `this->prim_cell_idx_xyz`
     this->calc_prim_cell_idx();      // Assign `this->prim_cell_idx`
     this->owned_atom_idxs = (int*)malloc(sizeof(int) * this->prim_num_atoms);
-    this->calc_owned_atom_idxs();
+    this->calc_owned_atom_idxs();    // Assign `this->prim_owned_atom_idxs`
 
     // Step 3. make_supercell
     this->structure.make_supercell(this->scaling_matrix);
@@ -136,17 +134,37 @@ matersdk::Supercell<CoordType>::Supercell(Structure<CoordType>& structure, int *
 template <typename CoordType>
 Supercell<CoordType>::Supercell(const Supercell &rhs) {
     if (this->num_atoms != 0) {
+        for (int ii=0; ii<3; ii++) {
+            free(this->prim_basis_vectors[ii]);
+        }
+        free(this->prim_basis_vectors);
+
         free(this->owned_atom_idxs);
     }
 
     this->structure = rhs.structure;
+    for (int ii=0; ii<3; ii++) {
+        this->scaling_matrix[ii] = rhs.scaling_matrix[ii];
+    }
     this->num_atoms = rhs.num_atoms;
+
     this->prim_num_atoms = rhs.prim_num_atoms;
     this->prim_cell_idx = rhs.prim_cell_idx;
     this->prim_cell_idx_xyz[0] = rhs.prim_cell_idx_xyz[0];
     this->prim_cell_idx_xyz[1] = rhs.prim_cell_idx_xyz[1];
     this->prim_cell_idx_xyz[2] = rhs.prim_cell_idx_xyz[2];
     if (this->num_atoms != 0) {
+        this->prim_basis_vectors = (CoordType**)malloc(sizeof(CoordType*) * 3);
+        for (int ii=0; ii<3; ii++) {
+            this->prim_basis_vectors[ii] = (CoordType*)malloc(sizeof(CoordType) * 3);
+        }
+        for (int ii=0; ii<3; ii++) {
+            this->prim_basis_vectors[ii][0] = rhs.prim_basis_vectors[ii][0];
+            this->prim_basis_vectors[ii][1] = rhs.prim_basis_vectors[ii][1];
+            this->prim_basis_vectors[ii][2] = rhs.prim_basis_vectors[ii][2];
+        }
+
+    
         this->owned_atom_idxs = (int*)malloc(sizeof(int) * rhs.prim_num_atoms);
         for (int ii=0; ii<rhs.prim_num_atoms; ii++) {
             this->owned_atom_idxs[ii] = rhs.owned_atom_idxs[ii];
@@ -157,17 +175,37 @@ Supercell<CoordType>::Supercell(const Supercell &rhs) {
 
 template <typename CoordType>
 Supercell<CoordType>& Supercell<CoordType>::operator=(const Supercell<CoordType> &rhs) {
-    if (this->num_atoms != 0) 
+    if (this->num_atoms != 0) {
+        for (int ii=0; ii<3; ii++) {
+            free(this->prim_basis_vectors[ii]);
+        }
+        free(this->prim_basis_vectors);
+
         free(this->owned_atom_idxs);
+    }
     
     this->structure = rhs.structure;
+    for (int ii=0; ii<3; ii++) {
+        this->scaling_matrix[ii] = rhs.scaling_matrix[ii];
+    }
     this->num_atoms = rhs.num_atoms;
+
     this->prim_num_atoms = rhs.prim_num_atoms;
     this->prim_cell_idx = rhs.prim_cell_idx;
     this->prim_cell_idx_xyz[0] = rhs.prim_cell_idx_xyz[0];
     this->prim_cell_idx_xyz[1] = rhs.prim_cell_idx_xyz[1];
     this->prim_cell_idx_xyz[2] = rhs.prim_cell_idx_xyz[2];
     if (rhs.num_atoms != 0) {
+        this->prim_basis_vectors = (CoordType**)malloc(sizeof(CoordType*) * 3);
+        for (int ii=0; ii<3; ii++) {
+            this->prim_basis_vectors[ii] = (CoordType*)malloc(sizeof(CoordType) * 3);
+        }
+        for (int ii=0; ii<3; ii++) {
+            this->prim_basis_vectors[ii][0] = rhs.prim_basis_vectors[ii][0];
+            this->prim_basis_vectors[ii][1] = rhs.prim_basis_vectors[ii][1];
+            this->prim_basis_vectors[ii][2] = rhs.prim_basis_vectors[ii][2];
+        }
+
         this->owned_atom_idxs = (int*)malloc(sizeof(int) * rhs.prim_num_atoms);
         for (int ii=0; ii<rhs.prim_num_atoms; ii++) {
             this->owned_atom_idxs[ii] = rhs.owned_atom_idxs[ii];
@@ -184,8 +222,14 @@ Supercell<CoordType>& Supercell<CoordType>::operator=(const Supercell<CoordType>
  */
 template <typename CoordType>
 Supercell<CoordType>::~Supercell() {
-    if (this->num_atoms != 0)
+    if (this->num_atoms != 0) {
+        for (int ii=0; ii<3; ii++) {
+            free(this->prim_basis_vectors[ii]);
+        }
+        free(this->prim_basis_vectors);
+
         free(this->owned_atom_idxs);
+    }
 }
 
 
@@ -252,6 +296,12 @@ void Supercell<CoordType>::show() const {
     printf("\n");
     printf("scaling_matrix = [%4d, %4d, %4d]\n", this->scaling_matrix[0], this->scaling_matrix[1], this->scaling_matrix[2]);
     printf("num_atoms = %15d\n", this->num_atoms);
+    if (this->num_atoms != 0) {
+        printf("prim_basis_vectors:\n");
+        printf("[%15f, %15f, %15f]\n", this->prim_basis_vectors[0][0], this->prim_basis_vectors[0][1], this->prim_basis_vectors[0][2]);
+        printf("[%15f, %15f, %15f]\n", this->prim_basis_vectors[1][0], this->prim_basis_vectors[1][1], this->prim_basis_vectors[1][2]);
+        printf("[%15f, %15f, %15f]\n", this->prim_basis_vectors[2][0], this->prim_basis_vectors[2][1], this->prim_basis_vectors[2][2]);
+    }
     printf("prim_num_atoms = %15d\n", this->prim_num_atoms);
     printf("prim_cell_idx = %15d\n", this->prim_cell_idx);
     printf("prim_cell_idx_xyz = [%4d, %4d, %4d]\n", this->prim_cell_idx_xyz[0], this->prim_cell_idx_xyz[1], this->prim_cell_idx_xyz[2]);
@@ -291,19 +341,12 @@ const int* Supercell<CoordType>::get_owned_atom_idxs() const {
 }
 
 
-
-
-
-/*
 template <typename CoordType>
-BinLinkedList<CoordType>::BinLinkedList(Structure<CoordType>& structure, CoordType* bin_sizes) {
-    this->structure = structure;
-    for (int ii=0; ii<3; ii++) {
-        this->bin_sizes[ii] = bin_sizes[ii];
-        this->num_bins[ii] = this->structure.get
-    }
+const CoordType* Supercell<CoordType>::get_projected_length_xyz() {
+    CoordType* prim_summation_vec = (CoordType*)malloc(sizeof(CoordType) * 3);
+    //prim_summation_vec[0] = this->
 }
-*/
+
 
 
 
