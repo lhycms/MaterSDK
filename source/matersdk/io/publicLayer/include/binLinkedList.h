@@ -10,6 +10,25 @@ namespace matersdk {
 
 
 template <typename CoordType>
+class BasicStructureInfo {
+public:
+    int num_atoms = 0;
+    CoordType* interplanar_distances;
+
+    BasicStructureInfo();
+
+    BasicStructureInfo(Structure<CoordType> &structure);
+
+    BasicStructureInfo& operator=(const BasicStructureInfo& rhs);
+
+    BasicStructureInfo(const BasicStructureInfo& rhs);
+
+    ~BasicStructureInfo();
+};
+
+
+
+template <typename CoordType>
 class Supercell {
 public:
     Supercell();
@@ -51,8 +70,78 @@ private:
     int prim_cell_idx = 0;          // primitive cell 对应的 cell index
     int prim_cell_idx_xyz[3] = {0, 0, 0};   // 
     int *owned_atom_idxs;           // 
-
 }; // class: Supercell
+
+
+
+template <typename CoordType>
+BasicStructureInfo<CoordType>::BasicStructureInfo() {
+    this->num_atoms = 0;
+}
+
+
+/**
+ * @brief Construct a new Basic Structure Info< Coord Type>:: Basic Structure Info object
+ * 
+ * @tparam CoordType 
+ * @param structure 
+ */
+template <typename CoordType>
+BasicStructureInfo<CoordType>::BasicStructureInfo(Structure<CoordType> &structure) {
+    this->num_atoms = structure.num_atoms;
+    this->interplanar_distances = structure.get_interplanar_distances();
+}
+
+
+/**
+ * @brief Construct a new Basic Structure Info< Coord Type>:: Basic Structure Info object
+ * 
+ * @tparam CoordType 
+ * @param rhs 
+ */
+template <typename CoordType>
+BasicStructureInfo<CoordType>::BasicStructureInfo(const BasicStructureInfo& rhs) {
+    this->num_atoms = rhs.num_atoms;
+
+    if (this->num_atoms != 0) {
+        this->interplanar_distances = (CoordType*)malloc(sizeof(CoordType) * this->num_atoms);
+    }
+    for (int ii=0; ii<3; ii++) {
+        this->interplanar_distances[ii] = rhs.interplanar_distances[ii];
+    }
+}
+
+
+template <typename CoordType>
+BasicStructureInfo<CoordType>& BasicStructureInfo<CoordType>::operator=(const BasicStructureInfo& rhs) {
+    if (this->num_atoms != 0) {
+        this->num_atoms = 0;
+        free(this->interplanar_distances);
+    }
+
+    this->num_atoms = rhs.num_atoms;
+
+    if (this->num_atoms != 0) {
+        this->interplanar_distances = (CoordType*)malloc(sizeof(CoordType) * 3);
+    }
+    this->interplanar_distances[0] = rhs.interplanar_distances[0];
+    this->interplanar_distances[1] = rhs.interplanar_distances[1];
+    this->interplanar_distances[2] = rhs.interplanar_distances[2];
+}
+
+
+/**
+ * @brief Destroy the Basic Structure Info< Coord Type>:: Basic Structure Info object
+ * 
+ * @tparam CoordType 
+ */
+template <typename CoordType>
+BasicStructureInfo<CoordType>::~BasicStructureInfo() {
+    if (this->num_atoms != 0)
+        free(this->interplanar_distances);
+}
+
+
 
 
 
