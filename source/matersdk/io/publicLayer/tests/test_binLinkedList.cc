@@ -94,14 +94,21 @@ protected:
 
 
 TEST_F(BasicStructureInfoTest, default_init) {
-    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
     matersdk::BasicStructureInfo<double> basic_structure_info;
-
     //basic_structure_info.show();
 }
 
+TEST_F(BasicStructureInfoTest, init) {
+    matersdk::Structure<double> structure_1(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    matersdk::BasicStructureInfo<double> bst_1(structure_1);
+    
+    
+    matersdk::Structure<double> structure_2;
+    matersdk::BasicStructureInfo<double> bst_2(structure_2);
+}
 
-TEST_F(BasicStructureInfoTest, copy_assignment) {
+
+TEST_F(BasicStructureInfoTest, copy_constructor) {
     matersdk::Structure<double> structure_1(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
     matersdk::Structure<double> structure_2;
 

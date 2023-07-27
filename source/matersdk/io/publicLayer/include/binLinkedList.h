@@ -12,9 +12,6 @@ namespace matersdk {
 template <typename CoordType>
 class BasicStructureInfo {
 public:
-    int num_atoms = 0;
-    CoordType interplanar_distances[3] = {0, 0, 0};
-
     BasicStructureInfo();
 
     BasicStructureInfo(Structure<CoordType> &structure);
@@ -26,6 +23,10 @@ public:
     ~BasicStructureInfo();
 
     void show() const;
+
+private:
+    int num_atoms = 0;
+    CoordType interplanar_distances[3] = {0, 0, 0};
 };
 
 
@@ -99,10 +100,18 @@ BasicStructureInfo<CoordType>::BasicStructureInfo() {
 template <typename CoordType>
 BasicStructureInfo<CoordType>::BasicStructureInfo(Structure<CoordType> &structure) {
     this->num_atoms = structure.num_atoms;
-    CoordType* interplanar_distances_nonconst = (CoordType*)structure.get_interplanar_distances();
-    this->interplanar_distances[0] = interplanar_distances_nonconst[0];
-    this->interplanar_distances[1] = interplanar_distances_nonconst[1];
-    this->interplanar_distances[2] = interplanar_distances_nonconst[2];
+    if (this->num_atoms == 0) {
+        this->interplanar_distances[0] = 0;
+        this->interplanar_distances[1] = 0;
+        this->interplanar_distances[2] = 0;
+    } else {
+        CoordType* interplanar_distances_nonconst = (CoordType*)structure.get_interplanar_distances();
+        this->interplanar_distances[0] = interplanar_distances_nonconst[0];
+        this->interplanar_distances[1] = interplanar_distances_nonconst[1];
+        this->interplanar_distances[2] = interplanar_distances_nonconst[2];
+
+        free(interplanar_distances_nonconst);
+    }
 }
 
 
@@ -116,11 +125,9 @@ template <typename CoordType>
 BasicStructureInfo<CoordType>::BasicStructureInfo(const BasicStructureInfo& rhs) {
     this->num_atoms = rhs.num_atoms;
 
-    if (this->num_atoms != 0) {
-        this->interplanar_distances[0] = rhs.interplanar_distances[0];
-        this->interplanar_distances[1] = rhs.interplanar_distances[1];
-        this->interplanar_distances[2] = rhs.interplanar_distances[2];
-    }
+    this->interplanar_distances[0] = rhs.interplanar_distances[0];
+    this->interplanar_distances[1] = rhs.interplanar_distances[1];
+    this->interplanar_distances[2] = rhs.interplanar_distances[2];
 }
 
 
@@ -133,17 +140,11 @@ BasicStructureInfo<CoordType>::BasicStructureInfo(const BasicStructureInfo& rhs)
  */
 template <typename CoordType>
 BasicStructureInfo<CoordType>& BasicStructureInfo<CoordType>::operator=(const BasicStructureInfo& rhs) {
-    if (this->num_atoms != 0) {
-        this->num_atoms = 0;
-    }
-
     this->num_atoms = rhs.num_atoms;
 
-    if (this->num_atoms != 0) {    
-        this->interplanar_distances[0] = rhs.interplanar_distances[0];
-        this->interplanar_distances[1] = rhs.interplanar_distances[1];
-        this->interplanar_distances[2] = rhs.interplanar_distances[2];
-    }
+    this->interplanar_distances[0] = rhs.interplanar_distances[0];
+    this->interplanar_distances[1] = rhs.interplanar_distances[1];
+    this->interplanar_distances[2] = rhs.interplanar_distances[2];
 }
 
 
