@@ -116,11 +116,15 @@ TEST_F(StructureArrayTest, copy_constructor) {
 
 
 TEST_F(StructureArrayTest, copy_assignment) {
-    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
-    matersdk::Structure<double> new_structure;
+    matersdk::Structure<double> structure_1(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    matersdk::Structure<double> structure_2;
+    matersdk::Structure<double> structure_3;
 
-    new_structure = structure;
-    new_structure.show();
+    structure_2 = structure_1;
+    //structure_2.show();
+
+    structure_2 = structure_3;
+    //structure_3.show();
 }
 
 
@@ -140,42 +144,64 @@ TEST_F(StructureArrayTest, make_supercell) {
 
 TEST_F(StructureArrayTest, get_num_atoms) {
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
-    //std::cout << "num_atoms = " << structure.get_num_atoms() << std::endl;
+    EXPECT_EQ(structure.get_num_atoms(), 12);
+
+    int scaling_matrix[3] = {3, 3, 1};
+    structure.make_supercell(scaling_matrix);
+    EXPECT_EQ(structure.get_num_atoms(), 108);
 }
 
 
 TEST_F(StructureArrayTest, get_basis_vectors) {
-    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
-    const double** basis_vectors_ = structure.get_basis_vectors();
+    matersdk::Structure<double> structure_1(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    const double** basis_vectors_1 = structure_1.get_basis_vectors();
     
-    EXPECT_EQ(basis_vectors_[0][0], basis_vectors[0][0]);
-    EXPECT_EQ(basis_vectors_[0][1], basis_vectors[0][1]);
-    EXPECT_EQ(basis_vectors_[0][2], basis_vectors[0][2]);
-    EXPECT_EQ(basis_vectors_[1][0], basis_vectors[1][0]);
-    EXPECT_EQ(basis_vectors_[1][1], basis_vectors[1][1]);
-    EXPECT_EQ(basis_vectors_[1][2], basis_vectors[1][2]);
-    EXPECT_EQ(basis_vectors_[2][0], basis_vectors[2][0]);
-    EXPECT_EQ(basis_vectors_[2][1], basis_vectors[2][1]);
-    EXPECT_EQ(basis_vectors_[2][2], basis_vectors[2][2]);
+    EXPECT_EQ(basis_vectors_1[0][0], basis_vectors[0][0]);
+    EXPECT_EQ(basis_vectors_1[0][1], basis_vectors[0][1]);
+    EXPECT_EQ(basis_vectors_1[0][2], basis_vectors[0][2]);
+    EXPECT_EQ(basis_vectors_1[1][0], basis_vectors[1][0]);
+    EXPECT_EQ(basis_vectors_1[1][1], basis_vectors[1][1]);
+    EXPECT_EQ(basis_vectors_1[1][2], basis_vectors[1][2]);
+    EXPECT_EQ(basis_vectors_1[2][0], basis_vectors[2][0]);
+    EXPECT_EQ(basis_vectors_1[2][1], basis_vectors[2][1]);
+    EXPECT_EQ(basis_vectors_1[2][2], basis_vectors[2][2]);
+
+
+    matersdk::Structure<double> structure_2;
+    const void* basis_vectors_2 = structure_2.get_basis_vectors();
+    EXPECT_EQ(basis_vectors_2, nullptr);
 }
 
 
 TEST_F(StructureArrayTest, get_atomic_numbers) {
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
-    const int* atomic_numbers_ = structure.get_atomic_numbers();
+    const int* atomic_numbers_1 = structure.get_atomic_numbers();
     for (int ii=0; ii<structure.get_num_atoms(); ii++) {
-        EXPECT_EQ(atomic_numbers_[ii], atomic_numbers[ii]);
+        EXPECT_EQ(atomic_numbers_1[ii], atomic_numbers[ii]);
     }
+
+    // int* atomic_numbers_1_nonconst = (int*)structure.get_atomic_numbers();
+    // free(atomic_numbers_1_nonconst);
+
+
+    matersdk::Structure<double> structure_2;
+    const void* atomic_numbers_2 = structure_2.get_atomic_numbers();
+    EXPECT_EQ(atomic_numbers_2, nullptr);
 }
 
 
 TEST_F(StructureArrayTest, get_cart_coords) {
-    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
-    const double** cart_coords_ = structure.get_cart_coords();
+    matersdk::Structure<double> structure_1(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    const double** cart_coords_1 = structure_1.get_cart_coords();
     //structure.show();
-    for (int ii=0; ii<structure.get_num_atoms(); ii++) {
+    for (int ii=0; ii<structure_1.get_num_atoms(); ii++) {
         //printf("%-12.6f\t%-12.6f\t%-12.6f\n", cart_coords_[ii][0], cart_coords_[ii][1], cart_coords_[ii][2]);
     }
+
+
+    matersdk::Structure<double> structure_2;
+    EXPECT_EQ(structure_2.get_cart_coords(), nullptr);
+
 }
 
 
@@ -205,6 +231,10 @@ TEST_F(StructureArrayTest, get_projected_lengths) {
 
     double *projected_lengths_nonconst = (double*)projected_lengths;
     free(projected_lengths_nonconst);
+
+
+    matersdk::Structure<double> structure_2;
+    EXPECT_EQ(structure_2.get_projected_lengths(), nullptr);
 }
 
 
@@ -217,6 +247,10 @@ TEST_F(StructureArrayTest, get_interplanar_distances) {
 
     double* interplanar_distances_noconst = (double*)interplanar_distances;
     free(interplanar_distances_noconst);
+
+
+    matersdk::Structure<double> structure_2;
+    EXPECT_EQ(structure_2.get_interplanar_distances(), nullptr);
 }
 
 
