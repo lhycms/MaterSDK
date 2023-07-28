@@ -223,6 +223,7 @@ class AvgBond(object):
                                 angle_standard=angle_standard,
                                 angle_epsilon=angle_epsilon) ):
                             lengths_array.append(np.linalg.norm(tmp_nbr2_rc))
+                            break
                             
         lengths_array = np.array(lengths_array)
         return lengths_array
