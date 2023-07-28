@@ -101,10 +101,11 @@ TEST_F(BasicStructureInfoTest, default_init) {
 TEST_F(BasicStructureInfoTest, init) {
     matersdk::Structure<double> structure_1(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
     matersdk::BasicStructureInfo<double> bst_1(structure_1);
-    
+    //bst_1.show();
     
     matersdk::Structure<double> structure_2;
     matersdk::BasicStructureInfo<double> bst_2(structure_2);
+    //bst_2.show();
 }
 
 
@@ -250,30 +251,34 @@ TEST_F(SupercellTest, constuctor_1) {
     //supercell.show();
 }
 
-TEST_F(SupercellTest, assignment_operator) {
-    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
-    matersdk::Supercell<double> supercell(structure, scaling_matrix);
-    matersdk::Supercell<double> supercell_null;
-
-    matersdk::Supercell<double> supercell_1;
-    supercell_1 = supercell;
-    //supercell_1.show();
-
-    supercell_1 = supercell_null;
-    //supercell_1.show();
-
-
-    matersdk::Supercell<double> supercell_2(structure, scaling_matrix);
-    supercell_2 = supercell;
-    //supercell_2.show();
-}
-
 
 TEST_F(SupercellTest, copy_constructor) {
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
-    matersdk::Supercell<double> supercell;
+    matersdk::Supercell<double> supercell_1(structure, scaling_matrix);
+    matersdk::Supercell<double> supercell_2;
 
-    matersdk::Supercell<double> supercell_1(supercell);
+    matersdk::Supercell<double> supercell_3(supercell_1);
+    matersdk::Supercell<double> supercell_4(supercell_2);
+
+    //supercell_3.show();
+    //supercell_4.show();
+}
+
+
+TEST_F(SupercellTest, assignment_operator) {
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    matersdk::Supercell<double> supercell_1(structure, scaling_matrix);
+    matersdk::Supercell<double> supercell_2;
+    
+    matersdk::Supercell<double> supercell_3;
+    matersdk::Supercell<double> supercell_4;
+
+    supercell_3 = supercell_1;
+    supercell_4 = supercell_2;
+    //supercell_3.show();
+    //supercell_4.show();
+
+    //supercell_1 = supercell_2;
     //supercell_1.show();
 }
 
@@ -292,15 +297,12 @@ TEST_F(SupercellTest, calc_prim_cell_idx_xyz_even) {
     EXPECT_EQ(prim_cell_idx_xyz[0], 2);
     EXPECT_EQ(prim_cell_idx_xyz[1], 3);
     EXPECT_EQ(prim_cell_idx_xyz[2], 4);
-
-    const int prim_cell_idx = supercell.get_prim_cell_idx();
-    std::cout << prim_cell_idx << std::endl;
 }
 
 
-TEST_F(SupercellTest, calc_cell_idx_xyz_odd) {
+TEST_F(SupercellTest, calc_prim_cell_idx_xyz_odd) {
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
-    // Test 1: Scaling factor 是偶数
+    // Test 2: Scaling factor 是偶数
     scaling_matrix[0] = 6;
     scaling_matrix[1] = 8;
     scaling_matrix[2] = 10;
@@ -311,9 +313,85 @@ TEST_F(SupercellTest, calc_cell_idx_xyz_odd) {
     EXPECT_EQ(prim_cell_idx_xyz[0], 2);
     EXPECT_EQ(prim_cell_idx_xyz[1], 3);
     EXPECT_EQ(prim_cell_idx_xyz[2], 4);
+}
 
+
+TEST_F(SupercellTest, calc_prim_cell_idx_xyz_even_odd) {
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    // Test 3: Scaling factor 既有奇数，也有偶数
+    scaling_matrix[0] = 5;
+    scaling_matrix[1] = 6;
+    scaling_matrix[2] = 7;
+    matersdk::Supercell<double> supercell(structure, scaling_matrix);
+    // supercell.calc_prim_cell_idx_xyz();
+    // supercell.calc_prim_cell_idx();
+    const int* prim_cell_idx_xyz = supercell.get_prim_cell_idx_xyz();
+    EXPECT_EQ(prim_cell_idx_xyz[0], 2);
+    EXPECT_EQ(prim_cell_idx_xyz[1], 2);
+    EXPECT_EQ(prim_cell_idx_xyz[2], 3);
+}
+
+
+TEST_F(SupercellTest, calc_prim_cell_idx_even) {
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    // Test 1: Scaling factor 是奇数
+    scaling_matrix[0] = 5;
+    scaling_matrix[1] = 7;
+    scaling_matrix[2] = 9;
+    matersdk::Supercell<double> supercell(structure, scaling_matrix);
+    // supercell.calc_prim_cell_idx_xyz();
+    // supercell.calc_prim_cell_idx();
+    const int* prim_cell_idx_xyz = supercell.get_prim_cell_idx_xyz();
     const int prim_cell_idx = supercell.get_prim_cell_idx();
-    std::cout << prim_cell_idx << std::endl;
+
+    EXPECT_EQ(
+        prim_cell_idx,
+        prim_cell_idx_xyz[0] + 
+        prim_cell_idx_xyz[1] * scaling_matrix[0] + 
+        prim_cell_idx_xyz[2] * scaling_matrix[0] * scaling_matrix[1]
+    );
+}
+
+
+TEST_F(SupercellTest, calc_prim_cell_idx_odd) {
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    // Test 2: Scaling factor 是偶数
+    scaling_matrix[0] = 6;
+    scaling_matrix[1] = 8;
+    scaling_matrix[2] = 10;
+    matersdk::Supercell<double> supercell(structure, scaling_matrix);
+    // supercell.calc_prim_cell_idx_xyz();
+    // supercell.calc_prim_cell_idx();
+    const int* prim_cell_idx_xyz = supercell.get_prim_cell_idx_xyz();
+    const int prim_cell_idx = supercell.get_prim_cell_idx();
+    
+    EXPECT_EQ(
+        prim_cell_idx, 
+        prim_cell_idx_xyz[0] + 
+        prim_cell_idx_xyz[1] * scaling_matrix[0] + 
+        prim_cell_idx_xyz[2] * scaling_matrix[0] * scaling_matrix[1]
+    );
+}
+
+
+TEST_F(SupercellTest, calc_prim_cell_even_odd) {
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    // Test 3: Scaling factor 既有奇数，也有偶数
+    scaling_matrix[0] = 5;
+    scaling_matrix[1] = 6;
+    scaling_matrix[2] = 7;
+    matersdk::Supercell<double> supercell(structure, scaling_matrix);
+    // supercell.calc_prim_cell_idx_xyz();
+    // supercell.calc_prim_cell_idx();
+    const int* prim_cell_idx_xyz = supercell.get_prim_cell_idx_xyz();
+    const int prim_cell_idx = supercell.get_prim_cell_idx();
+
+    EXPECT_EQ(
+        prim_cell_idx,
+        prim_cell_idx_xyz[0] + 
+        prim_cell_idx_xyz[1] * scaling_matrix[0] + 
+        prim_cell_idx_xyz[2] * scaling_matrix[0] * scaling_matrix[1]
+    );
 }
 
 

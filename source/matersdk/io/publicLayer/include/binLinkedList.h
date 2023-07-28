@@ -24,6 +24,8 @@ public:
 
     void show() const;
 
+    friend class Supercell<CoordType>;
+
 private:
     int num_atoms = 0;
     CoordType projected_lengths[3] = {0, 0, 0};
@@ -68,7 +70,7 @@ public:
 
 private:
     Structure<CoordType> structure;
-    Structure<CoordType> prim_structure;
+    BasicStructureInfo<CoordType> prim_structure_info;
     int scaling_matrix[3] = {1, 1, 1};      // 扩包倍数；x, y, z 方向上的 primitive_cell 个数
     int num_atoms = 0;
     int prim_cell_idx = 0;          // primitive cell 对应的 cell index
@@ -215,12 +217,13 @@ void BasicStructureInfo<CoordType>::show() const{
 template <typename CoordType>
 matersdk::Supercell<CoordType>::Supercell() {
     this->structure = Structure<CoordType>();
-    this->prim_structure = Structure<CoordType>();
+    this->prim_structure_info = BasicStructureInfo<CoordType>();
 
     this->scaling_matrix[0] = 1;
     this->scaling_matrix[1] = 1;
     this->scaling_matrix[2] = 1;
-
+    
+    this->num_atoms = 0;
     this->prim_cell_idx = 0;
 
     this->prim_cell_idx_xyz[0] = 0;
@@ -242,15 +245,15 @@ template <typename CoordType>
 matersdk::Supercell<CoordType>::Supercell(Structure<CoordType>& structure, int *scaling_matrix)
 {
     this->structure = structure;
-    this->prim_structure = structure;
+    this->prim_structure_info = BasicStructureInfo<CoordType>(structure);
     for (int ii=0; ii<3; ii++) {
         this->scaling_matrix[ii] = scaling_matrix[ii];
     }
-    this->num_atoms = this->structure.get_num_atoms() * this->scaling_matrix[0] * this->scaling_matrix[1] * this->scaling_matrix[2];
+    this->num_atoms = this->prim_structure_info.num_atoms * this->scaling_matrix[0] * this->scaling_matrix[1] * this->scaling_matrix[2];
 
     this->calc_prim_cell_idx_xyz();             // Assign `this->prim_cell_idx_xyz`
     this->calc_prim_cell_idx();                 // Assign `this->prim_cell_idx`
-    this->owned_atom_idxs = (int*)malloc(sizeof(int) * this->prim_structure.num_atoms);
+    this->owned_atom_idxs = (int*)malloc(sizeof(int) * this->prim_structure_info.num_atoms);
     this->calc_owned_atom_idxs();               // Assign `this->prim_owned_atom_idxs`
 
     // Step 3. make_supercell
@@ -267,6 +270,7 @@ matersdk::Supercell<CoordType>::Supercell(Structure<CoordType>& structure, int *
 template <typename CoordType>
 Supercell<CoordType>::Supercell(const Supercell &rhs) {
     this->structure = rhs.structure;
+    this->prim_structure_info = rhs.prim_structure_info;
     for (int ii=0; ii<3; ii++) {
         this->scaling_matrix[ii] = rhs.scaling_matrix[ii];
     }
@@ -277,10 +281,10 @@ Supercell<CoordType>::Supercell(const Supercell &rhs) {
     this->prim_cell_idx_xyz[1] = rhs.prim_cell_idx_xyz[1];
     this->prim_cell_idx_xyz[2] = rhs.prim_cell_idx_xyz[2];
 
-    this->owned_atom_idxs = (int*)malloc(sizeof(int) * rhs.prim_structure.num_atoms);
+    this->owned_atom_idxs = (int*)malloc(sizeof(int) * rhs.prim_structure_info.num_atoms);
 
     if (this->num_atoms != 0) {
-        for (int ii=0; ii<rhs.prim_structure.num_atoms; ii++) {
+        for (int ii=0; ii<rhs.prim_structure_info.num_atoms; ii++) {
             this->owned_atom_idxs[ii] = rhs.owned_atom_idxs[ii];
         }
     }
@@ -295,6 +299,7 @@ Supercell<CoordType>& Supercell<CoordType>::operator=(const Supercell<CoordType>
     }
     
     this->structure = rhs.structure;
+    this->prim_structure_info = rhs.prim_structure_info;
     for (int ii=0; ii<3; ii++) {
         this->scaling_matrix[ii] = rhs.scaling_matrix[ii];
     }
@@ -306,8 +311,8 @@ Supercell<CoordType>& Supercell<CoordType>::operator=(const Supercell<CoordType>
     this->prim_cell_idx_xyz[2] = rhs.prim_cell_idx_xyz[2];
 
     if (rhs.num_atoms != 0) {
-        this->owned_atom_idxs = (int*)malloc(sizeof(int) * rhs.prim_structure.num_atoms);
-        for (int ii=0; ii<rhs.prim_structure.num_atoms; ii++) {
+        this->owned_atom_idxs = (int*)malloc(sizeof(int) * rhs.prim_structure_info.num_atoms);
+        for (int ii=0; ii<rhs.prim_structure_info.num_atoms; ii++) {
             this->owned_atom_idxs[ii] = rhs.owned_atom_idxs[ii];
         }
     }
@@ -373,8 +378,8 @@ void Supercell<CoordType>::calc_prim_cell_idx() {
  */
 template <typename CoordType>
 void Supercell<CoordType>::calc_owned_atom_idxs() {
-    for (int ii=0; ii<this->prim_structure.num_atoms; ii++) {
-        this->owned_atom_idxs[ii] = this->prim_cell_idx * this->prim_structure.num_atoms + ii;
+    for (int ii=0; ii<this->prim_structure_info.num_atoms; ii++) {
+        this->owned_atom_idxs[ii] = this->prim_cell_idx * this->prim_structure_info.num_atoms + ii;
     }
 }
 
@@ -387,15 +392,15 @@ void Supercell<CoordType>::calc_owned_atom_idxs() {
 template <typename CoordType>
 void Supercell<CoordType>::show() const {
     printf("Prmitive Cell:\n");
-    this->prim_structure.show();
+    this->prim_structure_info.show();
 
     printf("\nSuper Cell:\n");
     this->structure.show();
-    printf("prim_num_atoms = %15d\n", this->prim_structure.num_atoms);
+    printf("prim_num_atoms = %15d\n", this->prim_structure_info.num_atoms);
     printf("prim_cell_idx = %15d\n", this->prim_cell_idx);
     printf("prim_cell_idx_xyz = [%4d, %4d, %4d]\n", this->prim_cell_idx_xyz[0], this->prim_cell_idx_xyz[1], this->prim_cell_idx_xyz[2]);
     if (this->num_atoms != 0)
-        printf("owned_atom_idxs range = %15d ~ %15d\n", this->owned_atom_idxs[0], this->owned_atom_idxs[this->prim_structure.num_atoms-1]);
+        printf("owned_atom_idxs range = %15d ~ %15d\n", this->owned_atom_idxs[0], this->owned_atom_idxs[this->prim_structure_info.num_atoms-1]);
 }
 
 
@@ -414,7 +419,7 @@ const int Supercell<CoordType>::get_prim_cell_idx() const {
 
 template <typename CoordType>
 const int Supercell<CoordType>::get_prim_num_atoms() const {
-    return (const int)this->prim_structure.num_atoms;
+    return (const int)(this->prim_structure_info.num_atoms);
 }
 
 
