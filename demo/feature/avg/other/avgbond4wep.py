@@ -5,13 +5,14 @@ from matersdk.feature.avg.avgbond import AvgBond
 
 ### Part I. Custom Parameters
 poscar_path = "/data/home/liuhanyu/hyliu/code/matersdk/test_data/xyz/POSCAR.vasp"
+atom_config_path = "/data/home/liuhanyu/hyliu/code/matersdk/demo/structure/atom.config"
 structure = DStructure.from_file(
-                file_path=poscar_path,
-                file_format="xyz")
+                file_path=atom_config_path,
+                file_format="pwmat")
 rcut = 3.2                   # 最大键长 (截断半径)
 atomic_number_1 = 42         # 成键原子的原子序数（顺序无所谓）
-atomic_number_2 = 8          # 成键原子的原子序数
-scaling_matrix = [3, 3, 1]   # 二维材料:[3, 3, 1]; 三维材料:[3,3,3]
+atomic_number_2 = 16          # 成键原子的原子序数
+scaling_matrix = [3, 3, 1]   # 二维材料:[3, 3, 1]; 三维材料:[3, 3, 3]
 
 
 ### Part II. Run the program.
@@ -27,3 +28,4 @@ avg_bond_length = AvgBond.get_avg_bond_length(
                 atomic_number_2=atomic_number_2
 )
 print("在{0}埃内，{1}-{2}的平均键长为{3}埃".format(rcut, atomic_number_1, atomic_number_2, avg_bond_length))
+    
