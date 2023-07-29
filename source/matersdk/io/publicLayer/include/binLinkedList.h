@@ -64,6 +64,10 @@ public:
 
     void show() const;              // Print out information
 
+    const Structure<CoordType>& get_structure() const;
+
+    const int* get_scaling_matrix() const;
+
     const int get_prim_num_atoms() const;
 
     const int* get_prim_cell_idx_xyz() const;
@@ -457,6 +461,17 @@ void Supercell<CoordType>::show() const {
 }
 
 
+template <typename CoordType>
+const Structure<CoordType>& Supercell<CoordType>::get_structure() const {
+    return this->structure;
+}
+
+
+template <typename CoordType>
+const int* Supercell<CoordType>::get_scaling_matrix() const {
+    return (const int*)this->scaling_matrix;
+}
+
 
 template <typename CoordType>
 const int* Supercell<CoordType>::get_prim_cell_idx_xyz() const {
@@ -505,9 +520,9 @@ BinLinkedList<CoordType>::BinLinkedList() {
  * 
  * @tparam CoordType 
  * @param structure 
- * @param rcut 
- * @param bin_size_xyz 
- * @param pbc_xyz 
+ * @param rcut 截断半径
+ * @param bin_size_xyz bin_size
+ * @param pbc_xyz 是否满足周期性边界条件
  */
 template <typename CoordType>
 BinLinkedList<CoordType>::BinLinkedList(Structure<CoordType>& structure, CoordType rcut, CoordType* bin_size_xyz, bool* pbc_xyz) {
@@ -526,8 +541,6 @@ BinLinkedList<CoordType>::BinLinkedList(Structure<CoordType>& structure, CoordTy
             scaling_matrix[ii] = 1;
         }
     }
-    printf("prim_interplanar_distances = [%f, %f, %f]\n", prim_interplanar_distances[0], prim_interplanar_distances[1], prim_interplanar_distances[2]);
-    printf("scaling_matrix = [%d, %d, %d]\n", scaling_matrix[0], scaling_matrix[1], scaling_matrix[2]);
 
     // Step 2. 初始化 supercell
     Supercell<CoordType> supercell(structure, scaling_matrix);
@@ -536,8 +549,6 @@ BinLinkedList<CoordType>::BinLinkedList(Structure<CoordType>& structure, CoordTy
     for (int ii=0; ii<3; ii++) {
         this->num_bin_xyz[ii] = std::ceil( projected_lengths[ii] / bin_size_xyz[ii] );
     }
-    printf("this->num_bin_xyz = [%d, %d, %d]\n", this->num_bin_xyz[0], this->num_bin_xyz[1], this->num_bin_xyz[2]);
-    printf("this->projected_lengths = [%f, %f, %f]\n", projected_lengths[0], projected_lengths[1], projected_lengths[2]);
 
     // Step 3. 计算 `min_limit_xyz`
     for (int ii=0; ii<3; ii++) {
@@ -545,10 +556,9 @@ BinLinkedList<CoordType>::BinLinkedList(Structure<CoordType>& structure, CoordTy
             extending_matrix[ii] = 0;
         }
         this->min_limit_xyz[ii] = -extending_matrix[ii] * this->supercell.prim_structure_info.projected_lengths[ii];
-    }
-    printf("this->min_limit_xyz = [%f, %f, %f]\n", this->min_limit_xyz[0], this->min_limit_xyz[1], this->min_limit_xyz[2]);
-    
-    
+    }    
+
+    // Step . Free memory
     free(prim_interplanar_distances);
     free(projected_lengths);
     free(extending_matrix);
