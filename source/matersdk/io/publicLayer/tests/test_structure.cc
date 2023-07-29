@@ -173,6 +173,36 @@ TEST_F(StructureArrayTest, get_basis_vectors) {
 }
 
 
+TEST_F(StructureArrayTest, get_basis_vectors_4_supercell) {
+    matersdk::Structure<double> prim_structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    int scaling_matrix[3] = {3, 3, 1};    
+
+    // Step 1. 
+    // double prim_basis_vectors[3][3];
+    // for (int ii=0; ii<3; ii++) {
+    //     prim_basis_vectors[ii][0] = structure.get_basis_vectors()[ii][0];
+    //     prim_basis_vectors[ii][1] = structure.get_basis_vectors()[ii][1];
+    //     prim_basis_vectors[ii][2] = structure.get_basis_vectors()[ii][2];        
+    // }
+    const double** prim_basis_vectors = prim_structure.get_basis_vectors(); 
+
+    // Step 2. make_supercell()
+    structure.make_supercell(scaling_matrix);
+    const double** supercell_basis_vectors = structure.get_basis_vectors();
+    
+    EXPECT_EQ(supercell_basis_vectors[0][0], prim_basis_vectors[0][0] * scaling_matrix[0]);
+    EXPECT_EQ(supercell_basis_vectors[0][1], prim_basis_vectors[0][1] * scaling_matrix[0]);
+    EXPECT_EQ(supercell_basis_vectors[0][2], prim_basis_vectors[0][2] * scaling_matrix[0]);
+    EXPECT_EQ(supercell_basis_vectors[1][0], prim_basis_vectors[1][0] * scaling_matrix[1]);
+    EXPECT_EQ(supercell_basis_vectors[1][1], prim_basis_vectors[1][1] * scaling_matrix[1]);
+    EXPECT_EQ(supercell_basis_vectors[1][2], prim_basis_vectors[1][2] * scaling_matrix[1]);
+    EXPECT_EQ(supercell_basis_vectors[2][0], prim_basis_vectors[2][0] * scaling_matrix[2]);
+    EXPECT_EQ(supercell_basis_vectors[2][1], prim_basis_vectors[2][1] * scaling_matrix[2]);
+    EXPECT_EQ(supercell_basis_vectors[2][2], prim_basis_vectors[2][2] * scaling_matrix[2]);
+}
+
+
 TEST_F(StructureArrayTest, get_atomic_numbers) {
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
     const int* atomic_numbers_1 = structure.get_atomic_numbers();
@@ -207,7 +237,7 @@ TEST_F(StructureArrayTest, get_cart_coords) {
 
 TEST_F(StructureArrayTest, get_projected_lengths) {
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
-    const double* projected_lengths = structure.get_projected_lengths();
+    double* projected_lengths = structure.get_projected_lengths();
     const double** basis_vectors = structure.get_basis_vectors();
     //printf("basis_vectors:\n");
     //for (int ii=0; ii<3; ii++)
@@ -229,21 +259,44 @@ TEST_F(StructureArrayTest, get_projected_lengths) {
         std::abs(basis_vectors[0][2]) + std::abs(basis_vectors[1][2]) + std::abs(basis_vectors[2][2])
     );
 
-    double *projected_lengths_nonconst = (double*)projected_lengths;
-    free(projected_lengths_nonconst);
-
+    free(projected_lengths);
 
     matersdk::Structure<double> structure_2;
     EXPECT_EQ(structure_2.get_projected_lengths(), nullptr);
 }
 
 
+TEST_F(StructureArrayTest, get_projected_lengths4supercell) {
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    int scaling_matrix[3] = {3, 3, 1};
+    structure.make_supercell(scaling_matrix);
+    double* projected_lengths = structure.get_projected_lengths();
+
+    // Step 1. 手动计算计算 MoS2 的 `standard_projected_lengths`
+    matersdk::Structure<double> prim_structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    double* standard_projected_lengths = (double*)malloc(sizeof(double) * 3);
+    const double** prim_basis_vector = prim_structure.get_basis_vectors();
+    standard_projected_lengths[0] = std::abs(prim_basis_vector[1][0]) * 3 + std::abs(prim_basis_vector[0][0] * 3);
+    standard_projected_lengths[1] = std::abs(prim_basis_vector[0][1] * 3);
+    standard_projected_lengths[2] = std::abs(prim_basis_vector[2][2]);
+
+    EXPECT_EQ(projected_lengths[0], standard_projected_lengths[0]);
+    EXPECT_EQ(projected_lengths[1], standard_projected_lengths[1]);
+    EXPECT_EQ(projected_lengths[2], standard_projected_lengths[2]);
+
+    // Step . Free memory
+    free(projected_lengths);
+
+}
+
+
+
 TEST_F(StructureArrayTest, get_interplanar_distances) {
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
     const double* interplanar_distances = structure.get_interplanar_distances();
 
-    printf("Interplanar distances:\n");
-    printf("[%15f, %15f, %15f]\n", interplanar_distances[0], interplanar_distances[1], interplanar_distances[2]);
+    //printf("Interplanar distances:\n");
+    //printf("[%15f, %15f, %15f]\n", interplanar_distances[0], interplanar_distances[1], interplanar_distances[2]);
 
     double* interplanar_distances_noconst = (double*)interplanar_distances;
     free(interplanar_distances_noconst);

@@ -550,18 +550,20 @@ BinLinkedList<CoordType>::BinLinkedList(Structure<CoordType>& structure, CoordTy
         this->num_bin_xyz[ii] = std::ceil( projected_lengths[ii] / bin_size_xyz[ii] );
     }
 
-    // Step 3. 计算 `min_limit_xyz`
+    // Step 3. 计算 `min_limit_xyz`  --  Note!!!!
+    CoordType* prim_projected_lengths = structure.get_projected_lengths();
     for (int ii=0; ii<3; ii++) {
         if (pbc_xyz[ii] == false) {
             extending_matrix[ii] = 0;
         }
-        this->min_limit_xyz[ii] = -extending_matrix[ii] * this->supercell.prim_structure_info.projected_lengths[ii];
+        this->min_limit_xyz[ii] = prim_projected_lengths[ii] - extending_matrix[ii] * this->supercell.prim_structure_info.projected_lengths[ii];
     }    
 
     // Step . Free memory
     free(prim_interplanar_distances);
     free(projected_lengths);
     free(extending_matrix);
+    free(prim_projected_lengths);
 }
 
 
@@ -590,16 +592,14 @@ template <typename CoordType>
 int BinLinkedList<CoordType>::get_bin_idx(int prim_atom_idx) const {
     // Step 1. 获取 `prim_atom_idx` 在 supercell 中对应的 `atom_idx`，并获取其坐标 `atom_cart_coord`    
     int atom_idx = prim_atom_idx + (this->supercell.prim_cell_idx * this->supercell.get_prim_num_atoms());
-    CoordType* atom_cart_coord = (CoordType*)this->supercell.structure.get_cart_coords()[atom_idx];
-    printf("%d: [%f, %f, %f]\n", atom_idx, atom_cart_coord[0], atom_cart_coord[1], atom_cart_coord[2]);
+    const CoordType* atom_cart_coord = this->supercell.structure.get_cart_coords()[atom_idx];
     
     // Step 2. 根据 `atom_cart_coord` 计算原子所属的 bin_idx
     int bin_idx_xyz[3];
     for (int ii=0; ii<3; ii++) {
         bin_idx_xyz[ii] = std::floor( (atom_cart_coord[ii] - this->min_limit_xyz[ii]) / this->bin_size_xyz[ii] );
     }
-    printf("bin_idx_xyz = [%d, %d, %d]\n", bin_idx_xyz[0], bin_idx_xyz[1], bin_idx_xyz[2]);
-
+    printf("Inner: bin_idx_xyz = [%d, %d, %d]\n", bin_idx_xyz[0], bin_idx_xyz[1], bin_idx_xyz[2]);
 
     return (
         bin_idx_xyz[0] +

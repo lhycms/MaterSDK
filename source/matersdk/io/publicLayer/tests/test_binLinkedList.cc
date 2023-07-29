@@ -568,7 +568,7 @@ protected:
 
 
 TEST_F(BinLinkedListTest, constructor_1_case_1) {
-    rcut = 6.0;
+    rcut = 3.0;
     bin_size_xyz[0] = 3.0;
     bin_size_xyz[1] = 3.0;
     bin_size_xyz[2] = 3.0;
@@ -598,6 +598,8 @@ TEST_F(BinLinkedListTest, constructor_1_case_1) {
     // Step 2. 验证 `num_bin_xyz`
     const int* num_bin_xyz = bin_linked_list.get_num_bin_xyz();
     double* projected_lengths = (double*)bin_linked_list.get_supercell().get_structure().get_projected_lengths();
+    printf("***[%f, %f, %f]\n", structure.get_projected_lengths()[0], structure.get_projected_lengths()[1], structure.get_projected_lengths()[2]);
+    printf("***[%f, %f, %f]\n", projected_lengths[0], projected_lengths[1], projected_lengths[2]);
     int* standard_num_bin_xyz = (int*)malloc(sizeof(int) * 3);
     for (int ii=0; ii<3; ii++) {
         standard_num_bin_xyz[ii] = std::ceil( projected_lengths[ii] / bin_size_xyz[ii] );
@@ -633,13 +635,37 @@ TEST_F(BinLinkedListTest, constructor_1_case_1) {
 }
 
 
-TEST_F(BinLinkedListTest, get_neigh_bins) {
+/*
+TEST_F(BinLinkedListTest, get_bin_idx_from_prim_atom_idx) {
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
     matersdk::BinLinkedList<double> bin_linked_list(structure, rcut, bin_size_xyz, pbc_xyz);
-    int bin_idx = bin_linked_list.get_bin_idx(11);
-    printf("***bin_idx = %d\n", bin_idx);
-}
+    int prim_atom_idx = 0;
+    int bin_idx = bin_linked_list.get_bin_idx(prim_atom_idx);
 
+    // Step 1.
+    int bin_idx_xyz[3];
+    int standard_bin_idx_xyz[3];
+    
+    // Step 1.1. 
+    bin_idx_xyz[0] = bin_idx % bin_linked_list.get_num_bin_xyz()[0];
+    bin_idx_xyz[1] = bin_idx / bin_linked_list.get_num_bin_xyz()[0];
+    bin_idx_xyz[2] = bin_idx / (bin_linked_list.get_num_bin_xyz()[0] * bin_linked_list.get_num_bin_xyz()[1]);
+    printf("bin_idx = %d\n", bin_idx);
+    printf("num_bin_xyz = [%d, %d, %d]\n", bin_linked_list.get_num_bin_xyz()[0], bin_linked_list.get_num_bin_xyz()[1], bin_linked_list.get_num_bin_xyz()[2]);
+    printf("bin_idx_xyz = [%d, %d, %d]\n", bin_idx_xyz[0], bin_idx_xyz[1], bin_idx_xyz[2]);
+    
+    // Step 1.2. 得到 `prim_atom_idx` 在 supercell 中对应的 `atom_idx`
+    int atom_idx = prim_atom_idx + bin_linked_list.get_supercell().get_prim_cell_idx();
+    const double* atom_coord = bin_linked_list.get_supercell().get_structure().get_cart_coords()[atom_idx];
+    for (int ii=0; ii<3; ii++) {
+        standard_bin_idx_xyz[ii] = std::floor( (atom_coord[ii] - bin_linked_list.get_min_limit_xyz()[ii]) / bin_linked_list.get_bin_size_xyz()[ii] );
+    }
+
+    EXPECT_EQ(bin_idx_xyz[0], standard_bin_idx_xyz[0]);
+    EXPECT_EQ(bin_idx_xyz[1], standard_bin_idx_xyz[1]);
+    EXPECT_EQ(bin_idx_xyz[2], standard_bin_idx_xyz[2]);
+}
+*/
 
 TEST_F(BinLinkedListTest, get_supercell) {
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);

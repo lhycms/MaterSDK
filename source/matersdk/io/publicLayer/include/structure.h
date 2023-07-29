@@ -53,9 +53,9 @@ public:
 
     const CoordType** get_cart_coords() const;  // Returns a pointer to a pointer to a constant double value.
 
-    const CoordType* get_projected_lengths() const; //
+    CoordType* get_projected_lengths() const; //
 
-    const CoordType* get_interplanar_distances() const;
+    CoordType* get_interplanar_distances() const;
 
     friend class Supercell<CoordType>;
 
@@ -534,6 +534,8 @@ void Structure<CoordType>::make_supercell(const int *scaling_matrix) {
         this->basis_vectors[ii][0] *= scaling_matrix[ii];
         this->basis_vectors[ii][1] *= scaling_matrix[ii];
         this->basis_vectors[ii][2] *= scaling_matrix[ii];
+
+        //this->basis_vectors
     }
 
 }
@@ -612,7 +614,7 @@ const CoordType** Structure<CoordType>::get_cart_coords() const {
  * @return const CoordType* 
  */
 template <typename CoordType>
-const CoordType* Structure<CoordType>::get_projected_lengths() const {
+CoordType* Structure<CoordType>::get_projected_lengths() const {
     if (this->num_atoms == 0) 
         return nullptr;
 
@@ -633,7 +635,7 @@ const CoordType* Structure<CoordType>::get_projected_lengths() const {
             std::abs(this->basis_vectors[2][2])
     );
 
-    return (const CoordType*)projected_lengths;
+    return projected_lengths;
 }
 
 
@@ -644,7 +646,7 @@ const CoordType* Structure<CoordType>::get_projected_lengths() const {
  * @return const CoordType* 
  */
 template <typename CoordType>
-const CoordType* Structure<CoordType>::get_interplanar_distances() const {
+CoordType* Structure<CoordType>::get_interplanar_distances() const {
     if (this->num_atoms == 0) 
         return nullptr;
 
@@ -667,7 +669,7 @@ const CoordType* Structure<CoordType>::get_interplanar_distances() const {
     free(unit_vec_vertical_xz);
     free(unit_vec_vertical_xy);
 
-    return (const CoordType*)interplanar_distances;
+    return interplanar_distances;
 }
 
 
