@@ -178,19 +178,14 @@ TEST_F(StructureArrayTest, get_basis_vectors_4_supercell) {
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
     int scaling_matrix[3] = {3, 3, 1};    
 
-    // Step 1. 
-    // double prim_basis_vectors[3][3];
-    // for (int ii=0; ii<3; ii++) {
-    //     prim_basis_vectors[ii][0] = structure.get_basis_vectors()[ii][0];
-    //     prim_basis_vectors[ii][1] = structure.get_basis_vectors()[ii][1];
-    //     prim_basis_vectors[ii][2] = structure.get_basis_vectors()[ii][2];        
-    // }
+    // Step 1. 记录原胞的 basis_vectors
     const double** prim_basis_vectors = prim_structure.get_basis_vectors(); 
 
-    // Step 2. make_supercell()
+    // Step 2. make_supercell()， 记录超胞的 basis_vectors
     structure.make_supercell(scaling_matrix);
     const double** supercell_basis_vectors = structure.get_basis_vectors();
-    
+     
+    // Step 4. 
     EXPECT_EQ(supercell_basis_vectors[0][0], prim_basis_vectors[0][0] * scaling_matrix[0]);
     EXPECT_EQ(supercell_basis_vectors[0][1], prim_basis_vectors[0][1] * scaling_matrix[0]);
     EXPECT_EQ(supercell_basis_vectors[0][2], prim_basis_vectors[0][2] * scaling_matrix[0]);
@@ -227,7 +222,6 @@ TEST_F(StructureArrayTest, get_cart_coords) {
     for (int ii=0; ii<structure_1.get_num_atoms(); ii++) {
         //printf("%-12.6f\t%-12.6f\t%-12.6f\n", cart_coords_[ii][0], cart_coords_[ii][1], cart_coords_[ii][2]);
     }
-
 
     matersdk::Structure<double> structure_2;
     EXPECT_EQ(structure_2.get_cart_coords(), nullptr);
@@ -286,7 +280,6 @@ TEST_F(StructureArrayTest, get_projected_lengths4supercell) {
 
     // Step . Free memory
     free(projected_lengths);
-
 }
 
 

@@ -57,6 +57,8 @@ public:
 
     CoordType* get_interplanar_distances() const;
 
+    CoordType** get_limit_xyz() const;
+
     friend class Supercell<CoordType>;
 
     friend class BasicStructureInfo<CoordType>;
@@ -64,6 +66,7 @@ public:
 private:
     int num_atoms = 0;  // Note: 初始化为0，防止 `matersdk::Structure<double> structure;` 后，拷贝赋值函数无法得到正确的 `this->num_atoms`
     CoordType **basis_vectors;
+    CoordType **pseudo_basis_vectors;
     int *atomic_numbers;
     CoordType **cart_coords;
 }; // class: Structure
@@ -111,10 +114,16 @@ Structure<CoordType>::Structure(int num_atoms) {
             this->basis_vectors[ii] = (CoordType*)malloc(sizeof(CoordType) * 3);
         }
 
-        // Step 2. Allocate memory for `this->atomic_numbers`
+        // Step 2. Allocate memory for `this->pseudo_basis_vectors`
+        this->pseudo_basis_vectors = (CoordType**)malloc(sizeof(CoordType*) * 3);
+        for (int ii=0; ii<3; ii++) {
+            this->basis_vectors[ii] = (CoordType*)malloc(sizeof(CoordType) * 3);
+        }
+
+        // Step 3. Allocate memory for `this->atomic_numbers`
         this->atomic_numbers = (int*)malloc(sizeof(int) * num_atoms);
 
-        // Step 3. Allocate memory for `this->cart_coords`
+        // Step 4. Allocate memory for `this->cart_coords`
         this->cart_coords = (CoordType**)malloc(sizeof(CoordType*) * num_atoms);
         for (int ii=0; ii<this->num_atoms; ii++) {
             this->cart_coords[ii] = (CoordType*)malloc(sizeof(CoordType) * 3);
@@ -153,19 +162,31 @@ Structure<CoordType>::Structure(
             }
         }
 
-        // Step 2. Allocate memory for `this->atomic_numbers` and assign
+        // Step 2. Allocate memory for `this->pseudo_basis_vectors` and assign
+        this->pseudo_basis_vectors = (CoordType**)malloc(sizeof(CoordType*) * 3);
+        for (int ii=0; ii<3; ii++) {
+            this->pseudo_basis_vectors[ii] = (CoordType*)malloc(sizeof(CoordType) * 3);
+        }
+        // Step 2.1. Assign `this->pseudo_basis_vectors`
+        for (int ii=0; ii<3; ii++) {
+            for (int jj=0; jj<3; jj++) {
+                this->pseudo_basis_vectors[ii][jj] = basis_vectors[ii][jj];
+            }
+        }
+
+        // Step 3. Allocate memory for `this->atomic_numbers` and assign
         this->atomic_numbers = (int*)malloc(sizeof(int) * num_atoms);
-        // Step 2.1. Assign `this->atomic_numbers`
+        // Step 3.1. Assign `this->atomic_numbers`
         for (int ii=0; ii<num_atoms; ii++) {
             this->atomic_numbers[ii] = atomic_numbers[ii];
         }
 
-        // Step 3. Allocate memory for `this->cart_coords` and assign
+        // Step 4. Allocate memory for `this->cart_coords` and assign
         this->cart_coords = (CoordType**)malloc(sizeof(CoordType*) * num_atoms);
         for (int ii=0; ii<num_atoms ; ii++) {
             this->cart_coords[ii] = (CoordType*)malloc(sizeof(CoordType) * 3);
         }
-        // Step 3.1. Assign
+        // Step 4.1. Assign
         if (is_cart_coords) {
             for (int ii=0; ii<num_atoms; ii++) {
                 for (int jj=0; jj<3; jj++) {
@@ -207,13 +228,24 @@ Structure<CoordType>::Structure(int num_atoms,
         }
     }
 
-    // Step 2. Allocate memory for `this->atomic_numbers`
+    // Step 2. Allocate memory for `this->pseudo_basis_vectors` and assign
+    this->pseudo_basis_vectors = (CoordType**)malloc(sizeof(CoordType*) * 3);
+    for (int ii=0; ii<3; ii++) {
+        this->pseudo_basis_vectors[ii] = (CoordType*)malloc(sizeof(CoordType) * 3);
+    }
+    for (int ii=0; ii<3; ii++) {
+        for (int jj=0; jj<3; jj++) {
+            this->pseudo_basis_vectors[ii][jj] = basis_vectors[ii][jj];
+        }
+    }
+
+    // Step 3. Allocate memory for `this->atomic_numbers`
     this->atomic_numbers = (int*)malloc(sizeof(int) * this->num_atoms);
     for (int ii=0; ii<this->num_atoms; ii++) {
         this->atomic_numbers[ii] = atomic_numbers[ii];
     }
 
-    // Step 3. Allocate memory for `this->cart_coords`
+    // Step 4. Allocate memory for `this->cart_coords`
     this->cart_coords = (CoordType**)malloc(sizeof(CoordType*) * this->num_atoms);
     for (int ii=0; ii<this->num_atoms; ii++) {
         this->cart_coords[ii] = (CoordType*)malloc(sizeof(CoordType) * 3);
@@ -242,8 +274,8 @@ Structure<CoordType>::Structure(const Structure &rhs)
     // Step 1. Allocate and Assign
     this->num_atoms = rhs.num_atoms;
 
-    // Step 1.1. Allocate memory for `this->basis_vectors` and assign
     if (rhs.num_atoms != 0) {
+        // Step 1.1. Allocate memory for `this->basis_vectors` and assign
         this->basis_vectors = (CoordType**)malloc(sizeof(CoordType*) * 3);
         for (int ii=0; ii<3; ii++) {
             this->basis_vectors[ii] = (CoordType*)malloc(sizeof(CoordType) * 3);
@@ -254,13 +286,25 @@ Structure<CoordType>::Structure(const Structure &rhs)
             }
         }
 
-        // Step 1.2. Allocate memory for `this->atomic_numbers` and assign
+        // Step 1.2. Allocate memory for `this->pseudo_basis_vectors` and assign
+        this->pseudo_basis_vectors = (CoordType**)malloc(sizeof(CoordType*) * 3);
+        for (int ii=0; ii<3; ii++) {
+            this->pseudo_basis_vectors[ii] = (CoordType*)malloc(sizeof(CoordType) * 3);
+        }
+        for (int ii=0; ii<3; ii++) {
+            for (int jj=0; jj<3; jj++) {
+                this->pseudo_basis_vectors[ii][jj] = rhs.pseudo_basis_vectors[ii][jj];
+            }
+        }
+
+
+        // Step 1.3. Allocate memory for `this->atomic_numbers` and assign
         this->atomic_numbers = (int*)malloc(sizeof(int) * this->num_atoms);
         for (int ii=0; ii<this->num_atoms; ii++) {
             this->atomic_numbers[ii] = rhs.atomic_numbers[ii];
         }
 
-        // Step 1.3. Allocate memory for `this->cart_coords` and assign
+        // Step 1.4. Allocate memory for `this->cart_coords` and assign
         this->cart_coords = (CoordType**)malloc(sizeof(CoordType*) * this->num_atoms);
         for (int ii=0; ii<this->num_atoms; ii++) {
             this->cart_coords[ii] = (CoordType*)malloc(sizeof(CoordType) * 3);
@@ -292,16 +336,22 @@ Structure<CoordType>& Structure<CoordType>::operator=(const Structure &rhs) {
         }
         free(this->basis_vectors);
 
-        // Step 1.2. `this->atomic_numbers`
+        // Step 1.2. `this->pseudo_basis_vectors`
+        for (int ii=0; ii<3; ii++) {
+            free(this->pseudo_basis_vectors[ii]);
+        }
+        free(this->pseudo_basis_vectors);
+
+        // Step 1.3. `this->atomic_numbers`
         free(this->atomic_numbers);
 
-        // Step 1.3. `this->cart_coords`
+        // Step 1.4. `this->cart_coords`
         for (int ii=0; ii<this->num_atoms; ii++) {
             free(this->cart_coords[ii]);
         }
         free(this->cart_coords);
 
-        // Step 1.4. `this->num_atoms = 0`
+        // Step 1.5. `this->num_atoms = 0`
         this->num_atoms = 0;
     }
 
@@ -319,14 +369,25 @@ Structure<CoordType>& Structure<CoordType>::operator=(const Structure &rhs) {
             this->basis_vectors[ii][1] = rhs.basis_vectors[ii][1];
             this->basis_vectors[ii][2] = rhs.basis_vectors[ii][2];
         }
+
+        // Step 2.2. Allocate memory for `this->pseudo_basis_vectors` and assign it
+        this->pseudo_basis_vectors = (CoordType**)malloc(sizeof(CoordType*) * 3);
+        for (int ii=0; ii<3; ii++) {
+            this->pseudo_basis_vectors[ii] = (CoordType*)malloc(sizeof(CoordType) * 3);
+        }
+        for (int ii=0; ii<3; ii++) {
+            this->pseudo_basis_vectors[ii][0] = rhs.pseudo_basis_vectors[ii][0];
+            this->pseudo_basis_vectors[ii][1] = rhs.pseudo_basis_vectors[ii][1];
+            this->pseudo_basis_vectors[ii][2] = rhs.pseudo_basis_vectors[ii][2];
+        }
         
-        // Step 2.2. Allocate memory for `this->atomic_numbers` and assign it
+        // Step 2.3. Allocate memory for `this->atomic_numbers` and assign it
         this->atomic_numbers = (int*)malloc(sizeof(int) * this->num_atoms);
         for (int ii=0; ii<this->num_atoms; ii++) {
             this->atomic_numbers[ii] = rhs.atomic_numbers[ii];
         }
 
-        // Step 2.3. Allocate memory for `this->cart_coords` and assign it 
+        // Step 2.4. Allocate memory for `this->cart_coords` and assign it 
         this->cart_coords = (CoordType**)malloc(sizeof(CoordType*) * this->num_atoms);
         for (int ii=0; ii<this->num_atoms; ii++) {
             this->cart_coords[ii] = (CoordType*)malloc(sizeof(CoordType) * 3);
@@ -356,16 +417,22 @@ Structure<CoordType>::~Structure() {
         }
         free(this->basis_vectors);
 
-        // Step 2. Deallocate `this->atomic_numbers`
+        // Step 2. Deallocate `this->pseudo_basis_vectors`
+        for (int ii=0; ii<3; ii++) {
+            free(this->pseudo_basis_vectors[ii]);
+        }
+        free(this->pseudo_basis_vectors);
+
+        // Step 3. Deallocate `this->atomic_numbers`
         free(this->atomic_numbers);
 
-        // Step 3. Deallocate `this->cart_coords`
+        // Step 4. Deallocate `this->cart_coords`
         for (int ii=0; ii<this->num_atoms; ii++) {
             free(this->cart_coords[ii]);
         }
         free(this->cart_coords);
 
-        // Step 4. `this->num_atoms = 0`
+        // Step 5. `this->num_atoms = 0`
         this->num_atoms = 0;
     }
 }
@@ -432,6 +499,7 @@ void Structure<CoordType>::calc_cart_coords(CoordType frac_coords[][3]) {
  * 
  * @tparam CoordType 
  * @param scaling_matrix 
+ * 
  */
 template <typename CoordType>
 void Structure<CoordType>::make_supercell(const int *scaling_matrix) {
@@ -529,13 +597,20 @@ void Structure<CoordType>::make_supercell(const int *scaling_matrix) {
         }
     }
 
-    // Step 3.3. Calculate `basis_vectors` and assign it to `this->basis_vectors`
+    // Step 3.3. Calculate `pseudo_basis_vectors` and assign it to `this->pseudo_basis_vectors`
     for (int ii=0; ii<3; ii++) { // 三个基矢方向
+        // Step 3.2.1. 缩放：扩大 scaling_factor 倍
+        this->pseudo_basis_vectors[ii][0] *= scaling_matrix[ii];
+        this->pseudo_basis_vectors[ii][1] *= scaling_matrix[ii];
+        this->pseudo_basis_vectors[ii][2] *= scaling_matrix[ii];
+    }
+
+    // Step 3.4. Calculate `basis_vectors` and assign it to `this->basis_vectors`
+    for (int ii=0; ii<3; ii++) { // 三个基矢方向
+        // Step 3.2.1. 缩放：扩大 scaling_factor 倍
         this->basis_vectors[ii][0] *= scaling_matrix[ii];
         this->basis_vectors[ii][1] *= scaling_matrix[ii];
         this->basis_vectors[ii][2] *= scaling_matrix[ii];
-
-        //this->basis_vectors
     }
 
 }
@@ -620,19 +695,19 @@ CoordType* Structure<CoordType>::get_projected_lengths() const {
 
     CoordType* projected_lengths = (CoordType*)malloc(sizeof(CoordType) * 3);
     projected_lengths[0] = (
-            std::abs(this->basis_vectors[0][0]) + 
-            std::abs(this->basis_vectors[1][0]) + 
-            std::abs(this->basis_vectors[2][0])
+            std::abs(this->pseudo_basis_vectors[0][0]) + 
+            std::abs(this->pseudo_basis_vectors[1][0]) + 
+            std::abs(this->pseudo_basis_vectors[2][0])
     );
     projected_lengths[1] = (
-            std::abs(this->basis_vectors[0][1]) + 
-            std::abs(this->basis_vectors[1][1]) + 
-            std::abs(this->basis_vectors[2][1])
+            std::abs(this->pseudo_basis_vectors[0][1]) + 
+            std::abs(this->pseudo_basis_vectors[1][1]) + 
+            std::abs(this->pseudo_basis_vectors[2][1])
     );
     projected_lengths[2] = (
-            std::abs(this->basis_vectors[0][2]) + 
-            std::abs(this->basis_vectors[1][2]) + 
-            std::abs(this->basis_vectors[2][2])
+            std::abs(this->pseudo_basis_vectors[0][2]) + 
+            std::abs(this->pseudo_basis_vectors[1][2]) + 
+            std::abs(this->pseudo_basis_vectors[2][2])
     );
 
     return projected_lengths;
@@ -670,6 +745,13 @@ CoordType* Structure<CoordType>::get_interplanar_distances() const {
     free(unit_vec_vertical_xy);
 
     return interplanar_distances;
+}
+
+
+
+template <typename CoordType>
+CoordType** Structure<CoordType>::get_limit_xyz() const {
+
 }
 
 
