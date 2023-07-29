@@ -268,6 +268,7 @@ TEST_F(SupercellTest, copy_constructor) {
 TEST_F(SupercellTest, assignment_operator) {
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
     matersdk::Supercell<double> supercell_1(structure, scaling_matrix);
+    matersdk::Supercell<double> supercell_(structure, scaling_matrix);
     matersdk::Supercell<double> supercell_2;
     
     matersdk::Supercell<double> supercell_3;
@@ -523,7 +524,7 @@ protected:
         frac_coords[11][1] = 0.833333333333;
         frac_coords[11][2] = 0.567656723452;
 
-        rcut = 6.0;
+        rcut = 3.0;
         bin_size_xyz[0] = 3.0;
         bin_size_xyz[1] = 3.0;
         bin_size_xyz[2] = 3.0;
@@ -550,12 +551,16 @@ TEST_F(BinLinkedListTest, constructor_1) {
 TEST_F(BinLinkedListTest, get_neigh_bins) {
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
     matersdk::BinLinkedList<double> bin_linked_list(structure, rcut, bin_size_xyz, pbc_xyz);
-    int bin_idx = bin_linked_list.get_bin_idx(0);
-    printf("bin_idx = %d\n", bin_idx);
+    int bin_idx = bin_linked_list.get_bin_idx(11);
+    printf("***bin_idx = %d\n", bin_idx);
 }
 
 
-
+TEST_F(BinLinkedListTest, get_supercell) {
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    matersdk::BinLinkedList<double> bin_linked_list(structure, rcut, bin_size_xyz, pbc_xyz);
+    bin_linked_list.get_supercell().show();
+}
 
 
 

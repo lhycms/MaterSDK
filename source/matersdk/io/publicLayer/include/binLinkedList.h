@@ -11,6 +11,9 @@ namespace matersdk {
 template <typename CoordType>
 class BinLinkedList;
 
+template <typename CoordType>
+class BinLinkedList;
+
 
 template <typename CoordType>
 class BasicStructureInfo {
@@ -28,6 +31,7 @@ public:
     void show() const;
 
     friend class Supercell<CoordType>;
+    friend class BinLinkedList<CoordType>;
 
 private:
     int num_atoms = 0;
@@ -98,7 +102,15 @@ public:
 
     // ~BinLinkedList();
 
-    int get_bin_idx(int prim_atom_idx);
+    int get_bin_idx(int prim_atom_idx) const;
+
+    const Supercell<CoordType>& get_supercell() const;
+
+    const int* get_bin_size_xyz() const;
+
+    const int* get_num_bin_xyz() const;
+
+    const CoordType* get_min_limit_xyz() const;
 
 
 private:
@@ -106,6 +118,7 @@ private:
     CoordType rcut = 0;
     int bin_size_xyz[3];
     int num_bin_xyz[3];
+    CoordType min_limit_xyz[3];
     int* heads_lst;
     int* nexts_lst;
 
@@ -335,19 +348,21 @@ Supercell<CoordType>& Supercell<CoordType>::operator=(const Supercell<CoordType>
     if (this->num_atoms != 0) {
         free(this->owned_atom_idxs);
     }
-    
+ 
     this->structure = rhs.structure;
     this->prim_structure_info = rhs.prim_structure_info;
+    
     for (int ii=0; ii<3; ii++) {
         this->scaling_matrix[ii] = rhs.scaling_matrix[ii];
     }
     this->num_atoms = rhs.num_atoms;
 
     this->prim_cell_idx = rhs.prim_cell_idx;
+    
     this->prim_cell_idx_xyz[0] = rhs.prim_cell_idx_xyz[0];
     this->prim_cell_idx_xyz[1] = rhs.prim_cell_idx_xyz[1];
     this->prim_cell_idx_xyz[2] = rhs.prim_cell_idx_xyz[2];
-
+    
     if (rhs.num_atoms != 0) {
         this->owned_atom_idxs = (int*)malloc(sizeof(int) * rhs.prim_structure_info.num_atoms);
         for (int ii=0; ii<rhs.prim_structure_info.num_atoms; ii++) {
@@ -484,6 +499,7 @@ BinLinkedList<CoordType>::BinLinkedList() {
 }
 
 
+
 /**
  * @brief Construct a new Bin Linked List< Coord Type>:: Bin Linked List object
  * 
@@ -510,21 +526,32 @@ BinLinkedList<CoordType>::BinLinkedList(Structure<CoordType>& structure, CoordTy
             scaling_matrix[ii] = 1;
         }
     }
-    printf("[%f, %f, %f]\n", prim_interplanar_distances[0], prim_interplanar_distances[1], prim_interplanar_distances[2]);
-    printf("[%d, %d, %d]\n", scaling_matrix[0], scaling_matrix[1], scaling_matrix[2]);
-    free(extending_matrix);
-    free(prim_interplanar_distances);
+    printf("prim_interplanar_distances = [%f, %f, %f]\n", prim_interplanar_distances[0], prim_interplanar_distances[1], prim_interplanar_distances[2]);
+    printf("scaling_matrix = [%d, %d, %d]\n", scaling_matrix[0], scaling_matrix[1], scaling_matrix[2]);
 
     // Step 2. 初始化 supercell
     Supercell<CoordType> supercell(structure, scaling_matrix);
     this->supercell = supercell;
     CoordType* projected_lengths = (CoordType*)supercell.structure.get_projected_lengths();
     for (int ii=0; ii<3; ii++) {
-        printf("%f, %f\n", projected_lengths[ii], bin_size_xyz[ii]);
         this->num_bin_xyz[ii] = std::ceil( projected_lengths[ii] / bin_size_xyz[ii] );
     }
-    printf("[%d, %d, %d]\n", this->num_bin_xyz[0], this->num_bin_xyz[1], this->num_bin_xyz[2]);
+    printf("this->num_bin_xyz = [%d, %d, %d]\n", this->num_bin_xyz[0], this->num_bin_xyz[1], this->num_bin_xyz[2]);
+    printf("this->projected_lengths = [%f, %f, %f]\n", projected_lengths[0], projected_lengths[1], projected_lengths[2]);
+
+    // Step 3. 计算 `min_limit_xyz`
+    for (int ii=0; ii<3; ii++) {
+        if (pbc_xyz[ii] == false) {
+            extending_matrix[ii] = 0;
+        }
+        this->min_limit_xyz[ii] = -extending_matrix[ii] * this->supercell.prim_structure_info.projected_lengths[ii];
+    }
+    printf("this->min_limit_xyz = [%f, %f, %f]\n", this->min_limit_xyz[0], this->min_limit_xyz[1], this->min_limit_xyz[2]);
+    
+    
+    free(prim_interplanar_distances);
     free(projected_lengths);
+    free(extending_matrix);
 }
 
 
@@ -550,7 +577,7 @@ BinLinkedList<CoordType>::~BinLinkedList() {
  * @return int 
  */
 template <typename CoordType>
-int BinLinkedList<CoordType>::get_bin_idx(int prim_atom_idx) {
+int BinLinkedList<CoordType>::get_bin_idx(int prim_atom_idx) const {
     // Step 1. 获取 `prim_atom_idx` 在 supercell 中对应的 `atom_idx`，并获取其坐标 `atom_cart_coord`    
     int atom_idx = prim_atom_idx + (this->supercell.prim_cell_idx * this->supercell.get_prim_num_atoms());
     CoordType* atom_cart_coord = (CoordType*)this->supercell.structure.get_cart_coords()[atom_idx];
@@ -559,9 +586,10 @@ int BinLinkedList<CoordType>::get_bin_idx(int prim_atom_idx) {
     // Step 2. 根据 `atom_cart_coord` 计算原子所属的 bin_idx
     int bin_idx_xyz[3];
     for (int ii=0; ii<3; ii++) {
-        bin_idx_xyz[ii] = std::floor( [ii] / this->bin_size_xyz[ii] );
+        bin_idx_xyz[ii] = std::floor( (atom_cart_coord[ii] - this->min_limit_xyz[ii]) / this->bin_size_xyz[ii] );
     }
-    free(atom_cart_coord);
+    printf("bin_idx_xyz = [%d, %d, %d]\n", bin_idx_xyz[0], bin_idx_xyz[1], bin_idx_xyz[2]);
+
 
     return (
         bin_idx_xyz[0] +
@@ -569,6 +597,32 @@ int BinLinkedList<CoordType>::get_bin_idx(int prim_atom_idx) {
         bin_idx_xyz[2] * this->num_bin_xyz[0] * this->num_bin_xyz[1]
     );
 }
+
+
+template <typename CoordType>
+const Supercell<CoordType>& BinLinkedList<CoordType>::get_supercell() const {
+    return this->supercell;
+}
+
+
+template <typename CoordType>
+const int* BinLinkedList<CoordType>::get_bin_size_xyz() const {
+    return (const int*)(this->bin_size_xyz);
+}
+
+
+template <typename CoordType>
+const int* BinLinkedList<CoordType>::get_num_bin_xyz() const {
+    return (const int*)(this->num_bin_xyz);
+}
+
+
+template <typename CoordType>
+const CoordType* BinLinkedList<CoordType>::get_min_limit_xyz() const {
+    return (const CoordType*)(this->min_limit_xyz);
+}
+
+
 
 } // namespace: matersdk
 

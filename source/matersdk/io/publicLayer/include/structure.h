@@ -319,7 +319,7 @@ Structure<CoordType>& Structure<CoordType>::operator=(const Structure &rhs) {
             this->basis_vectors[ii][1] = rhs.basis_vectors[ii][1];
             this->basis_vectors[ii][2] = rhs.basis_vectors[ii][2];
         }
-
+        
         // Step 2.2. Allocate memory for `this->atomic_numbers` and assign it
         this->atomic_numbers = (int*)malloc(sizeof(int) * this->num_atoms);
         for (int ii=0; ii<this->num_atoms; ii++) {
