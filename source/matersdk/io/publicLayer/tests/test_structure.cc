@@ -184,7 +184,9 @@ TEST_F(StructureArrayTest, get_basis_vectors_4_supercell) {
     // Step 2. make_supercell()， 记录超胞的 basis_vectors
     structure.make_supercell(scaling_matrix);
     const double** supercell_basis_vectors = structure.get_basis_vectors();
-     
+    
+    structure.show();
+
     // Step 4. 
     EXPECT_EQ(supercell_basis_vectors[0][0], prim_basis_vectors[0][0] * scaling_matrix[0]);
     EXPECT_EQ(supercell_basis_vectors[0][1], prim_basis_vectors[0][1] * scaling_matrix[0]);
