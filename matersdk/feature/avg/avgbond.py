@@ -223,7 +223,7 @@ class AvgBond(object):
                                 angle_standard=angle_standard,
                                 angle_epsilon=angle_epsilon) ):
                             lengths_array.append(np.linalg.norm(tmp_nbr2_rc))
-                            break
+                            break   # 针对 `中心原子 - nbr2`， 仅有一个 `nbr3` 使其键角满足条件，即可添加。同时需要注意防止重复添加！
                             
         lengths_array = np.array(lengths_array)
         return lengths_array

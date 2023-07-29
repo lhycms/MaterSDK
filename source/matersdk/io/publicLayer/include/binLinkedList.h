@@ -80,6 +80,30 @@ private:
 
 
 
+template <typename CoordType>
+class BinLinkedList {
+public:
+    BinLinkedList();
+
+    BinLinkedList(Structure<CoordType>& structure, CoordType rcut, CoordType* bin_sizes, bool* pbcs);
+
+private:
+    Supercell<CoordType> supercell;
+    CoordType rcut;
+    int bin_sizes[3];
+    int num_bins[3];
+    int* heads_lst;
+    int* nexts_lst;
+
+};  // class BinLinkedList
+
+
+
+
+
+
+
+
 /**
  * @brief Construct a new Basic Structure Info< Coord Type>:: Basic Structure Info object
  * 
@@ -432,6 +456,39 @@ const int Supercell<CoordType>::get_num_atoms() const {
 template <typename CoordType>
 const int* Supercell<CoordType>::get_owned_atom_idxs() const {
     return (const int*)this->owned_atom_idxs;
+}
+
+
+
+template <typename CoordType>
+BinLinkedList<CoordType>::BinLinkedList() {
+
+}
+
+
+template <typename CoordType>
+BinLinkedList<CoordType>::BinLinkedList(Structure<CoordType>& structure, CoordType rcut, CoordType* bin_sizes, bool* pbcs) {
+    // Step 1. 计算 `scaling_matrix` -- 根据 `rcut` 和 `interplanar_distances`
+    this->rcut = rcut;
+    CoordType* prim_interplanar_distances = (CoordType*)structure.get_interplanar_distances();
+    int* scaling_matrix = (int*)malloc(sizeof(int) * 3);
+    int* extending_matrix = (int*)malloc(sizeof(int) * 3);
+    for (int ii=0; ii<3; ii++) {
+        extending_matrix[ii] = std::ceil(rcut / prim_interplanar_distances[ii]);
+        scaling_matrix[ii] = extending_matrix[ii] * 2 + 1;
+        if (pbcs[ii] == false) {
+            scaling_matrix[ii] = 1;
+        }
+    }
+    printf("[%f, %f, %f]\n", prim_interplanar_distances[0], prim_interplanar_distances[1], prim_interplanar_distances[2]);
+    printf("[%d, %d, %d]\n", scaling_matrix[0], scaling_matrix[1], scaling_matrix[2]);
+    
+    free(extending_matrix);
+    free(prim_interplanar_distances);
+
+    // Step 2. 
+    //free(prim_projected_lengths);
+    
 }
 
 
