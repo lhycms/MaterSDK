@@ -445,8 +445,8 @@ protected:
     int atomic_numbers[12];
     double frac_coords[12][3];
     double rcut;
-    double bin_sizes[3];
-    bool pbcs[3];
+    double bin_size_xyz[3];
+    bool pbc_xyz[3];
 
 
 
@@ -524,12 +524,12 @@ protected:
         frac_coords[11][2] = 0.567656723452;
 
         rcut = 6.0;
-        bin_sizes[0] = 3.0;
-        bin_sizes[1] = 3.0;
-        bin_sizes[2] = 3.0;
-        pbcs[0] = true;
-        pbcs[1] = true;
-        pbcs[2] = false;
+        bin_size_xyz[0] = 3.0;
+        bin_size_xyz[1] = 3.0;
+        bin_size_xyz[2] = 3.0;
+        pbc_xyz[0] = true;
+        pbc_xyz[1] = true;
+        pbc_xyz[2] = false;
     }
 
 
@@ -542,9 +542,16 @@ protected:
 
 TEST_F(BinLinkedListTest, constructor_1) {
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
-    matersdk::BinLinkedList<double> bin_linked_list(structure, rcut, bin_sizes, pbcs);
+    matersdk::BinLinkedList<double> bin_linked_list(structure, rcut, bin_size_xyz, pbc_xyz);
+
+}
 
 
+TEST_F(BinLinkedListTest, get_neigh_bins) {
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    matersdk::BinLinkedList<double> bin_linked_list(structure, rcut, bin_size_xyz, pbc_xyz);
+    int bin_idx = bin_linked_list.get_bin_idx(0);
+    printf("bin_idx = %d\n", bin_idx);
 }
 
 

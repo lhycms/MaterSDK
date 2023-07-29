@@ -90,16 +90,22 @@ class BinLinkedList {
 public:
     BinLinkedList();
 
-    BinLinkedList(Structure<CoordType>& structure, CoordType rcut, CoordType* bin_sizes, bool* pbcs);
+    BinLinkedList(Structure<CoordType>& structure, CoordType rcut, CoordType* bin_size_xyz, bool* pbc_xyz);
 
-    BinLinkedList(const BinLinkedList& rhs);
+    // BinLinkedList(const BinLinkedList& rhs);
 
-    
+    // BinLinkedList& operator=(const BinLinkedList& rhs);
+
+    // ~BinLinkedList();
+
+    int get_bin_idx(int prim_atom_idx);
+
+
 private:
     Supercell<CoordType> supercell;
-    CoordType rcut;
-    int bin_sizes[3];
-    int num_bins[3];
+    CoordType rcut = 0;
+    int bin_size_xyz[3];
+    int num_bin_xyz[3];
     int* heads_lst;
     int* nexts_lst;
 
@@ -484,23 +490,23 @@ BinLinkedList<CoordType>::BinLinkedList() {
  * @tparam CoordType 
  * @param structure 
  * @param rcut 
- * @param bin_sizes 
- * @param pbcs 
+ * @param bin_size_xyz 
+ * @param pbc_xyz 
  */
 template <typename CoordType>
-BinLinkedList<CoordType>::BinLinkedList(Structure<CoordType>& structure, CoordType rcut, CoordType* bin_sizes, bool* pbcs) {
+BinLinkedList<CoordType>::BinLinkedList(Structure<CoordType>& structure, CoordType rcut, CoordType* bin_size_xyz, bool* pbc_xyz) {
     // Step 1. 计算 `scaling_matrix` -- 根据 `rcut` 和 `interplanar_distances`
     this->rcut = rcut;
-    this->bin_sizes[0] = bin_sizes[0];
-    this->bin_sizes[1] = bin_sizes[1];
-    this->bin_sizes[2] = bin_sizes[2];
+    this->bin_size_xyz[0] = bin_size_xyz[0];
+    this->bin_size_xyz[1] = bin_size_xyz[1];
+    this->bin_size_xyz[2] = bin_size_xyz[2];
     CoordType* prim_interplanar_distances = (CoordType*)structure.get_interplanar_distances();
     int* scaling_matrix = (int*)malloc(sizeof(int) * 3);
     int* extending_matrix = (int*)malloc(sizeof(int) * 3);
     for (int ii=0; ii<3; ii++) {
         extending_matrix[ii] = std::ceil(rcut / prim_interplanar_distances[ii]);
         scaling_matrix[ii] = extending_matrix[ii] * 2 + 1;
-        if (pbcs[ii] == false) {
+        if (pbc_xyz[ii] == false) {
             scaling_matrix[ii] = 1;
         }
     }
@@ -514,14 +520,55 @@ BinLinkedList<CoordType>::BinLinkedList(Structure<CoordType>& structure, CoordTy
     this->supercell = supercell;
     CoordType* projected_lengths = (CoordType*)supercell.structure.get_projected_lengths();
     for (int ii=0; ii<3; ii++) {
-        printf("%f, %f\n", projected_lengths[ii], bin_sizes[ii]);
-        this->num_bins[ii] = std::ceil( projected_lengths[ii] / bin_sizes[ii] );
+        printf("%f, %f\n", projected_lengths[ii], bin_size_xyz[ii]);
+        this->num_bin_xyz[ii] = std::ceil( projected_lengths[ii] / bin_size_xyz[ii] );
     }
-    printf("[%d, %d, %d]\n", this->num_bins[0], this->num_bins[1], this->num_bins[2]);
+    printf("[%d, %d, %d]\n", this->num_bin_xyz[0], this->num_bin_xyz[1], this->num_bin_xyz[2]);
     free(projected_lengths);
 }
 
 
+/*
+template <typename CoordType>
+BinLinkedList<CoordType>::~BinLinkedList() {    
+    if (this->supercell.num_atoms != 0) {
+        free(this->heads_lst);
+        free(this->nexts_lst);
+    }
+    this->supercell.~Supercell();
+}
+*/
+
+
+/**
+ * @brief 
+ *          S1. 找到 prim_atom_idx 在 `center_cell` 中对应的 `atom_idx`
+ *          S2. 利用 `atom_cart_coord` 计算 `atom` 所在的 `bin_idx`，并返回
+ * 
+ * @tparam CoordType 
+ * @param prim_atom_idx 
+ * @return int 
+ */
+template <typename CoordType>
+int BinLinkedList<CoordType>::get_bin_idx(int prim_atom_idx) {
+    // Step 1. 获取 `prim_atom_idx` 在 supercell 中对应的 `atom_idx`，并获取其坐标 `atom_cart_coord`    
+    int atom_idx = prim_atom_idx + (this->supercell.prim_cell_idx * this->supercell.get_prim_num_atoms());
+    CoordType* atom_cart_coord = (CoordType*)this->supercell.structure.get_cart_coords()[atom_idx];
+    printf("%d: [%f, %f, %f]\n", atom_idx, atom_cart_coord[0], atom_cart_coord[1], atom_cart_coord[2]);
+    
+    // Step 2. 根据 `atom_cart_coord` 计算原子所属的 bin_idx
+    int bin_idx_xyz[3];
+    for (int ii=0; ii<3; ii++) {
+        bin_idx_xyz[ii] = std::floor( [ii] / this->bin_size_xyz[ii] );
+    }
+    free(atom_cart_coord);
+
+    return (
+        bin_idx_xyz[0] +
+        bin_idx_xyz[1] * this->num_bin_xyz[0] + 
+        bin_idx_xyz[2] * this->num_bin_xyz[0] * this->num_bin_xyz[1]
+    );
+}
 
 } // namespace: matersdk
 
