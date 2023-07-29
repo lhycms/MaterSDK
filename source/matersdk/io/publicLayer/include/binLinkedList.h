@@ -8,6 +8,9 @@
 
 namespace matersdk {
 
+template <typename CoordType>
+class BinLinkedList;
+
 
 template <typename CoordType>
 class BasicStructureInfo {
@@ -67,6 +70,8 @@ public:
 
     const int* get_owned_atom_idxs() const;
 
+    friend class BinLinkedList<CoordType>;
+
 
 private:
     Structure<CoordType> structure;
@@ -87,6 +92,9 @@ public:
 
     BinLinkedList(Structure<CoordType>& structure, CoordType rcut, CoordType* bin_sizes, bool* pbcs);
 
+    BinLinkedList(const BinLinkedList& rhs);
+
+    
 private:
     Supercell<CoordType> supercell;
     CoordType rcut;
@@ -459,17 +467,33 @@ const int* Supercell<CoordType>::get_owned_atom_idxs() const {
 }
 
 
-
+/**
+ * @brief Construct a new Bin Linked List< Coord Type>:: Bin Linked List object
+ * 
+ * @tparam CoordType 
+ */
 template <typename CoordType>
 BinLinkedList<CoordType>::BinLinkedList() {
 
 }
 
 
+/**
+ * @brief Construct a new Bin Linked List< Coord Type>:: Bin Linked List object
+ * 
+ * @tparam CoordType 
+ * @param structure 
+ * @param rcut 
+ * @param bin_sizes 
+ * @param pbcs 
+ */
 template <typename CoordType>
 BinLinkedList<CoordType>::BinLinkedList(Structure<CoordType>& structure, CoordType rcut, CoordType* bin_sizes, bool* pbcs) {
     // Step 1. 计算 `scaling_matrix` -- 根据 `rcut` 和 `interplanar_distances`
     this->rcut = rcut;
+    this->bin_sizes[0] = bin_sizes[0];
+    this->bin_sizes[1] = bin_sizes[1];
+    this->bin_sizes[2] = bin_sizes[2];
     CoordType* prim_interplanar_distances = (CoordType*)structure.get_interplanar_distances();
     int* scaling_matrix = (int*)malloc(sizeof(int) * 3);
     int* extending_matrix = (int*)malloc(sizeof(int) * 3);
@@ -482,13 +506,19 @@ BinLinkedList<CoordType>::BinLinkedList(Structure<CoordType>& structure, CoordTy
     }
     printf("[%f, %f, %f]\n", prim_interplanar_distances[0], prim_interplanar_distances[1], prim_interplanar_distances[2]);
     printf("[%d, %d, %d]\n", scaling_matrix[0], scaling_matrix[1], scaling_matrix[2]);
-    
     free(extending_matrix);
     free(prim_interplanar_distances);
 
-    // Step 2. 
-    //free(prim_projected_lengths);
-    
+    // Step 2. 初始化 supercell
+    Supercell<CoordType> supercell(structure, scaling_matrix);
+    this->supercell = supercell;
+    CoordType* projected_lengths = (CoordType*)supercell.structure.get_projected_lengths();
+    for (int ii=0; ii<3; ii++) {
+        printf("%f, %f\n", projected_lengths[ii], bin_sizes[ii]);
+        this->num_bins[ii] = std::ceil( projected_lengths[ii] / bin_sizes[ii] );
+    }
+    printf("[%d, %d, %d]\n", this->num_bins[0], this->num_bins[1], this->num_bins[2]);
+    free(projected_lengths);
 }
 
 
