@@ -185,9 +185,7 @@ TEST_F(StructureArrayTest, get_basis_vectors_4_supercell) {
     structure.make_supercell(scaling_matrix);
     const double** supercell_basis_vectors = structure.get_basis_vectors();
     
-    structure.show();
-
-    // Step 4. 
+    // Step 3. 
     EXPECT_EQ(supercell_basis_vectors[0][0], prim_basis_vectors[0][0] * scaling_matrix[0]);
     EXPECT_EQ(supercell_basis_vectors[0][1], prim_basis_vectors[0][1] * scaling_matrix[0]);
     EXPECT_EQ(supercell_basis_vectors[0][2], prim_basis_vectors[0][2] * scaling_matrix[0]);
@@ -296,9 +294,28 @@ TEST_F(StructureArrayTest, get_interplanar_distances) {
     double* interplanar_distances_noconst = (double*)interplanar_distances;
     free(interplanar_distances_noconst);
 
-
     matersdk::Structure<double> structure_2;
     EXPECT_EQ(structure_2.get_interplanar_distances(), nullptr);
+}
+
+
+TEST_F(StructureArrayTest, get_interplanar_distances4supercell) {
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    double* interplanar_distances = structure.get_interplanar_distances();
+
+    int scaling_matrix[3] = {3, 3, 1};
+    structure.make_supercell(scaling_matrix);
+    double* supercell_interplanar_distances = structure.get_interplanar_distances();
+
+    printf("[%f, %f]\n", supercell_interplanar_distances[1], interplanar_distances[1] * (double)scaling_matrix[1]);
+    EXPECT_DOUBLE_EQ(supercell_interplanar_distances[0], interplanar_distances[0] * (double)scaling_matrix[0]);
+    EXPECT_DOUBLE_EQ(supercell_interplanar_distances[1], interplanar_distances[1] * (double)scaling_matrix[1]);
+    EXPECT_DOUBLE_EQ(supercell_interplanar_distances[2], interplanar_distances[2] * (double)scaling_matrix[2]);
+
+
+    // Step . Free memory
+    free(interplanar_distances);
+    free(supercell_interplanar_distances);
 }
 
 
