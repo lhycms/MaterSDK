@@ -110,7 +110,7 @@ public:
 
     const Supercell<CoordType>& get_supercell() const;
 
-    const int* get_bin_size_xyz() const;
+    const CoordType* get_bin_size_xyz() const;
 
     const int* get_num_bin_xyz() const;
 
@@ -120,7 +120,7 @@ public:
 private:
     Supercell<CoordType> supercell;
     CoordType rcut = 0;
-    int bin_size_xyz[3];
+    CoordType bin_size_xyz[3];
     int num_bin_xyz[3];
     CoordType min_limit_xyz[3];
     int* heads_lst;
@@ -547,23 +547,24 @@ BinLinkedList<CoordType>::BinLinkedList(Structure<CoordType>& structure, CoordTy
     this->supercell = supercell;
     CoordType* projected_lengths = (CoordType*)supercell.structure.get_projected_lengths();
     for (int ii=0; ii<3; ii++) {
-        this->num_bin_xyz[ii] = std::ceil( projected_lengths[ii] / bin_size_xyz[ii] );
+        this->num_bin_xyz[ii] = std::ceil( projected_lengths[ii] / this->bin_size_xyz[ii] );
     }
 
     // Step 3. 计算 `min_limit_xyz`  --  Note!!!!
-    CoordType* prim_projected_lengths = structure.get_projected_lengths();
-    for (int ii=0; ii<3; ii++) {
-        if (pbc_xyz[ii] == false) {
-            extending_matrix[ii] = 0;
-        }
-        this->min_limit_xyz[ii] = prim_projected_lengths[ii] - extending_matrix[ii] * this->supercell.prim_structure_info.projected_lengths[ii];
-    }    
+    CoordType** limit_xyz = this->supercell.get_structure().get_limit_xyz();
+    this->min_limit_xyz[0] = limit_xyz[0][0];
+    this->min_limit_xyz[1] = limit_xyz[1][0];
+    this->min_limit_xyz[2] = limit_xyz[2][0];
+
 
     // Step . Free memory
     free(prim_interplanar_distances);
     free(projected_lengths);
     free(extending_matrix);
-    free(prim_projected_lengths);
+    for (int ii=0; ii<3; ii++) {
+        free(limit_xyz[ii]);
+    }
+    free(limit_xyz);
 }
 
 
@@ -599,7 +600,6 @@ int BinLinkedList<CoordType>::get_bin_idx(int prim_atom_idx) const {
     for (int ii=0; ii<3; ii++) {
         bin_idx_xyz[ii] = std::floor( (atom_cart_coord[ii] - this->min_limit_xyz[ii]) / this->bin_size_xyz[ii] );
     }
-    printf("Inner: bin_idx_xyz = [%d, %d, %d]\n", bin_idx_xyz[0], bin_idx_xyz[1], bin_idx_xyz[2]);
 
     return (
         bin_idx_xyz[0] +
@@ -616,8 +616,9 @@ const Supercell<CoordType>& BinLinkedList<CoordType>::get_supercell() const {
 
 
 template <typename CoordType>
-const int* BinLinkedList<CoordType>::get_bin_size_xyz() const {
-    return (const int*)(this->bin_size_xyz);
+const CoordType* BinLinkedList<CoordType>::get_bin_size_xyz() const {
+    printf("Inner: bin_size_xyz -- [%f, %f, %f]\n", this->bin_size_xyz[0], this->bin_size_xyz[1], this->bin_size_xyz[2]);
+    return (const CoordType*)(this->bin_size_xyz);
 }
 
 
