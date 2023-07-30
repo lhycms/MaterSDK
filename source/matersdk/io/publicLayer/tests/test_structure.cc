@@ -307,7 +307,6 @@ TEST_F(StructureArrayTest, get_interplanar_distances4supercell) {
     structure.make_supercell(scaling_matrix);
     double* supercell_interplanar_distances = structure.get_interplanar_distances();
 
-    printf("[%f, %f]\n", supercell_interplanar_distances[1], interplanar_distances[1] * (double)scaling_matrix[1]);
     EXPECT_DOUBLE_EQ(supercell_interplanar_distances[0], interplanar_distances[0] * (double)scaling_matrix[0]);
     EXPECT_DOUBLE_EQ(supercell_interplanar_distances[1], interplanar_distances[1] * (double)scaling_matrix[1]);
     EXPECT_DOUBLE_EQ(supercell_interplanar_distances[2], interplanar_distances[2] * (double)scaling_matrix[2]);
@@ -319,7 +318,45 @@ TEST_F(StructureArrayTest, get_interplanar_distances4supercell) {
 }
 
 
+TEST_F(StructureArrayTest, get_pseudo_origin) {
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    const double* pseudo_origin = structure.get_pseudo_origin();
 
+    EXPECT_DOUBLE_EQ(pseudo_origin[0], 0);
+    EXPECT_DOUBLE_EQ(pseudo_origin[1], 0);
+    EXPECT_DOUBLE_EQ(pseudo_origin[2], 0);
+}
+
+
+TEST_F(StructureArrayTest, get_vertexes) {
+    // Step 1.
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    double** vertexes = structure.get_vertexes();
+    
+    for (int ii=0; ii<8; ii++)
+        printf("[%f, %f, %f]\n", vertexes[ii][0], vertexes[ii][1], vertexes[ii][2]);
+    
+    // Step . Free memory
+    for (int ii=0; ii<8; ii++) {
+        free(vertexes[ii]);
+    }
+    free(vertexes);
+}
+
+
+TEST_F(StructureArrayTest, get_limit_xyz) {
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    double** limit_xyz = structure.get_limit_xyz();
+
+    printf("[%f, %f]\n", limit_xyz[0][0], limit_xyz[0][1]);
+    printf("[%f, %f]\n", limit_xyz[1][0], limit_xyz[1][1]);
+    printf("[%f, %f]\n", limit_xyz[2][0], limit_xyz[2][1]);
+
+    for (int ii=0; ii<3; ii++) {
+        free(limit_xyz[ii]);
+    }
+    free(limit_xyz);
+}
 
 
 // Part II.

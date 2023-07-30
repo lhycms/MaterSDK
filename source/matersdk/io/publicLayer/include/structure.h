@@ -57,7 +57,11 @@ public:
 
     CoordType* get_interplanar_distances() const;
 
-    CoordType** get_limit_xyz() const;
+    const CoordType* get_pseudo_origin() const;
+
+    CoordType** get_vertexes() const;
+
+    CoordType** get_limit_xyz() const;      // [3][2]
 
     friend class Supercell<CoordType>;
 
@@ -723,10 +727,104 @@ CoordType* Structure<CoordType>::get_interplanar_distances() const {
 }
 
 
+template <typename CoordType>
+const CoordType* Structure<CoordType>::get_pseudo_origin() const {
+    return (const CoordType*)this->pseudo_orgin;
+}
+
+
+/**
+ * @brief Get 8 vertexes for orthgonal or triclinic system.
+ * 
+ * @tparam CoordType 
+ * @return CoordType** 
+ */
+template <typename CoordType>
+CoordType** Structure<CoordType>::get_vertexes() const {
+    CoordType** vertexes = (CoordType**)malloc(sizeof(CoordType*) * 8);
+    for (int ii=0; ii<8; ii++) {
+        vertexes[ii] = (CoordType*)malloc(sizeof(CoordType) * 3);
+    }
+
+    int vertex_idx = 0;
+    for (int ii=0; ii<=1; ii++) {
+        for (int jj=0; jj<=1; jj++) {
+            for (int kk=0; kk<=1; kk++) {
+                CoordType shift[3] = {0, 0, 0};
+                shift[0] = (
+                    ii * this->basis_vectors[0][0] + 
+                    jj * this->basis_vectors[1][0] + 
+                    kk * this->basis_vectors[2][0]
+                );
+                shift[1] = (
+                    ii * this->basis_vectors[0][1] + 
+                    jj * this->basis_vectors[1][1] +
+                    kk * this->basis_vectors[2][1]
+                );
+                shift[2] = (
+                    ii * this->basis_vectors[0][2] + 
+                    jj * this->basis_vectors[1][2] + 
+                    kk * this->basis_vectors[2][2]
+                );
+
+                vertexes[vertex_idx][0] = this->pseudo_orgin[0] + shift[0];
+                vertexes[vertex_idx][1] = this->pseudo_orgin[1] + shift[1];
+                vertexes[vertex_idx][2] = this->pseudo_orgin[2] + shift[2];
+
+                vertex_idx++;
+            }
+        }
+    }
+
+    return vertexes;
+}
+
 
 template <typename CoordType>
 CoordType** Structure<CoordType>::get_limit_xyz() const {
+    CoordType** limit_xyz = (CoordType**)malloc(sizeof(CoordType*) * 3);
+    for (int ii=0; ii<3; ii++) {
+        limit_xyz[ii] = (CoordType*)malloc(sizeof(CoordType) * 2);
+    }
 
+    CoordType** vertexes = this->get_vertexes();
+
+    // Step 1. 用 `vertexes[0]` 初始化 `limit_xyz` 
+    limit_xyz[0][0] = vertexes[0][0];
+    limit_xyz[0][1] = vertexes[0][0];
+    limit_xyz[1][0] = vertexes[0][1];
+    limit_xyz[1][1] = vertexes[0][1];
+    limit_xyz[2][0] = vertexes[0][2];
+    limit_xyz[2][1] = vertexes[0][2];
+
+    // Step 2. Populate `limit_xyz`
+    for (int ii=1; ii<8; ii++) {
+        // Step 2.1. limit_x
+        if (vertexes[ii][0] < limit_xyz[0][0])
+            limit_xyz[0][0] = vertexes[ii][0];
+        if (vertexes[ii][0] > limit_xyz[0][1])
+            limit_xyz[0][1] = vertexes[ii][0];
+
+        // Step 2.2. limit_y
+        if (vertexes[ii][1] < limit_xyz[1][0])
+            limit_xyz[1][0] = vertexes[ii][1];
+        if (vertexes[ii][1] > limit_xyz[1][1])
+            limit_xyz[1][1] = vertexes[ii][1];
+
+        // Step 2.3. limit_z
+        if (vertexes[ii][2] < limit_xyz[2][0]) 
+            limit_xyz[2][0] = vertexes[ii][2];
+        if (vertexes[ii][2] > limit_xyz[2][1]) 
+            limit_xyz[2][1] = vertexes[ii][2];
+        
+    }
+
+    for (int ii=0; ii<8; ii++) {
+        free(vertexes[ii]);
+    }
+    free(vertexes);
+
+    return limit_xyz;
 }
 
 
