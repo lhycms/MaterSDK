@@ -688,23 +688,23 @@ TEST_F(BinLinkedListTest, get_bin_idx) {
 
 
 TEST_F(BinLinkedListTest, get_neigh_bins) {
-    rcut = 3.0;
+    rcut = 6.0;
     bin_size_xyz[0] = 3.0;
     bin_size_xyz[1] = 3.0;
     bin_size_xyz[2] = 3.0;
     pbc_xyz[0] = true;
     pbc_xyz[1] = true;
-    pbc_xyz[2] = false;
+    pbc_xyz[2] = true;
 
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
-    printf("atom_coord_0 = [%f, %f, %f]\n", structure.get_cart_coords()[11][0], structure.get_cart_coords()[11][1], structure.get_cart_coords()[11][2]);
+    printf("atom_coord_11 = [%f, %f, %f]\n", structure.get_cart_coords()[11][0], structure.get_cart_coords()[11][1], structure.get_cart_coords()[11][2]);
     
     matersdk::BinLinkedList<double> bin_linked_list(structure, rcut, bin_size_xyz, pbc_xyz);
 
     int* neigh_bin_idxs = bin_linked_list.get_neigh_bins(59);
-    for (int ii=0; ii<27; ii++) {
-        printf("%d\n", neigh_bin_idxs[ii]);
-    }
+    //for (int ii=0; ii<125; ii++) {
+    //     printf("%d\n", neigh_bin_idxs[ii]);
+    //}
 
     // Step . Free memory
     free(neigh_bin_idxs);

@@ -630,7 +630,7 @@ int* BinLinkedList<CoordType>::get_neigh_bins(int atom_idx) const {
     // Step 1. 得到 atom_idx 所在的 bin_idx
     // Step 1.1. 得到 `atom_cart_coord`, `min_limit_xyz`
     const CoordType* atom_cart_coord = this->supercell.get_structure().get_cart_coords()[atom_idx];
-    printf("atom_cart_coord : [%f, %f, %f]\n", atom_cart_coord[0], atom_cart_coord[1], atom_cart_coord[2]);
+    printf("Inner: atom_cart_coord : [%f, %f, %f]\n", atom_cart_coord[0], atom_cart_coord[1], atom_cart_coord[2]);
     CoordType** limit_xyz = this->supercell.get_structure().get_limit_xyz();
     CoordType min_limit_xyz[3];
     min_limit_xyz[0] = limit_xyz[0][0];
@@ -641,7 +641,10 @@ int* BinLinkedList<CoordType>::get_neigh_bins(int atom_idx) const {
     int bin_idx_xyz[3];
     for (int ii=0; ii<3; ii++)
         bin_idx_xyz[ii] = std::floor( (atom_cart_coord[ii] - min_limit_xyz[ii]) / this->bin_size_xyz[ii] );
-    
+
+    printf("Inner: bin_idx = %d\n", bin_idx_xyz[0] + bin_idx_xyz[1] * this->num_bin_xyz[0] + bin_idx_xyz[2] * this->num_bin_xyz[0] * this->num_bin_xyz[1]);
+    printf("this->num_bins = [%d, %d, %d]\n\n", this->num_bin_xyz[0], this->num_bin_xyz[1], this->num_bin_xyz[2]);
+
     // Step 2. 由 `atom_idx` 的 `bin_idx_xyz[3]` 计算 `neigh_bin_idxs_xyz[num_neigh_bins][3]`
     int num_extened_neigh_bins[3];  // 沿 x,y,z 的正方向有多少个 neigh_bins
     for (int ii=0; ii<3; ii++)
@@ -662,14 +665,18 @@ int* BinLinkedList<CoordType>::get_neigh_bins(int atom_idx) const {
                 candidate_neigh_bin_idxs_xyz[neigh_bin_idx4loop][1] = bin_idx_xyz[1] + jj;
                 candidate_neigh_bin_idxs_xyz[neigh_bin_idx4loop][2] = bin_idx_xyz[2] + kk;
                 
+                //printf("shift_index_%d = [%d, %d, %d]\n", neigh_bin_idx4loop, ii, jj, kk);
+
                 // Step 2.2. 处理 pbc (wrap around)
                 for (int pp=0; pp<3; pp++) {
                     if (this->pbc_xyz[pp] == false) {   // 无周期性
                         neigh_bin_idxs_xyz[neigh_bin_idx4loop][pp] = candidate_neigh_bin_idxs_xyz[neigh_bin_idx4loop][pp];
                     } else {
-                        neigh_bin_idxs_xyz[neigh_bin_idx4loop][pp] = (candidate_neigh_bin_idxs_xyz[neigh_bin_idx4loop][pp] + this->num_bin_xyz[pp] ) % this->num_bin_xyz[pp];
+                        neigh_bin_idxs_xyz[neigh_bin_idx4loop][pp] = (candidate_neigh_bin_idxs_xyz[neigh_bin_idx4loop][pp] + this->num_bin_xyz[pp] ) % this->num_bin_xyz[pp];                        
                     }
                 }
+                //printf("this->num_bins_xyz[%d][3] = [%d, %d, %d]\n", this->num_bin_xyz[0], this->num_bin_xyz[1], this->num_bin_xyz[2]);                
+                //printf("neigh_bin_idxs_xyz[%d][3] = [%d, %d, %d]\n", neigh_bin_idxs_xyz[neigh_bin_idx4loop][0], neigh_bin_idxs_xyz[neigh_bin_idx4loop][1], neigh_bin_idxs_xyz[neigh_bin_idx4loop][2]);
 
                 neigh_bin_idx4loop++;
             }
@@ -680,16 +687,20 @@ int* BinLinkedList<CoordType>::get_neigh_bins(int atom_idx) const {
     int* neigh_bin_idxs = (int*)malloc(sizeof(int) * num_neigh_bins);
     for (int ii=0; ii<num_neigh_bins; ii++) {
         if (
-            neigh_bin_idxs_xyz[ii][0] > 0 && neigh_bin_idxs_xyz[ii][0] < this->num_bin_xyz[0] &&
-            neigh_bin_idxs_xyz[ii][1] > 0 && neigh_bin_idxs_xyz[ii][1] < this->num_bin_xyz[1] &&
-            neigh_bin_idxs_xyz[ii][2] > 0 && neigh_bin_idxs_xyz[ii][2] < this->num_bin_xyz[2] 
+            (neigh_bin_idxs_xyz[ii][0] >= 0) && (neigh_bin_idxs_xyz[ii][0] < this->num_bin_xyz[0]) &&
+            (neigh_bin_idxs_xyz[ii][1] >= 0) && (neigh_bin_idxs_xyz[ii][1] < this->num_bin_xyz[1]) &&
+            (neigh_bin_idxs_xyz[ii][2] >= 0) && (neigh_bin_idxs_xyz[ii][2] < this->num_bin_xyz[2]) 
         ) {     // non-pbc时，neigh_bin_idx_xyz 有可能超出边界。
+            //printf("%d, %d, %d, %d, %d, %d\n", neigh_bin_idxs_xyz[ii][0] > 0, neigh_bin_idxs_xyz[ii][0] < this->num_bin_xyz[0], neigh_bin_idxs_xyz[ii][1] > 0, neigh_bin_idxs_xyz[ii][1] < this->num_bin_xyz[1], neigh_bin_idxs_xyz[ii][2] > 0, neigh_bin_idxs_xyz[ii][2] < this->num_bin_xyz[2]);
+            printf("**neigh_bin_idxs_xyz[%d][3] = [%d, %d, %d]\n", ii, neigh_bin_idxs_xyz[ii][0], neigh_bin_idxs_xyz[ii][1], neigh_bin_idxs_xyz[ii][2]);
             neigh_bin_idxs[ii] = (
                 neigh_bin_idxs_xyz[ii][0] + 
                 neigh_bin_idxs_xyz[ii][1] * this->num_bin_xyz[0] + 
                 neigh_bin_idxs_xyz[ii][2] * this->num_bin_xyz[0] * this->num_bin_xyz[1]
             );
         } else {
+            printf("%d, %d, %d, %d, %d, %d\n", neigh_bin_idxs_xyz[ii][0] > 0, neigh_bin_idxs_xyz[ii][0] < this->num_bin_xyz[0], neigh_bin_idxs_xyz[ii][1] > 0, neigh_bin_idxs_xyz[ii][1] < this->num_bin_xyz[1], neigh_bin_idxs_xyz[ii][2] > 0, neigh_bin_idxs_xyz[ii][2] < this->num_bin_xyz[2]);
+            printf("****neigh_bin_idxs_xyz[%d][3] = [%d, %d, %d]\n", ii, neigh_bin_idxs_xyz[ii][0], neigh_bin_idxs_xyz[ii][1], neigh_bin_idxs_xyz[ii][2]);
             neigh_bin_idxs[ii] = -1;
         }
     }
