@@ -252,22 +252,22 @@ TEST_F(StructureArrayTest, get_projected_lengths) {
 
     // Step 3. 判断
     // Step 3.1. Way 1
-    EXPECT_EQ(
+    EXPECT_DOUBLE_EQ(
         projected_lengths[0], 
         std::abs(basis_vectors[0][0]) + std::abs(basis_vectors[1][0]) + std::abs(basis_vectors[2][0])
     );
-    EXPECT_EQ(
+    EXPECT_DOUBLE_EQ(
         projected_lengths[1],
         std::abs(basis_vectors[0][1]) + std::abs(basis_vectors[1][1]) + std::abs(basis_vectors[1][2])
     );
-    EXPECT_EQ(
+    EXPECT_DOUBLE_EQ(
         projected_lengths[2],
         std::abs(basis_vectors[0][2]) + std::abs(basis_vectors[1][2]) + std::abs(basis_vectors[2][2])
     );
     // Step 3.2. Way 2
-    EXPECT_EQ(standard_projected_lengths[0], projected_lengths[0]);
-    EXPECT_EQ(standard_projected_lengths[1], projected_lengths[1]);
-    EXPECT_EQ(standard_projected_lengths[2], projected_lengths[2]);
+    EXPECT_DOUBLE_EQ(standard_projected_lengths[0], projected_lengths[0]);
+    EXPECT_DOUBLE_EQ(standard_projected_lengths[1], projected_lengths[1]);
+    EXPECT_DOUBLE_EQ(standard_projected_lengths[2], projected_lengths[2]);
 
     // Step . Free memory
     free(projected_lengths);
@@ -287,13 +287,12 @@ TEST_F(StructureArrayTest, get_projected_lengths4supercell) {
     structure.make_supercell(scaling_matrix);
     double* projected_lengths = structure.get_projected_lengths();
 
-    // Step 1. 手动计算计算 MoS2 的 `standard_projected_lengths`
-    matersdk::Structure<double> prim_structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    // Step 1. 使用 `limit_xyz` 计算 `standard_projected_lengths`
     double* standard_projected_lengths = (double*)malloc(sizeof(double) * 3);
-    const double** prim_basis_vector = prim_structure.get_basis_vectors();
-    standard_projected_lengths[0] = std::abs(prim_basis_vector[1][0]) * 3 + std::abs(prim_basis_vector[0][0] * 3);
-    standard_projected_lengths[1] = std::abs(prim_basis_vector[0][1] * 3);
-    standard_projected_lengths[2] = std::abs(prim_basis_vector[2][2]);
+    double** limit_xyz = structure.get_limit_xyz();
+    for (int ii=0; ii<3; ii++) {
+        standard_projected_lengths[ii] = limit_xyz[ii][1] - limit_xyz[ii][0];
+    }
 
     EXPECT_EQ(projected_lengths[0], standard_projected_lengths[0]);
     EXPECT_EQ(projected_lengths[1], standard_projected_lengths[1]);
@@ -301,6 +300,10 @@ TEST_F(StructureArrayTest, get_projected_lengths4supercell) {
 
     // Step . Free memory
     free(projected_lengths);
+    for (int ii=0; ii<3; ii++) {
+        free(limit_xyz[ii]);
+    }
+    free(limit_xyz);
 }
 
 
@@ -349,14 +352,82 @@ TEST_F(StructureArrayTest, get_pseudo_origin) {
 }
 
 
+TEST_F(StructureArrayTest, get_pseudo_origin4supercell) {
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    int scaling_matrix[3] = {3, 3, 1};
+    // Note: structure.make_supercell(scaling_matrix) 之后，`prim_basis_vectors_` 也会发生变化
+    const double** prim_basis_vectors_ = structure.get_basis_vectors();
+    double prim_basis_vectors[3][3];
+    for (int ii=0; ii<3; ii++) {
+        for (int jj=0; jj<3; jj++) {
+            prim_basis_vectors[ii][jj] = prim_basis_vectors_[ii][jj];
+        }
+    }
+
+    // Step 1. make_supercell
+    structure.make_supercell(scaling_matrix);
+    // Step 1.1. 
+    const double* pseudo_origin = structure.get_pseudo_origin();
+
+    // Step 2. 
+    // Step 2.1. 根据 `scaling_matrix` 获取 `range`
+    int range[3][2];
+    for (int ii=0; ii<3; ii++) {
+        if (scaling_matrix[ii] % 2 ==0) {   // 偶数
+            range[ii][0] = -(scaling_matrix[ii] / 2 - 1);
+            range[ii][1] = scaling_matrix[ii] / 2;
+        } else {    // 奇数
+            range[ii][0] = -(scaling_matrix[ii] - 1) / 2;
+            range[ii][1] = (scaling_matrix[ii] - 1) / 2;
+        }
+    }
+
+    // Step 2.2. 得到 `standard_pseudo_origin`
+    double standard_pseudo_origin[3];
+    for (int ii=0; ii<3; ii++) {
+        standard_pseudo_origin[ii] = (
+            range[0][0] * prim_basis_vectors[0][ii] + 
+            range[1][0] * prim_basis_vectors[1][ii] + 
+            range[2][0] * prim_basis_vectors[2][ii]
+        );
+    }
+
+    //printf("pseudo_origin = [%f, %f, %f]\n", pseudo_origin[0], pseudo_origin[1], pseudo_origin[2]);
+    //printf("standard_pseudo_origin = [%f, %f, %f]\n", standard_pseudo_origin[0], standard_pseudo_origin[1], standard_pseudo_origin[2]);
+    EXPECT_DOUBLE_EQ(pseudo_origin[0], standard_pseudo_origin[0]);
+    EXPECT_DOUBLE_EQ(pseudo_origin[1], standard_pseudo_origin[1]);
+    EXPECT_DOUBLE_EQ(pseudo_origin[2], standard_pseudo_origin[2]);
+}
+
+
 TEST_F(StructureArrayTest, get_vertexes) {
     // Step 1.
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
     double** vertexes = structure.get_vertexes();
     
+    printf("scaling_matrix[3] = {1, 1, 1}. Primitive cell's Vertexes:\n");
     for (int ii=0; ii<8; ii++)
-        printf("[%f, %f, %f]\n", vertexes[ii][0], vertexes[ii][1], vertexes[ii][2]);
+        printf("\t[%f, %f, %f]\n", vertexes[ii][0], vertexes[ii][1], vertexes[ii][2]);
     
+    // Step . Free memory
+    for (int ii=0; ii<8; ii++) {
+        free(vertexes[ii]);
+    }
+    free(vertexes);
+}
+
+
+TEST_F(StructureArrayTest, get_vertexes4supercell) {
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    int scaling_matix[3] = {3, 3, 1};
+    structure.make_supercell(scaling_matix);
+    
+    double** vertexes = structure.get_vertexes();
+    printf("scaling_matrix[3] = {3, 3, 1}. Supercell's Vertexes:\n");
+    for (int ii=0; ii<8; ii++) {
+        printf("\t[%f, %f, %f]\n", vertexes[ii][0], vertexes[ii][1], vertexes[ii][2]);
+    }
+
     // Step . Free memory
     for (int ii=0; ii<8; ii++) {
         free(vertexes[ii]);
@@ -369,9 +440,28 @@ TEST_F(StructureArrayTest, get_limit_xyz) {
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
     double** limit_xyz = structure.get_limit_xyz();
 
-    printf("[%f, %f]\n", limit_xyz[0][0], limit_xyz[0][1]);
-    printf("[%f, %f]\n", limit_xyz[1][0], limit_xyz[1][1]);
-    printf("[%f, %f]\n", limit_xyz[2][0], limit_xyz[2][1]);
+    printf("scaling_matrix[3] = {1, 1, 1}. Primitive cell's limit_xyz:\n");
+    printf("\t[%f, %f]\n", limit_xyz[0][0], limit_xyz[0][1]);
+    printf("\t[%f, %f]\n", limit_xyz[1][0], limit_xyz[1][1]);
+    printf("\t[%f, %f]\n", limit_xyz[2][0], limit_xyz[2][1]);
+
+    for (int ii=0; ii<3; ii++) {
+        free(limit_xyz[ii]);
+    }
+    free(limit_xyz);
+}
+
+
+TEST_F(StructureArrayTest, get_limit_xyz4supercell) {
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    int scaling_matrix[3] = {3, 3, 1};
+    structure.make_supercell(scaling_matrix);
+    double** limit_xyz = structure.get_limit_xyz();
+
+    printf("scaling_matrix[3] = {3, 3, 1}. Primitive cell's limit_xyz:\n");
+    printf("\t[%f, %f]\n", limit_xyz[0][0], limit_xyz[0][1]);
+    printf("\t[%f, %f]\n", limit_xyz[1][0], limit_xyz[1][1]);
+    printf("\t[%f, %f]\n", limit_xyz[2][0], limit_xyz[2][1]);
 
     for (int ii=0; ii<3; ii++) {
         free(limit_xyz[ii]);
