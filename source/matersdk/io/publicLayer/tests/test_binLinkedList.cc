@@ -550,10 +550,10 @@ protected:
         frac_coords[11][1] = 0.833333333333;
         frac_coords[11][2] = 0.567656723452;
 
-        rcut = 3.0;
-        bin_size_xyz[0] = 3.0;
-        bin_size_xyz[1] = 3.0;
-        bin_size_xyz[2] = 3.0;
+        rcut = 3.2;
+        bin_size_xyz[0] = 2.8;
+        bin_size_xyz[1] = 2.8;
+        bin_size_xyz[2] = 2.8;
         pbc_xyz[0] = true;
         pbc_xyz[1] = true;
         pbc_xyz[2] = false;
@@ -590,10 +590,10 @@ TEST_F(BinLinkedListTest, constructor_1_case_1) {
         if (pbc_xyz[ii] != true) 
             standard_scaling_matrix[ii] = 1;
     }
-
     EXPECT_EQ(scaling_matrix[0], standard_scaling_matrix[0]);
     EXPECT_EQ(scaling_matrix[1], standard_scaling_matrix[1]);
     EXPECT_EQ(scaling_matrix[2], standard_scaling_matrix[2]);
+
 
     // Step 2. 验证 `num_bin_xyz`
     const int* num_bin_xyz = bin_linked_list.get_num_bin_xyz();
@@ -617,10 +617,10 @@ TEST_F(BinLinkedListTest, constructor_1_case_1) {
 
 
 TEST_F(BinLinkedListTest, get_bin_size) {
-    rcut = 3.0;
-    bin_size_xyz[0] = 3.0;
-    bin_size_xyz[1] = 3.0;
-    bin_size_xyz[2] = 3.0;
+    rcut = 3.2;
+    bin_size_xyz[0] = 2.8;
+    bin_size_xyz[1] = 2.8;
+    bin_size_xyz[2] = 2.8;
     pbc_xyz[0] = true;
     pbc_xyz[1] = true;
     pbc_xyz[2] = false;
@@ -637,14 +637,14 @@ TEST_F(BinLinkedListTest, get_bin_size) {
 
 
 TEST_F(BinLinkedListTest, get_bin_idx) {
-    rcut = 3.0;
-    bin_size_xyz[0] = 3.0;
-    bin_size_xyz[1] = 3.0;
-    bin_size_xyz[2] = 3.0;
+    rcut = 3.2;
+    bin_size_xyz[0] = 2.8;
+    bin_size_xyz[1] = 2.8;
+    bin_size_xyz[2] = 2.8;
     pbc_xyz[0] = true;
     pbc_xyz[1] = true;
     pbc_xyz[2] = false;
-    int prim_atom_idx = 0;
+    int prim_atom_idx = 3;
 
     // Step 1. 得到 `bin_idx`
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
@@ -653,14 +653,14 @@ TEST_F(BinLinkedListTest, get_bin_idx) {
 
     // Step 2. 得到 `num_bin_xyz`
     const int* num_bin_xyz = bin_linked_list.get_num_bin_xyz();
-    printf("num_bin_xyz = [%d, %d, %d]\n", num_bin_xyz[0], num_bin_xyz[1], num_bin_xyz[2]);
+    //printf("num_bin_xyz = [%d, %d, %d]\n", num_bin_xyz[0], num_bin_xyz[1], num_bin_xyz[2]);
 
     // Step 3. 得到 `bin_idx_xyz`
     int bin_idx_xyz[3];
     bin_idx_xyz[0] = bin_idx % num_bin_xyz[0];
     bin_idx_xyz[1] = (bin_idx / num_bin_xyz[0]) % num_bin_xyz[1];
     bin_idx_xyz[2] = bin_idx / (num_bin_xyz[0] * num_bin_xyz[1]);
-    printf("bin_idx_xyz = [%d, %d, %d]\n", bin_idx_xyz[0], bin_idx_xyz[1], bin_idx_xyz[2]);
+    //printf("bin_idx_xyz = [%d, %d, %d]\n", bin_idx_xyz[0], bin_idx_xyz[1], bin_idx_xyz[2]);
 
     // Step 4.
     // Step 4.1. 得到 `cart_coords[atom_idx]` -- `atom_idx` 对应 `prim_atom_idx`
@@ -676,7 +676,12 @@ TEST_F(BinLinkedListTest, get_bin_idx) {
     standard_bin_idx_xyz[0] = ( cart_coord[0] - min_limit_xyz[0] ) / bin_size_xyz[0];
     standard_bin_idx_xyz[1] = ( cart_coord[1] - min_limit_xyz[1] ) / bin_size_xyz[1];
     standard_bin_idx_xyz[2] = ( cart_coord[2] - min_limit_xyz[2] ) / bin_size_xyz[2];
-    printf("standard_bin_idx_xyz = [%d, %d, %d]\n", standard_bin_idx_xyz[0], standard_bin_idx_xyz[1], standard_bin_idx_xyz[2]);
+    //printf("standard_bin_idx_xyz = [%d, %d, %d]\n", standard_bin_idx_xyz[0], standard_bin_idx_xyz[1], standard_bin_idx_xyz[2]);
+
+
+    EXPECT_EQ(bin_idx_xyz[0], standard_bin_idx_xyz[0]);
+    EXPECT_EQ(bin_idx_xyz[1], standard_bin_idx_xyz[1]);
+    EXPECT_EQ(bin_idx_xyz[2], standard_bin_idx_xyz[2]);
 
     // Step .Free memory
 }

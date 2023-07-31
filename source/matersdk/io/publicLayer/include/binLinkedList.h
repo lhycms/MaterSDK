@@ -118,11 +118,11 @@ public:
 
 
 private:
-    Supercell<CoordType> supercell;
-    CoordType rcut = 0;
-    CoordType bin_size_xyz[3];
-    int num_bin_xyz[3];
-    CoordType min_limit_xyz[3];
+    Supercell<CoordType> supercell;             // 超胞 `matersdk::Supercell 对象`
+    CoordType rcut = 0;                         // 截断半径
+    CoordType bin_size_xyz[3] = {0, 0, 0};      // bin 在 x, y, z 方向上的尺寸
+    int num_bin_xyz[3] = {0, 0, 0};             // bin 在 x, y, z 方向上的数量
+    CoordType min_limit_xyz[3] = {0, 0, 0};     // box 在 x, y, z 方向上的最小坐标值
     int* heads_lst;
     int* nexts_lst;
 
@@ -503,6 +503,10 @@ const int* Supercell<CoordType>::get_owned_atom_idxs() const {
 }
 
 
+
+
+
+
 /**
  * @brief Construct a new Bin Linked List< Coord Type>:: Bin Linked List object
  * 
@@ -512,7 +516,6 @@ template <typename CoordType>
 BinLinkedList<CoordType>::BinLinkedList() {
 
 }
-
 
 
 /**
@@ -617,7 +620,6 @@ const Supercell<CoordType>& BinLinkedList<CoordType>::get_supercell() const {
 
 template <typename CoordType>
 const CoordType* BinLinkedList<CoordType>::get_bin_size_xyz() const {
-    printf("Inner: bin_size_xyz -- [%f, %f, %f]\n", this->bin_size_xyz[0], this->bin_size_xyz[1], this->bin_size_xyz[2]);
     return (const CoordType*)(this->bin_size_xyz);
 }
 

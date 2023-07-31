@@ -231,6 +231,8 @@ TEST_F(StructureArrayTest, get_cart_coords) {
 
 TEST_F(StructureArrayTest, get_projected_lengths) {
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    
+    // Step 1. 得到 `projected_lengths`
     double* projected_lengths = structure.get_projected_lengths();
     const double** basis_vectors = structure.get_basis_vectors();
     //printf("basis_vectors:\n");
@@ -240,6 +242,16 @@ TEST_F(StructureArrayTest, get_projected_lengths) {
     //printf("projected_lengths:\n");
     //printf("[%15f, %15f, %15f]\n", projected_lengths[0], projected_lengths[1], projected_lengths[2]);
 
+
+    // Step 2. 得到 `standard_projected_lengths`
+    double* standard_projected_lengths = (double*)malloc(sizeof(double) * 3);
+    double** limit_xyz = structure.get_limit_xyz();
+    standard_projected_lengths[0] = limit_xyz[0][1] - limit_xyz[0][0];
+    standard_projected_lengths[1] = limit_xyz[1][1] - limit_xyz[1][0];
+    standard_projected_lengths[2] = limit_xyz[2][1] - limit_xyz[2][0];
+
+    // Step 3. 判断
+    // Step 3.1. Way 1
     EXPECT_EQ(
         projected_lengths[0], 
         std::abs(basis_vectors[0][0]) + std::abs(basis_vectors[1][0]) + std::abs(basis_vectors[2][0])
@@ -252,8 +264,17 @@ TEST_F(StructureArrayTest, get_projected_lengths) {
         projected_lengths[2],
         std::abs(basis_vectors[0][2]) + std::abs(basis_vectors[1][2]) + std::abs(basis_vectors[2][2])
     );
+    // Step 3.2. Way 2
+    EXPECT_EQ(standard_projected_lengths[0], projected_lengths[0]);
+    EXPECT_EQ(standard_projected_lengths[1], projected_lengths[1]);
+    EXPECT_EQ(standard_projected_lengths[2], projected_lengths[2]);
 
+    // Step . Free memory
     free(projected_lengths);
+    free(standard_projected_lengths);
+    for (int ii=0; ii<3; ii++) 
+        free(limit_xyz[ii]);
+    free(limit_xyz);
 
     matersdk::Structure<double> structure_2;
     EXPECT_EQ(structure_2.get_projected_lengths(), nullptr);
