@@ -108,6 +108,8 @@ public:
 
     int get_bin_idx(int prim_atom_idx) const;
 
+    int* get_neigh_bins(int atom_idx) const;
+
     const Supercell<CoordType>& get_supercell() const;
 
     const CoordType* get_bin_size_xyz() const;
@@ -116,11 +118,11 @@ public:
 
     const CoordType* get_min_limit_xyz() const;
 
-
 private:
     Supercell<CoordType> supercell;             // 超胞 `matersdk::Supercell 对象`
     CoordType rcut = 0;                         // 截断半径
     CoordType bin_size_xyz[3] = {0, 0, 0};      // bin 在 x, y, z 方向上的尺寸
+    bool pbc_xyz[3] = {false, false, false};
     int num_bin_xyz[3] = {0, 0, 0};             // bin 在 x, y, z 方向上的数量
     CoordType min_limit_xyz[3] = {0, 0, 0};     // box 在 x, y, z 方向上的最小坐标值
     int* heads_lst;
@@ -534,13 +536,16 @@ BinLinkedList<CoordType>::BinLinkedList(Structure<CoordType>& structure, CoordTy
     this->bin_size_xyz[0] = bin_size_xyz[0];
     this->bin_size_xyz[1] = bin_size_xyz[1];
     this->bin_size_xyz[2] = bin_size_xyz[2];
+    this->pbc_xyz[0] = pbc_xyz[0];
+    this->pbc_xyz[1] = pbc_xyz[1];
+    this->pbc_xyz[2] = pbc_xyz[2];
     CoordType* prim_interplanar_distances = (CoordType*)structure.get_interplanar_distances();
     int* scaling_matrix = (int*)malloc(sizeof(int) * 3);
     int* extending_matrix = (int*)malloc(sizeof(int) * 3);
     for (int ii=0; ii<3; ii++) {
         extending_matrix[ii] = std::ceil(rcut / prim_interplanar_distances[ii]);
         scaling_matrix[ii] = extending_matrix[ii] * 2 + 1;
-        if (pbc_xyz[ii] == false) {
+        if (this->pbc_xyz[ii] == false) {
             scaling_matrix[ii] = 1;
         }
     }
@@ -609,6 +614,89 @@ int BinLinkedList<CoordType>::get_bin_idx(int prim_atom_idx) const {
         bin_idx_xyz[1] * this->num_bin_xyz[0] + 
         bin_idx_xyz[2] * this->num_bin_xyz[0] * this->num_bin_xyz[1]
     );
+}
+
+
+
+/**
+ * @brief Get neighbor bin's index(int) given atom_idx
+ * 
+ * @tparam CoordType 
+ * @param atom_idx 
+ * @return int* 
+ */
+template <typename CoordType>
+int* BinLinkedList<CoordType>::get_neigh_bins(int atom_idx) const {
+    // Step 1. 得到 atom_idx 所在的 bin_idx
+    // Step 1.1. 得到 `atom_cart_coord`, `min_limit_xyz`
+    const CoordType* atom_cart_coord = this->supercell.get_structure().get_cart_coords()[atom_idx];
+    printf("atom_cart_coord : [%f, %f, %f]\n", atom_cart_coord[0], atom_cart_coord[1], atom_cart_coord[2]);
+    CoordType** limit_xyz = this->supercell.get_structure().get_limit_xyz();
+    CoordType min_limit_xyz[3];
+    min_limit_xyz[0] = limit_xyz[0][0];
+    min_limit_xyz[1] = limit_xyz[1][0];
+    min_limit_xyz[2] = limit_xyz[2][0];
+
+    // Step 1.2. 计算 atom_idx 的 bin_idx_xyz[3]
+    int bin_idx_xyz[3];
+    for (int ii=0; ii<3; ii++)
+        bin_idx_xyz[ii] = std::floor( (atom_cart_coord[ii] - min_limit_xyz[ii]) / this->bin_size_xyz[ii] );
+    
+    // Step 2. 由 `atom_idx` 的 `bin_idx_xyz[3]` 计算 `neigh_bin_idxs_xyz[num_neigh_bins][3]`
+    int num_extened_neigh_bins[3];  // 沿 x,y,z 的正方向有多少个 neigh_bins
+    for (int ii=0; ii<3; ii++)
+        num_extened_neigh_bins[ii] = std::ceil(this->rcut / this->bin_size_xyz[ii]);
+    int num_neigh_bins = (
+                ( 2 * num_extened_neigh_bins[0] + 1 ) *
+                ( 2 * num_extened_neigh_bins[1] + 1 ) * 
+                ( 2 * num_extened_neigh_bins[2] + 1 )
+    );
+    int neigh_bin_idxs_xyz[num_neigh_bins][3];
+    int candidate_neigh_bin_idxs_xyz[num_neigh_bins][3];    // 未处理周期性
+    int neigh_bin_idx4loop = 0;     // 用于在循环中赋值，并不是实际的 `bin index`
+    for (int ii=-num_extened_neigh_bins[0]; ii<=num_extened_neigh_bins[0]; ii++) {
+        for (int jj=-num_extened_neigh_bins[1]; jj<=num_extened_neigh_bins[1]; jj++) {
+            for (int kk=-num_extened_neigh_bins[2]; kk<=num_extened_neigh_bins[2]; kk++) {
+                // Step 2.1. 未处理 pbc
+                candidate_neigh_bin_idxs_xyz[neigh_bin_idx4loop][0] = bin_idx_xyz[0] + ii;
+                candidate_neigh_bin_idxs_xyz[neigh_bin_idx4loop][1] = bin_idx_xyz[1] + jj;
+                candidate_neigh_bin_idxs_xyz[neigh_bin_idx4loop][2] = bin_idx_xyz[2] + kk;
+                
+                // Step 2.2. 处理 pbc (wrap around)
+                for (int pp=0; pp<3; pp++) {
+                    if (this->pbc_xyz[pp] == false) {   // 无周期性
+                        neigh_bin_idxs_xyz[neigh_bin_idx4loop][pp] = candidate_neigh_bin_idxs_xyz[neigh_bin_idx4loop][pp];
+                    } else {
+                        neigh_bin_idxs_xyz[neigh_bin_idx4loop][pp] = (candidate_neigh_bin_idxs_xyz[neigh_bin_idx4loop][pp] + this->num_bin_xyz[pp] ) % this->num_bin_xyz[pp];
+                    }
+                }
+
+                neigh_bin_idx4loop++;
+            }
+        }
+    }
+    
+    // Step 3. 由 `neigh_bin_idxs_xyz[num_neigh_bins][3]` 计算 `neigh_bin_idxs[num_neigh_bins]`
+    int* neigh_bin_idxs = (int*)malloc(sizeof(int) * num_neigh_bins);
+    for (int ii=0; ii<num_neigh_bins; ii++) {
+        if (
+            neigh_bin_idxs_xyz[ii][0] > 0 && neigh_bin_idxs_xyz[ii][0] < this->num_bin_xyz[0] &&
+            neigh_bin_idxs_xyz[ii][1] > 0 && neigh_bin_idxs_xyz[ii][1] < this->num_bin_xyz[1] &&
+            neigh_bin_idxs_xyz[ii][2] > 0 && neigh_bin_idxs_xyz[ii][2] < this->num_bin_xyz[2] 
+        ) {     // non-pbc时，neigh_bin_idx_xyz 有可能超出边界。
+            neigh_bin_idxs[ii] = (
+                neigh_bin_idxs_xyz[ii][0] + 
+                neigh_bin_idxs_xyz[ii][1] * this->num_bin_xyz[0] + 
+                neigh_bin_idxs_xyz[ii][2] * this->num_bin_xyz[0] * this->num_bin_xyz[1]
+            );
+        } else {
+            neigh_bin_idxs[ii] = -1;
+        }
+    }
+
+    // Step . Free memory
+
+    return neigh_bin_idxs;
 }
 
 
