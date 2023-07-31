@@ -2,6 +2,7 @@
 #define MATERSDK_BIN_LINKED_LIST_H
 
 
+#include <cassert>
 #include "./structure.h"
 #include "../../../../core/include/vec3Operation.h"
 
@@ -108,7 +109,7 @@ public:
 
     int get_bin_idx(int prim_atom_idx) const;
 
-    int* get_neigh_bins(int atom_idx) const;
+    int* get_neigh_bins(int prim_atom_idx) const;
 
     const Supercell<CoordType>& get_supercell() const;
 
@@ -626,24 +627,23 @@ int BinLinkedList<CoordType>::get_bin_idx(int prim_atom_idx) const {
  * @return int* 
  */
 template <typename CoordType>
-int* BinLinkedList<CoordType>::get_neigh_bins(int atom_idx) const {
+int* BinLinkedList<CoordType>::get_neigh_bins(int prim_atom_idx) const {
     // Step 1. 得到 atom_idx 所在的 bin_idx
-    // Step 1.1. 得到 `atom_cart_coord`, `min_limit_xyz`
+    // Step 1.1.
+    assert(prim_atom_idx < this->supercell.get_prim_num_atoms());
+    int atom_idx = prim_atom_idx + this->supercell.get_prim_cell_idx() * this->supercell.get_prim_num_atoms();
+    // Step 1.2. 得到 `atom_cart_coord`, `min_limit_xyz`
     const CoordType* atom_cart_coord = this->supercell.get_structure().get_cart_coords()[atom_idx];
-    printf("Inner: atom_cart_coord : [%f, %f, %f]\n", atom_cart_coord[0], atom_cart_coord[1], atom_cart_coord[2]);
     CoordType** limit_xyz = this->supercell.get_structure().get_limit_xyz();
     CoordType min_limit_xyz[3];
     min_limit_xyz[0] = limit_xyz[0][0];
     min_limit_xyz[1] = limit_xyz[1][0];
     min_limit_xyz[2] = limit_xyz[2][0];
 
-    // Step 1.2. 计算 atom_idx 的 bin_idx_xyz[3]
+    // Step 1.3. 计算 atom_idx 的 bin_idx_xyz[3]
     int bin_idx_xyz[3];
     for (int ii=0; ii<3; ii++)
         bin_idx_xyz[ii] = std::floor( (atom_cart_coord[ii] - min_limit_xyz[ii]) / this->bin_size_xyz[ii] );
-
-    printf("Inner: bin_idx = %d\n", bin_idx_xyz[0] + bin_idx_xyz[1] * this->num_bin_xyz[0] + bin_idx_xyz[2] * this->num_bin_xyz[0] * this->num_bin_xyz[1]);
-    printf("this->num_bins = [%d, %d, %d]\n\n", this->num_bin_xyz[0], this->num_bin_xyz[1], this->num_bin_xyz[2]);
 
     // Step 2. 由 `atom_idx` 的 `bin_idx_xyz[3]` 计算 `neigh_bin_idxs_xyz[num_neigh_bins][3]`
     int num_extened_neigh_bins[3];  // 沿 x,y,z 的正方向有多少个 neigh_bins
@@ -692,15 +692,12 @@ int* BinLinkedList<CoordType>::get_neigh_bins(int atom_idx) const {
             (neigh_bin_idxs_xyz[ii][2] >= 0) && (neigh_bin_idxs_xyz[ii][2] < this->num_bin_xyz[2]) 
         ) {     // non-pbc时，neigh_bin_idx_xyz 有可能超出边界。
             //printf("%d, %d, %d, %d, %d, %d\n", neigh_bin_idxs_xyz[ii][0] > 0, neigh_bin_idxs_xyz[ii][0] < this->num_bin_xyz[0], neigh_bin_idxs_xyz[ii][1] > 0, neigh_bin_idxs_xyz[ii][1] < this->num_bin_xyz[1], neigh_bin_idxs_xyz[ii][2] > 0, neigh_bin_idxs_xyz[ii][2] < this->num_bin_xyz[2]);
-            printf("**neigh_bin_idxs_xyz[%d][3] = [%d, %d, %d]\n", ii, neigh_bin_idxs_xyz[ii][0], neigh_bin_idxs_xyz[ii][1], neigh_bin_idxs_xyz[ii][2]);
             neigh_bin_idxs[ii] = (
                 neigh_bin_idxs_xyz[ii][0] + 
                 neigh_bin_idxs_xyz[ii][1] * this->num_bin_xyz[0] + 
                 neigh_bin_idxs_xyz[ii][2] * this->num_bin_xyz[0] * this->num_bin_xyz[1]
             );
         } else {
-            printf("%d, %d, %d, %d, %d, %d\n", neigh_bin_idxs_xyz[ii][0] > 0, neigh_bin_idxs_xyz[ii][0] < this->num_bin_xyz[0], neigh_bin_idxs_xyz[ii][1] > 0, neigh_bin_idxs_xyz[ii][1] < this->num_bin_xyz[1], neigh_bin_idxs_xyz[ii][2] > 0, neigh_bin_idxs_xyz[ii][2] < this->num_bin_xyz[2]);
-            printf("****neigh_bin_idxs_xyz[%d][3] = [%d, %d, %d]\n", ii, neigh_bin_idxs_xyz[ii][0], neigh_bin_idxs_xyz[ii][1], neigh_bin_idxs_xyz[ii][2]);
             neigh_bin_idxs[ii] = -1;
         }
     }

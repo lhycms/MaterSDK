@@ -688,23 +688,40 @@ TEST_F(BinLinkedListTest, get_bin_idx) {
 
 
 TEST_F(BinLinkedListTest, get_neigh_bins) {
-    rcut = 6.0;
+    rcut = 9.0;
     bin_size_xyz[0] = 3.0;
     bin_size_xyz[1] = 3.0;
     bin_size_xyz[2] = 3.0;
     pbc_xyz[0] = true;
     pbc_xyz[1] = true;
-    pbc_xyz[2] = true;
+    pbc_xyz[2] = false;
 
-    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
-    printf("atom_coord_11 = [%f, %f, %f]\n", structure.get_cart_coords()[11][0], structure.get_cart_coords()[11][1], structure.get_cart_coords()[11][2]);
-    
+    // Step 1. 初始化 structure, bin_linked_list
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);    
     matersdk::BinLinkedList<double> bin_linked_list(structure, rcut, bin_size_xyz, pbc_xyz);
 
-    int* neigh_bin_idxs = bin_linked_list.get_neigh_bins(59);
-    //for (int ii=0; ii<125; ii++) {
-    //     printf("%d\n", neigh_bin_idxs[ii]);
-    //}
+    // Step 1.1. 得到 prim_atom_idx 对应的 atom_idx
+    int center_bin_idx = bin_linked_list.get_bin_idx(0);
+    printf("center_bin_idx = %d\n", center_bin_idx);
+
+    // Step 1.2. 得到 prim_atom_idx 对应的 atom_idx 的所有近邻 bins
+    int summation = 0;
+    int* neigh_bin_idxs = bin_linked_list.get_neigh_bins(0);
+    int exist_neigh_bin_idxs[7];
+    exist_neigh_bin_idxs[0] = center_bin_idx - 3;
+    exist_neigh_bin_idxs[1] = center_bin_idx - 2;
+    exist_neigh_bin_idxs[2] = center_bin_idx - 1;
+    exist_neigh_bin_idxs[3] = center_bin_idx;
+    exist_neigh_bin_idxs[4] = center_bin_idx + 1;
+    exist_neigh_bin_idxs[5] = center_bin_idx + 2;
+    exist_neigh_bin_idxs[6] = center_bin_idx + 3;
+    for (int ii=0; ii<343; ii++) {
+        for (int jj=0; jj<7; jj++) {
+            if (neigh_bin_idxs[ii] == exist_neigh_bin_idxs[jj])
+                summation++;
+        }
+    }
+    EXPECT_EQ(summation, 7);
 
     // Step . Free memory
     free(neigh_bin_idxs);
