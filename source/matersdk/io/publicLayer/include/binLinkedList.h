@@ -2,6 +2,7 @@
 #define MATERSDK_BIN_LINKED_LIST_H
 
 
+#include <vector>
 #include <cassert>
 #include "./structure.h"
 #include "../../../../core/include/vec3Operation.h"
@@ -105,9 +106,15 @@ public:
 
     // ~BinLinkedList();
 
+    void _build();
+
     int get_bin_idx(int prim_atom_idx) const;
 
+    int get_num_neigh_bins() const;
+
     int* get_neigh_bins(int prim_atom_idx) const;
+
+    std::vector<int> get_neigh_atoms(int prim_atom_idx) const;  // Unfinished!
 
     void show() const;
 
@@ -126,8 +133,8 @@ private:
     bool pbc_xyz[3] = {false, false, false};
     int num_bin_xyz[3] = {0, 0, 0};             // bin 在 x, y, z 方向上的数量
     CoordType min_limit_xyz[3] = {0, 0, 0};     // box 在 x, y, z 方向上的最小坐标值
-    int* heads_lst;
-    int* nexts_lst;
+    int* heads_lst;                             // length = number of bins.
+    int* nexts_lst;                             // length = number of atoms in supercell.
 
 };  // class BinLinkedList
 
@@ -633,6 +640,43 @@ BinLinkedList<CoordType>::~BinLinkedList() {
 */
 
 
+
+/**
+ * @brief Build the `BinLinkedList`, populate `this->heads_lst` and `this->nexts_lst`.
+ * 
+ * @tparam CoordType 
+ */
+template <typename CoordType>
+void BinLinkedList<CoordType>::_build() {
+    // Step 1. Allocate memory for `this->heads_lst`, `this->nexts_lst` and assign all elements as `-1`.
+    this->heads_lst = (int*)malloc(sizeof(int) * this->num_bin_xyz[0] * this->num_bin_xyz[1] * this->num_bin_xyz[2]);
+    this->nexts_lst = (int*)malloc(sizeof(int) * this->supercell.get_num_atoms());
+    for (int ii=0; ii<this->num_bin_xyz[0]*this->num_bin_xyz[1]*this->num_bin_xyz[2]; ii++) {
+        this->heads_lst[ii] = -1;
+    }
+    for (int ii=0; ii<this->supercell.get_num_atoms(); ii++) {
+        this->nexts_lst[ii] = -1;
+    }
+
+    // Step 2. Populate the `this->heads_lst`, `this->nexts_lst`
+    int tmp_bin_idx_xyz[3];
+    int tmp_bin_idx;
+    for (int ii=0; ii<this->supercell.get_num_atoms(); ii++) {
+        const CoordType* atom_coord = this->supercell.get_structure().get_cart_coords()[ii];
+        tmp_bin_idx_xyz[0] = std::floor( (atom_coord[0] - this->min_limit_xyz[0]) / this->bin_size_xyz[0] );
+        tmp_bin_idx_xyz[1] = std::floor( (atom_coord[1] - this->min_limit_xyz[1]) / this->bin_size_xyz[1] );
+        tmp_bin_idx_xyz[2] = std::floor( (atom_coord[2] - this->min_limit_xyz[2]) / this->bin_size_xyz[2] );
+        tmp_bin_idx = (
+            tmp_bin_idx_xyz[0] + 
+            tmp_bin_idx_xyz[1] * this->num_bin_xyz[0] + 
+            tmp_bin_idx_xyz[2] * this->num_bin_xyz[0] * this->num_bin_xyz[1]
+        );
+        this->nexts_lst[ii] = this->heads_lst[tmp_bin_idx];
+        this->heads_lst[tmp_bin_idx] = ii;
+    }
+}
+
+
 /**
  * @brief 
  *          S1. 找到 prim_atom_idx 在 `center_cell` 中对应的 `atom_idx`
@@ -659,6 +703,30 @@ int BinLinkedList<CoordType>::get_bin_idx(int prim_atom_idx) const {
         bin_idx_xyz[1] * this->num_bin_xyz[0] + 
         bin_idx_xyz[2] * this->num_bin_xyz[0] * this->num_bin_xyz[1]
     );
+}
+
+
+
+/**
+ * @brief 得到 neigh_bins 的数量
+ * 
+ * @tparam CoordType 
+ * @return int 
+ */
+template <typename CoordType>
+int BinLinkedList<CoordType>::get_num_neigh_bins() const {
+    int num_extend_neigh_bins[3]; // 沿 x,y,z 的正方向有多少个 neigh_bins
+    for (int ii=0; ii<3; ii++) {
+        num_extend_neigh_bins[ii] = std::ceil(this->rcut / this->bin_size_xyz[ii]);
+    }
+
+    int num_neigh_bins = (
+            ( 2 * num_extend_neigh_bins[0] + 1 ) *
+            ( 2 * num_extend_neigh_bins[1] + 1 ) *
+            ( 2 * num_extend_neigh_bins[2] + 1 )
+    );
+
+    return num_neigh_bins;
 }
 
 
@@ -753,6 +821,69 @@ int* BinLinkedList<CoordType>::get_neigh_bins(int prim_atom_idx) const {
     free(limit_xyz);
 
     return neigh_bin_idxs;
+}
+
+
+template <typename CoordType>
+std::vector<int> BinLinkedList<CoordType>::get_neigh_atoms(int prim_atom_idx) const {    
+    // Step 1. 
+    // Step 1.1. 获取近邻的 `neigh_bin_idxs`
+    std::vector<int> neigh_atom_idxs;
+    int atom_idx = prim_atom_idx + this->supercell.get_prim_num_atoms() * this->supercell.get_prim_cell_idx();
+    const CoordType* atom_cart_coord = this->supercell.get_structure().get_cart_coords()[atom_idx];
+    int *neigh_bin_idxs = this->get_neigh_bins(prim_atom_idx);
+    int num_neigh_bins = this->get_num_neigh_bins();
+    int neigh_bin_idx;
+    int neigh_atom_idx;
+    const CoordType* neigh_atom_cart_coord;
+    CoordType relative_distance2;
+    for (int ii=0; ii<num_neigh_bins; ii++) { // ii : 近邻 bin 的 index
+        if (ii != -1) {
+            neigh_bin_idx = neigh_bin_idxs[ii];
+            neigh_atom_idx = this->heads_lst[neigh_bin_idx];
+            while (neigh_atom_idx != -1) {
+                neigh_atom_cart_coord = this->supercell.get_structure().get_cart_coords()[neigh_atom_idx];
+                relative_distance2 = (
+                    std::pow(neigh_atom_cart_coord[0] - atom_cart_coord[0], 2) + 
+                    std::pow(neigh_atom_cart_coord[1] - atom_cart_coord[1], 2) + 
+                    std::pow(neigh_atom_cart_coord[2] - atom_cart_coord[2], 2)
+                );
+
+                if (relative_distance2 < std::pow(this->rcut, 2)) {
+                    // Note: 
+                    neigh_atom_idxs.push_back(neigh_atom_idx);
+                }
+
+                neigh_atom_idx = this->nexts_lst[neigh_atom_idx];
+            }
+        }
+    }
+
+    // Step . Free memory
+    free(neigh_bin_idxs);
+
+    return neigh_atom_idxs;
+}
+
+
+template <typename CoordType>
+void BinLinkedList<CoordType>::show() const {
+    printf("rcut = %15.3f\n", this->rcut);
+    printf("pbc_xyz = [%d, %d, %d]\n", this->pbc_xyz[0], this->pbc_xyz[1], this->pbc_xyz[2]);
+    printf("bin_size_xyz = [%9.3f, %9.3f, %9.3f]\n", this->bin_size_xyz[0], this->bin_size_xyz[1], this->bin_size_xyz[2]);
+    printf("num_bin_xyz = [%d, %d, %d]\n", this->num_bin_xyz[0], this->num_bin_xyz[1], this->num_bin_xyz[2]);
+    printf("min_limit_xyz = [%9.6f, %9.6f, %9.6f]\n", this->min_limit_xyz[0], this->min_limit_xyz[1], this->min_limit_xyz[2]);
+    
+    int atom_idx = 0;
+    for (int ii=0; ii<this->num_bin_xyz[0]*this->num_bin_xyz[1]*this->num_bin_xyz[2]; ii++) {
+        atom_idx = this->heads_lst[ii];
+        printf("bin_%d : \t", ii);
+        while (atom_idx != -1) {
+            printf("%d, ", atom_idx);
+            atom_idx = this->nexts_lst[atom_idx];
+        }
+        printf("\n");
+    }
 }
 
 
