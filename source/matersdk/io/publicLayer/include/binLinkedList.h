@@ -10,6 +10,8 @@
 
 namespace matersdk {
 
+const double EPSILON = 1e-3;
+
 template <typename CoordType>
 class BinLinkedList;
 
@@ -939,6 +941,7 @@ std::vector<int> BinLinkedList<CoordType>::get_neigh_atoms(int prim_atom_idx) co
     int neigh_atom_idx;     // 用于遍历近邻 atom
     const CoordType* neigh_atom_cart_coord; 
     CoordType relative_distance2;
+    const CoordType** supercell_atom_cart_coords = this->supercell.get_structure().get_cart_coords();
 
     // Step 2. 构建 neighbor list
     for (int ii=0; ii<num_neigh_bins; ii++) {
@@ -946,14 +949,17 @@ std::vector<int> BinLinkedList<CoordType>::get_neigh_atoms(int prim_atom_idx) co
         if (neigh_bin_idx != -1) {              // `-1` 代表 `无效的近邻bin`
             neigh_atom_idx = this->heads_lst[neigh_bin_idx];
             while (neigh_atom_idx != -1) {      // 遍历 bin 里的所有 atoms
-                neigh_atom_cart_coord = this->supercell.get_structure().get_cart_coords()[neigh_atom_idx];
+                neigh_atom_cart_coord = supercell_atom_cart_coords[neigh_atom_idx];
                 relative_distance2 = (
                     std::pow(neigh_atom_cart_coord[0] - atom_cart_coord[0], 2) + 
                     std::pow(neigh_atom_cart_coord[1] - atom_cart_coord[1], 2) + 
                     std::pow(neigh_atom_cart_coord[2] - atom_cart_coord[2], 2)
                 );
                 
-                if (relative_distance2 < std::pow(this->rcut, 2)) { // 将在截断半径(rcut)内的近邻原子加入 neighbor list
+                if (
+                    ( relative_distance2 < std::pow(this->rcut, 2) ) &&
+                    ( relative_distance2 > EPSILON ) 
+                ) { // 将在截断半径(rcut)内的近邻原子加入 neighbor list
                     printf("%d,\t %f\n", this->supercell.get_structure().get_atomic_numbers()[neigh_atom_idx], std::sqrt(relative_distance2));
                     neigh_atom_idxs.push_back(neigh_atom_idx);
                 }
