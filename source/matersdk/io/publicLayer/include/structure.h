@@ -214,42 +214,45 @@ Structure<CoordType>::Structure(int num_atoms,
         bool is_cart_coords)
 {
     this->num_atoms = num_atoms;
-    // Step 1. Allocate memory for `this->basis_vectors` and assign
-    this->basis_vectors = (CoordType**)malloc(sizeof(CoordType*) * 3);
-    for (int ii=0; ii<3; ii++) {
-        this->basis_vectors[ii] = (CoordType*)malloc(sizeof(CoordType) * 3);
-    }
-    for (int ii=0; ii<3; ii++) {
-        for (int jj=0; jj<3; jj++) {
-            this->basis_vectors[ii][jj] = basis_vectors[ii][jj];
+
+    if (this->num_atoms != 0) {
+        // Step 1. Allocate memory for `this->basis_vectors` and assign
+        this->basis_vectors = (CoordType**)malloc(sizeof(CoordType*) * 3);
+        for (int ii=0; ii<3; ii++) {
+            this->basis_vectors[ii] = (CoordType*)malloc(sizeof(CoordType) * 3);
         }
-    }
-
-    // Step 2. Allocate memory for `this->pseudo_origin`
-    this->pseudo_orgin = (CoordType*)malloc(sizeof(CoordType) * 3);
-    this->pseudo_orgin[0] = 0;
-    this->pseudo_orgin[1] = 0;
-    this->pseudo_orgin[2] = 0;
-
-    // Step 3. Allocate memory for `this->atomic_numbers`
-    this->atomic_numbers = (int*)malloc(sizeof(int) * this->num_atoms);
-    for (int ii=0; ii<this->num_atoms; ii++) {
-        this->atomic_numbers[ii] = atomic_numbers[ii];
-    }
-
-    // Step 4. Allocate memory for `this->cart_coords`
-    this->cart_coords = (CoordType**)malloc(sizeof(CoordType*) * this->num_atoms);
-    for (int ii=0; ii<this->num_atoms; ii++) {
-        this->cart_coords[ii] = (CoordType*)malloc(sizeof(CoordType) * 3);
-    }
-    if (is_cart_coords) {   // 如果 `coords` 是笛卡尔坐标
-        for (int ii=0; ii<this->num_atoms; ii++) {
+        for (int ii=0; ii<3; ii++) {
             for (int jj=0; jj<3; jj++) {
-                this->cart_coords[ii][jj] = coords[ii][jj];
+                this->basis_vectors[ii][jj] = basis_vectors[ii][jj];
             }
         }
-    } else {    // 若如果不是笛卡尔坐标
-        this->calc_cart_coords(coords);
+
+        // Step 2. Allocate memory for `this->pseudo_origin`
+        this->pseudo_orgin = (CoordType*)malloc(sizeof(CoordType) * 3);
+        this->pseudo_orgin[0] = 0;
+        this->pseudo_orgin[1] = 0;
+        this->pseudo_orgin[2] = 0;
+
+        // Step 3. Allocate memory for `this->atomic_numbers`
+        this->atomic_numbers = (int*)malloc(sizeof(int) * this->num_atoms);
+        for (int ii=0; ii<this->num_atoms; ii++) {
+            this->atomic_numbers[ii] = atomic_numbers[ii];
+        }
+
+        // Step 4. Allocate memory for `this->cart_coords`
+        this->cart_coords = (CoordType**)malloc(sizeof(CoordType*) * this->num_atoms);
+        for (int ii=0; ii<this->num_atoms; ii++) {
+            this->cart_coords[ii] = (CoordType*)malloc(sizeof(CoordType) * 3);
+        }
+        if (is_cart_coords) {   // 如果 `coords` 是笛卡尔坐标
+            for (int ii=0; ii<this->num_atoms; ii++) {
+                for (int jj=0; jj<3; jj++) {
+                    this->cart_coords[ii][jj] = coords[ii][jj];
+                }
+            }
+        } else {    // 若如果不是笛卡尔坐标
+            this->calc_cart_coords(coords);
+        }
     }
 }
 
@@ -542,9 +545,9 @@ void Structure<CoordType>::make_supercell(const int *scaling_matrix) {
 
     // Step 3.2. Calculate `cart_coords` and assign it to `this->cart_coords`
     int atom_idx = 0;
-    for (int ii=range[0][0]; ii<range[0][1] + 1; ii++) {
-        for (int jj=range[1][0]; jj<range[1][1] + 1; jj++) {
-            for (int kk=range[2][0]; kk<range[2][1] + 1; kk++) {
+    for (int ii=range[0][0]; ii <= range[0][1]; ii++) {
+        for (int jj=range[1][0]; jj <= range[1][1]; jj++) {
+            for (int kk=range[2][0]; kk <= range[2][1]; kk++) {
                 for (int prim_atom_idx=0; prim_atom_idx<num_atoms_prim; prim_atom_idx++) {
                     //std::cout << ii << ", " << jj << ", " << kk << std::endl;
                     this->cart_coords[atom_idx][0] = (
@@ -620,7 +623,7 @@ void Structure<CoordType>::show() const {
 
 template <typename CoordType>
 const int Structure<CoordType>::get_num_atoms() const {
-    return this->num_atoms;
+    return (const int)this->num_atoms;
 }
 
 
@@ -636,7 +639,7 @@ const int Structure<CoordType>::get_num_atoms() const {
 template <typename CoordType>
 const CoordType** Structure<CoordType>::get_basis_vectors() const {
     if (this->num_atoms != 0)
-        return (const double**)this->basis_vectors;  // Note: You'd better not use implicit conversion
+        return (const CoordType**)this->basis_vectors;  // Note: You'd better not use implicit conversion
     else
         return nullptr;
 }
@@ -654,7 +657,7 @@ const int* Structure<CoordType>::get_atomic_numbers() const {
 template <typename CoordType>
 const CoordType** Structure<CoordType>::get_cart_coords() const {
     if (this->num_atoms != 0)
-        return (const double**)this->cart_coords;
+        return (const CoordType**)this->cart_coords;
     else
         return nullptr;
 }
