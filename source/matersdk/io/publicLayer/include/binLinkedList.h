@@ -100,11 +100,11 @@ public:
 
     BinLinkedList(Structure<CoordType>& structure, CoordType rcut, CoordType* bin_size_xyz, bool* pbc_xyz);
 
-    // BinLinkedList(const BinLinkedList& rhs);
+    BinLinkedList(const BinLinkedList& rhs);
 
-    // BinLinkedList& operator=(const BinLinkedList& rhs);
+    BinLinkedList& operator=(const BinLinkedList& rhs);
 
-    // ~BinLinkedList();
+    ~BinLinkedList();
 
     void _build();
 
@@ -583,6 +583,8 @@ BinLinkedList<CoordType>::BinLinkedList() {
  */
 template <typename CoordType>
 BinLinkedList<CoordType>::BinLinkedList(Structure<CoordType>& structure, CoordType rcut, CoordType* bin_size_xyz, bool* pbc_xyz) {
+    assert(structure.get_num_atoms() > 0);
+
     // Step 1. 计算 `scaling_matrix` -- 根据 `rcut` 和 `interplanar_distances`
     this->rcut = rcut;
     this->bin_size_xyz[0] = bin_size_xyz[0];
@@ -616,6 +618,8 @@ BinLinkedList<CoordType>::BinLinkedList(Structure<CoordType>& structure, CoordTy
     this->min_limit_xyz[1] = limit_xyz[1][0];
     this->min_limit_xyz[2] = limit_xyz[2][0];
 
+    // Step 4. 构建 BinLinkedList -- 将 atoms 分配到不同的 bins 中
+    this->_build();
 
     // Step . Free memory
     free(prim_interplanar_distances);
@@ -628,17 +632,104 @@ BinLinkedList<CoordType>::BinLinkedList(Structure<CoordType>& structure, CoordTy
 }
 
 
-/*
+
+/**
+ * @brief Construct a new Bin Linked List< Coord Type>:: Bin Linked List object
+ * 
+ * @tparam CoordType 
+ * @param rhs 
+ */
 template <typename CoordType>
-BinLinkedList<CoordType>::~BinLinkedList() {    
-    if (this->supercell.num_atoms != 0) {
+BinLinkedList<CoordType>::BinLinkedList(const BinLinkedList<CoordType>& rhs) {
+    this->rcut = rhs.rcut;
+
+    if (this->rcut == 0) {
+        this->supercell = Supercell<CoordType>();
+        this->bin_size_xyz[0] = this->bin_size_xyz[1] = this->bin_size_xyz[2] = 0;
+        this->pbc_xyz[0] = this->pbc_xyz[1] = this->pbc_xyz[2] = false;
+        this->num_bin_xyz[0] = this->num_bin_xyz[1] = this->num_bin_xyz[2] = 0;
+        this->min_limit_xyz[0] = this->min_limit_xyz[1] = this->min_limit_xyz[2] = 0;
+        this->heads_lst = nullptr;
+        this->nexts_lst = nullptr;
+    } else {
+        this->supercell = rhs.supercell;
+        for (int ii=0; ii<3; ii++) {
+            this->bin_size_xyz[ii] = rhs.bin_size_xyz[ii];
+            this->pbc_xyz[ii] = rhs.pbc_xyz[ii];
+            this->num_bin_xyz[ii] = rhs.num_bin_xyz[ii];
+            this->min_limit_xyz[ii] = rhs.min_limit_xyz[ii];
+        }
+
+        this->heads_lst = (int*)malloc(sizeof(int) * this->num_bin_xyz[0] * this->num_bin_xyz[1] * this->num_bin_xyz[2]);
+        for (int ii=0; ii<this->num_bin_xyz[0] * this->num_bin_xyz[1] * this->num_bin_xyz[2]; ii++) {
+            this->heads_lst[ii] = rhs.heads_lst[ii];
+        }
+
+        this->nexts_lst = (int*)malloc(sizeof(int) * this->supercell.get_num_atoms());
+        for (int ii=0; ii<this->supercell.get_num_atoms(); ii++) {
+            this->nexts_lst[ii] = rhs.nexts_lst[ii];
+        }
+    }
+}
+
+
+/**
+ * @brief Overloading the assignment operator
+ * 
+ * @tparam CoordType 
+ * @param rhs 
+ * @return BinLinkedList<CoordType>& 
+ */
+template <typename CoordType>
+BinLinkedList<CoordType>& BinLinkedList<CoordType>::operator=(const BinLinkedList<CoordType>& rhs) {
+    this->rcut = rhs.rcut;
+
+    if (this->rcut == 0) {
+        this->supercell = Supercell<CoordType>();
+        this->bin_size_xyz[0] = this->bin_size_xyz[1] = this->bin_size_xyz[2] = 0;
+        this->pbc_xyz[0] = this->pbc_xyz[1] = this->pbc_xyz[2] = false;
+        this->num_bin_xyz[0] = this->num_bin_xyz[1] = this->num_bin_xyz[2] = 0;
+        this->min_limit_xyz[0] = this->min_limit_xyz[1] = this->min_limit_xyz[2] = 0;
+        this->heads_lst = nullptr;
+        this->nexts_lst = nullptr;
+    } else {
+        this->supercell = rhs.supercell;
+        for (int ii=0; ii<3; ii++) {
+            this->bin_size_xyz[ii] = rhs.bin_size_xyz[ii];
+            this->pbc_xyz[ii] = rhs.pbc_xyz[ii];
+            this->num_bin_xyz[ii] = rhs.num_bin_xyz[ii];
+            this->min_limit_xyz[ii] = rhs.min_limit_xyz[ii];
+
+            this->heads_lst = (int*)malloc(sizeof(int) * this->num_bin_xyz[0] * this->num_bin_xyz[1] * this->num_bin_xyz[2]);
+            for (int ii=0; ii<this->num_bin_xyz[0] * this->num_bin_xyz[1] * this->num_bin_xyz[2]; ii++) {
+                this->heads_lst[ii] = rhs.heads_lst[ii];
+            }
+
+            this->nexts_lst = (int*)malloc(sizeof(int) * this->supercell.get_num_atoms());
+            for (int ii=0; ii<this->supercell.get_num_atoms(); ii++) {
+                this->nexts_lst[ii] = rhs.nexts_lst[ii];
+            }
+        }
+    }
+
+    return *this;
+}
+
+
+/**
+ * @brief Destroy the Bin Linked List< Coord Type>:: Bin Linked List object
+ * 
+ * @tparam CoordType 
+ */
+template <typename CoordType>
+BinLinkedList<CoordType>::~BinLinkedList() {
+    if (this->rcut != 0) {
         free(this->heads_lst);
         free(this->nexts_lst);
-    }
-    this->supercell.~Supercell();
-}
-*/
 
+        this->rcut = 0;
+    }
+}
 
 
 /**
@@ -824,33 +915,46 @@ int* BinLinkedList<CoordType>::get_neigh_bins(int prim_atom_idx) const {
 }
 
 
+/**
+ * @brief 返回 prim_atom_idx 的近邻原子的index (index 是在 supercell 中的 index)。后续可以用这个构建完整的 neighbor list
+ * 
+ * @tparam CoordType 
+ * @param prim_atom_idx 
+ * @return std::vector<int> 
+ */
 template <typename CoordType>
 std::vector<int> BinLinkedList<CoordType>::get_neigh_atoms(int prim_atom_idx) const {    
     // Step 1. 
-    // Step 1.1. 获取近邻的 `neigh_bin_idxs`
+    // Step 1.1. 初始化需要返回的 `neigh_atom_idxs` -- `neigh_atom_idxs` 存储了原子在 supercell 中的 index
     std::vector<int> neigh_atom_idxs;
+    // Step 1.2. 获取 prim_atom_idx 的
+    //              1. 在 supercell 中对应原子的索引        -- `atom_idx`
+    //              2. 在 supercell 中对应原子的笛卡尔坐标   -- `atom_cart_coord`
     int atom_idx = prim_atom_idx + this->supercell.get_prim_num_atoms() * this->supercell.get_prim_cell_idx();
     const CoordType* atom_cart_coord = this->supercell.get_structure().get_cart_coords()[atom_idx];
-    int *neigh_bin_idxs = this->get_neigh_bins(prim_atom_idx);
-    int num_neigh_bins = this->get_num_neigh_bins();
-    int neigh_bin_idx;
-    int neigh_atom_idx;
-    const CoordType* neigh_atom_cart_coord;
+    // Step 1.3. 
+    int *neigh_bin_idxs = this->get_neigh_bins(prim_atom_idx);  // 近邻 bin 的 index
+    int num_neigh_bins = this->get_num_neigh_bins();            // 近邻 bin 的数目
+    int neigh_bin_idx;      // 用于遍历近邻 bin
+    int neigh_atom_idx;     // 用于遍历近邻 atom
+    const CoordType* neigh_atom_cart_coord; 
     CoordType relative_distance2;
-    for (int ii=0; ii<num_neigh_bins; ii++) { // ii : 近邻 bin 的 index
-        if (ii != -1) {
-            neigh_bin_idx = neigh_bin_idxs[ii];
+
+    // Step 2. 构建 neighbor list
+    for (int ii=0; ii<num_neigh_bins; ii++) {
+        neigh_bin_idx = neigh_bin_idxs[ii];     // 获取近邻bin的 index
+        if (neigh_bin_idx != -1) {              // `-1` 代表 `无效的近邻bin`
             neigh_atom_idx = this->heads_lst[neigh_bin_idx];
-            while (neigh_atom_idx != -1) {
+            while (neigh_atom_idx != -1) {      // 遍历 bin 里的所有 atoms
                 neigh_atom_cart_coord = this->supercell.get_structure().get_cart_coords()[neigh_atom_idx];
                 relative_distance2 = (
                     std::pow(neigh_atom_cart_coord[0] - atom_cart_coord[0], 2) + 
                     std::pow(neigh_atom_cart_coord[1] - atom_cart_coord[1], 2) + 
                     std::pow(neigh_atom_cart_coord[2] - atom_cart_coord[2], 2)
                 );
-
-                if (relative_distance2 < std::pow(this->rcut, 2)) {
-                    // Note: 
+                
+                if (relative_distance2 < std::pow(this->rcut, 2)) { // 将在截断半径(rcut)内的近邻原子加入 neighbor list
+                    printf("%d,\t %f\n", this->supercell.get_structure().get_atomic_numbers()[neigh_atom_idx], std::sqrt(relative_distance2));
                     neigh_atom_idxs.push_back(neigh_atom_idx);
                 }
 
@@ -868,21 +972,25 @@ std::vector<int> BinLinkedList<CoordType>::get_neigh_atoms(int prim_atom_idx) co
 
 template <typename CoordType>
 void BinLinkedList<CoordType>::show() const {
-    printf("rcut = %15.3f\n", this->rcut);
-    printf("pbc_xyz = [%d, %d, %d]\n", this->pbc_xyz[0], this->pbc_xyz[1], this->pbc_xyz[2]);
-    printf("bin_size_xyz = [%9.3f, %9.3f, %9.3f]\n", this->bin_size_xyz[0], this->bin_size_xyz[1], this->bin_size_xyz[2]);
-    printf("num_bin_xyz = [%d, %d, %d]\n", this->num_bin_xyz[0], this->num_bin_xyz[1], this->num_bin_xyz[2]);
-    printf("min_limit_xyz = [%9.6f, %9.6f, %9.6f]\n", this->min_limit_xyz[0], this->min_limit_xyz[1], this->min_limit_xyz[2]);
+    if (this->rcut != 0) { 
+        printf("rcut = %15.3f\n", this->rcut);
+        printf("pbc_xyz = [%d, %d, %d]\n", this->pbc_xyz[0], this->pbc_xyz[1], this->pbc_xyz[2]);
+        printf("bin_size_xyz = [%9.3f, %9.3f, %9.3f]\n", this->bin_size_xyz[0], this->bin_size_xyz[1], this->bin_size_xyz[2]);
+        printf("num_bin_xyz = [%d, %d, %d]\n", this->num_bin_xyz[0], this->num_bin_xyz[1], this->num_bin_xyz[2]);
+        printf("min_limit_xyz = [%9.6f, %9.6f, %9.6f]\n", this->min_limit_xyz[0], this->min_limit_xyz[1], this->min_limit_xyz[2]);
     
-    int atom_idx = 0;
-    for (int ii=0; ii<this->num_bin_xyz[0]*this->num_bin_xyz[1]*this->num_bin_xyz[2]; ii++) {
-        atom_idx = this->heads_lst[ii];
-        printf("bin_%d : \t", ii);
-        while (atom_idx != -1) {
-            printf("%d, ", atom_idx);
-            atom_idx = this->nexts_lst[atom_idx];
+        int atom_idx = 0;
+        for (int ii=0; ii<this->num_bin_xyz[0]*this->num_bin_xyz[1]*this->num_bin_xyz[2]; ii++) {
+            atom_idx = this->heads_lst[ii];
+            printf("bin_%d : \t", ii);
+            while (atom_idx != -1) {
+                printf("%d, ", atom_idx);
+                atom_idx = this->nexts_lst[atom_idx];
+            }
+            printf("\n");
         }
-        printf("\n");
+    } else {
+        printf("This is a NULL BinLinkedList.\n");
     }
 }
 

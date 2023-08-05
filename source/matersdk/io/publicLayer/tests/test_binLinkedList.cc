@@ -566,6 +566,10 @@ protected:
 };  // class BinLinkedListTest
 
 
+TEST_F(BinLinkedListTest, default_constructor) {
+    matersdk::BinLinkedList<double> bin_linked_list;
+    //bin_linked_list.show();
+}
 
 TEST_F(BinLinkedListTest, constructor_1_case_1) {
     rcut = 3.0;
@@ -616,12 +620,44 @@ TEST_F(BinLinkedListTest, constructor_1_case_1) {
 }
 
 
+TEST_F(BinLinkedListTest, copy_constructor) {
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    matersdk::BinLinkedList<double> bin_linked_list_1(structure, rcut, bin_size_xyz, pbc_xyz);
+    matersdk::BinLinkedList<double> bin_linked_list_2;
+
+    matersdk::BinLinkedList<double> bin_linked_list_3(bin_linked_list_1);
+    matersdk::BinLinkedList<double> bin_linked_list_4(bin_linked_list_2);
+    //bin_linked_list_3.show();
+    //bin_linked_list_4.show();
+}
+
+
+TEST_F(BinLinkedListTest, assignment_operator) {
+    rcut = 3.0;
+    bin_size_xyz[0] = 3.0;
+    bin_size_xyz[1] = 3.0;
+    bin_size_xyz[2] = 3.0;
+    pbc_xyz[0] = true;
+    pbc_xyz[1] = true;
+    pbc_xyz[2] = false;
+
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    matersdk::BinLinkedList<double> bin_linked_list_1(structure, rcut, bin_size_xyz, pbc_xyz);
+    matersdk::BinLinkedList<double> bin_linked_list_2;
+    
+    matersdk::BinLinkedList<double> bin_linked_list_3 = bin_linked_list_1;
+    matersdk::BinLinkedList<double> bin_linked_list_4 = bin_linked_list_2;
+
+    //bin_linked_list_2 = bin_linked_list_1;
+    //bin_linked_list_2.show();
+}
+
 
 TEST_F(BinLinkedListTest, _build) {
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
     matersdk::BinLinkedList<double> bin_linked_list(structure, rcut, bin_size_xyz, pbc_xyz);
-    bin_linked_list._build();
-    bin_linked_list.show();
+    // bin_linked_list._build();
+    //bin_linked_list.show();
 }
 
 
@@ -766,7 +802,6 @@ TEST_F(BinLinkedListTest, get_neigh_atoms) {
 
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
     matersdk::BinLinkedList<double> bin_linked_list(structure, rcut, bin_size_xyz, pbc_xyz);
-    bin_linked_list._build();
     std::vector<int> neigh_atom_idxs = bin_linked_list.get_neigh_atoms(0);
     for (int neigh_atom_idx: neigh_atom_idxs) {
         printf("%d, ", neigh_atom_idx);
