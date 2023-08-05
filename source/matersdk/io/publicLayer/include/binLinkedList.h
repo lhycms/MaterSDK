@@ -12,9 +12,6 @@ namespace matersdk {
 template <typename CoordType>
 class BinLinkedList;
 
-template <typename CoordType>
-class BinLinkedList;
-
 
 template <typename CoordType>
 class BasicStructureInfo {
@@ -94,6 +91,7 @@ private:
 
 
 
+
 template <typename CoordType>
 class BinLinkedList {
 public:
@@ -110,6 +108,8 @@ public:
     int get_bin_idx(int prim_atom_idx) const;
 
     int* get_neigh_bins(int prim_atom_idx) const;
+
+    void show() const;
 
     const Supercell<CoordType>& get_supercell() const;
 
@@ -166,6 +166,7 @@ BasicStructureInfo<CoordType>::BasicStructureInfo() {
 template <typename CoordType>
 BasicStructureInfo<CoordType>::BasicStructureInfo(Structure<CoordType> &structure) {
     this->num_atoms = structure.num_atoms;
+
     if (this->num_atoms == 0) {
         this->projected_lengths[0] = 0;
         this->projected_lengths[1] = 0;
@@ -200,13 +201,22 @@ BasicStructureInfo<CoordType>::BasicStructureInfo(Structure<CoordType> &structur
 template <typename CoordType>
 BasicStructureInfo<CoordType>::BasicStructureInfo(const BasicStructureInfo& rhs) {
     this->num_atoms = rhs.num_atoms;
-
-    this->projected_lengths[0] = rhs.projected_lengths[0];
-    this->projected_lengths[1] = rhs.projected_lengths[1];
-    this->projected_lengths[2] = rhs.projected_lengths[2];
-    this->interplanar_distances[0] = rhs.interplanar_distances[0];
-    this->interplanar_distances[1] = rhs.interplanar_distances[1];
-    this->interplanar_distances[2] = rhs.interplanar_distances[2];
+    
+    if (this->num_atoms == 0) {
+        this->projected_lengths[0] = 0;
+        this->projected_lengths[1] = 0;
+        this->projected_lengths[2] = 0;
+        this->interplanar_distances[0] = 0;
+        this->interplanar_distances[1] = 0;
+        this->interplanar_distances[2] = 0;
+    } else {
+        this->projected_lengths[0] = rhs.projected_lengths[0];
+        this->projected_lengths[1] = rhs.projected_lengths[1];
+        this->projected_lengths[2] = rhs.projected_lengths[2];
+        this->interplanar_distances[0] = rhs.interplanar_distances[0];
+        this->interplanar_distances[1] = rhs.interplanar_distances[1];
+        this->interplanar_distances[2] = rhs.interplanar_distances[2];
+    }
 }
 
 
@@ -221,12 +231,21 @@ template <typename CoordType>
 BasicStructureInfo<CoordType>& BasicStructureInfo<CoordType>::operator=(const BasicStructureInfo& rhs) {
     this->num_atoms = rhs.num_atoms;
 
-    this->projected_lengths[0] = rhs.projected_lengths[0];
-    this->projected_lengths[1] = rhs.projected_lengths[1];
-    this->projected_lengths[2] = rhs.projected_lengths[2];
-    this->interplanar_distances[0] = rhs.interplanar_distances[0];
-    this->interplanar_distances[1] = rhs.interplanar_distances[1];
-    this->interplanar_distances[2] = rhs.interplanar_distances[2];
+    if (this->num_atoms == 0) {
+        this->projected_lengths[0] = 0;
+        this->projected_lengths[1] = 0;
+        this->projected_lengths[2] = 0;
+        this->interplanar_distances[0] = 0;
+        this->interplanar_distances[1] = 0;
+        this->interplanar_distances[2] = 0;
+    } else {
+        this->projected_lengths[0] = rhs.projected_lengths[0];
+        this->projected_lengths[1] = rhs.projected_lengths[1];
+        this->projected_lengths[2] = rhs.projected_lengths[2];
+        this->interplanar_distances[0] = rhs.interplanar_distances[0];
+        this->interplanar_distances[1] = rhs.interplanar_distances[1];
+        this->interplanar_distances[2] = rhs.interplanar_distances[2];
+    }
 }
 
 
@@ -327,21 +346,27 @@ matersdk::Supercell<CoordType>::Supercell(Structure<CoordType>& structure, int *
  */
 template <typename CoordType>
 Supercell<CoordType>::Supercell(const Supercell &rhs) {
-    this->structure = rhs.structure;
-    this->prim_structure_info = rhs.prim_structure_info;
-    for (int ii=0; ii<3; ii++) {
-        this->scaling_matrix[ii] = rhs.scaling_matrix[ii];
-    }
     this->num_atoms = rhs.num_atoms;
 
-    this->prim_cell_idx = rhs.prim_cell_idx;
-    this->prim_cell_idx_xyz[0] = rhs.prim_cell_idx_xyz[0];
-    this->prim_cell_idx_xyz[1] = rhs.prim_cell_idx_xyz[1];
-    this->prim_cell_idx_xyz[2] = rhs.prim_cell_idx_xyz[2];
+    if (this->num_atoms == 0) {
+        this->structure = Structure<CoordType>();
+        this->prim_structure_info = BasicStructureInfo<CoordType>();
+        this->scaling_matrix[0] = this->scaling_matrix[1] = this->scaling_matrix[2] = 1;
+        
+        this->prim_cell_idx = 0;
+        this->prim_cell_idx_xyz[0] = this->prim_cell_idx_xyz[1] = this->prim_cell_idx_xyz[2] = 0;
+    } else {
+        this->structure = rhs.structure;
+        this->prim_structure_info = rhs.prim_structure_info;
+        for (int ii=0; ii<3; ii++) {
+            this->scaling_matrix[ii] = rhs.scaling_matrix[ii];
+        }
 
-    this->owned_atom_idxs = (int*)malloc(sizeof(int) * rhs.prim_structure_info.num_atoms);
-
-    if (this->num_atoms != 0) {
+        this->prim_cell_idx = rhs.prim_cell_idx;
+        this->prim_cell_idx_xyz[0] = rhs.prim_cell_idx_xyz[0];
+        this->prim_cell_idx_xyz[1] = rhs.prim_cell_idx_xyz[1];
+        this->prim_cell_idx_xyz[2] = rhs.prim_cell_idx_xyz[2];
+        this->owned_atom_idxs = (int*)malloc(sizeof(int) * rhs.prim_structure_info.num_atoms);    
         for (int ii=0; ii<rhs.prim_structure_info.num_atoms; ii++) {
             this->owned_atom_idxs[ii] = rhs.owned_atom_idxs[ii];
         }
@@ -350,35 +375,49 @@ Supercell<CoordType>::Supercell(const Supercell &rhs) {
 }
 
 
+/**
+ * @brief Overloading assignment operator.
+ * 
+ * @tparam CoordType 
+ * @param rhs 
+ * @return Supercell<CoordType>& 
+ */
 template <typename CoordType>
 Supercell<CoordType>& Supercell<CoordType>::operator=(const Supercell<CoordType> &rhs) {
     if (this->num_atoms != 0) {
         free(this->owned_atom_idxs);
     }
  
-    this->structure = rhs.structure;
-    this->prim_structure_info = rhs.prim_structure_info;
-    
-    for (int ii=0; ii<3; ii++) {
-        this->scaling_matrix[ii] = rhs.scaling_matrix[ii];
-    }
     this->num_atoms = rhs.num_atoms;
 
-    this->prim_cell_idx = rhs.prim_cell_idx;
-    
-    this->prim_cell_idx_xyz[0] = rhs.prim_cell_idx_xyz[0];
-    this->prim_cell_idx_xyz[1] = rhs.prim_cell_idx_xyz[1];
-    this->prim_cell_idx_xyz[2] = rhs.prim_cell_idx_xyz[2];
-    
-    if (rhs.num_atoms != 0) {
+    if (this->num_atoms == 0) {
+        this->structure = Structure<CoordType>();
+        this->prim_structure_info = BasicStructureInfo<CoordType>();
+        this->scaling_matrix[0] = this->scaling_matrix[1] = this->scaling_matrix[2] = 1;
+        
+        this->prim_cell_idx = 0;
+        this->prim_cell_idx_xyz[0] = this->prim_cell_idx_xyz[1] = this->prim_cell_idx_xyz[2] = 0;
+    } else {
+        this->structure = rhs.structure;
+        this->prim_structure_info = rhs.prim_structure_info;
+        for (int ii=0; ii<3; ii++) {
+            this->scaling_matrix[ii] = rhs.scaling_matrix[ii];
+        }
+
+        this->prim_cell_idx = rhs.prim_cell_idx;
+        this->prim_cell_idx_xyz[0] = rhs.prim_cell_idx_xyz[0];
+        this->prim_cell_idx_xyz[1] = rhs.prim_cell_idx_xyz[1];
+        this->prim_cell_idx_xyz[2] = rhs.prim_cell_idx_xyz[2];
         this->owned_atom_idxs = (int*)malloc(sizeof(int) * rhs.prim_structure_info.num_atoms);
         for (int ii=0; ii<rhs.prim_structure_info.num_atoms; ii++) {
             this->owned_atom_idxs[ii] = rhs.owned_atom_idxs[ii];
         }
     }
     
+    
     return *this;
 }
+
 
 /**
  * @brief Destroy the Supercell< Coord Type>:: Supercell object
@@ -517,7 +556,12 @@ const int* Supercell<CoordType>::get_owned_atom_idxs() const {
  */
 template <typename CoordType>
 BinLinkedList<CoordType>::BinLinkedList() {
-
+    this->supercell = Supercell<CoordType>();
+    this->rcut = 0;
+    this->bin_size_xyz[0] = this->bin_size_xyz[1] = this->bin_size_xyz[2] = 0;
+    this->pbc_xyz[0] = this->pbc_xyz[1] = this->pbc_xyz[2] = false;
+    this->num_bin_xyz[0] = this->num_bin_xyz[1] = this->num_bin_xyz[2] = 0;
+    this->min_limit_xyz[0] = this->min_limit_xyz[1] = this->min_limit_xyz[2] = 0;
 }
 
 
@@ -703,6 +747,10 @@ int* BinLinkedList<CoordType>::get_neigh_bins(int prim_atom_idx) const {
     }
 
     // Step . Free memory
+    for (int ii=0; ii<3; ii++) {
+        free(limit_xyz[ii]);
+    }
+    free(limit_xyz);
 
     return neigh_bin_idxs;
 }
