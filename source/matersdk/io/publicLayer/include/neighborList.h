@@ -2,6 +2,7 @@
 #define MATERSDK_NEIGHBOR_LIST_H
 
 #include <cassert>
+#include <cmath>
 #include "./binLinkedList.h"
 
 
@@ -26,7 +27,11 @@ public:
 
     void _build();
 
-    void show() const;
+    void show_in_index() const;
+
+    void show_in_an() const;
+
+    void show_in_distances() const;
 
     const BinLinkedList<CoordType>& get_binLinkedList() const;
 
@@ -95,9 +100,7 @@ void NeighborList<CoordType>::_build() {
 
 
 template <typename CoordType>
-void NeighborList<CoordType>::show() const {
-    const int* supercell_atomic_numbers = this->bin_linked_list.get_supercell().get_structure().get_atomic_numbers();
-
+void NeighborList<CoordType>::show_in_index() const {
     for (int ii=0; ii<this->num_atoms; ii++) {
         printf("%d:\t", ii);
         for (int jj: this->neighbor_lists[ii]) {
@@ -105,8 +108,13 @@ void NeighborList<CoordType>::show() const {
         }
         printf("\n");
     }
+}
 
-    printf("\n\n");
+
+template <typename CoordType>
+void NeighborList<CoordType>::show_in_an() const {
+    const int* supercell_atomic_numbers = this->bin_linked_list.get_supercell().get_structure().get_atomic_numbers();
+
     for (int ii=0; ii<this->num_atoms; ii++) {
         printf("%d:\t", supercell_atomic_numbers[ii]);
         for (int jj: this->neighbor_lists[ii]) {
@@ -114,6 +122,41 @@ void NeighborList<CoordType>::show() const {
         }
         printf("\n");
     }
+}
+
+
+template <typename CoordType>
+void NeighborList<CoordType>::show_in_distances() const {
+    const CoordType** supercell_cart_coords = this->bin_linked_list.get_supercell().get_structure().get_cart_coords();
+    const int* supercell_atomic_numbers = this->bin_linked_list.get_supercell().get_structure().get_atomic_numbers();
+    CoordType* center_cart_coord = (CoordType*)malloc(sizeof(CoordType) * 3);   // 中心原子的坐标
+    CoordType* neigh_cart_coord = (CoordType*)malloc(sizeof(CoordType) * 3);    // 近邻原子的坐标
+    const int prim_cell_idx = this->bin_linked_list.get_supercell().get_prim_cell_idx();
+    CoordType tmp_distance;
+
+    for (int ii=0; ii<this->num_atoms; ii++) {
+        printf("%d:\t", supercell_atomic_numbers[ii]);
+        center_cart_coord[0] = supercell_cart_coords[ii + this->num_atoms * prim_cell_idx][0];
+        center_cart_coord[1] = supercell_cart_coords[ii + this->num_atoms * prim_cell_idx][1];
+        center_cart_coord[2] = supercell_cart_coords[ii + this->num_atoms * prim_cell_idx][2];
+
+        for (int jj: this->neighbor_lists[ii]) {
+            neigh_cart_coord[0] = supercell_cart_coords[jj][0];
+            neigh_cart_coord[1] = supercell_cart_coords[jj][1];
+            neigh_cart_coord[2] = supercell_cart_coords[jj][2];
+            
+            tmp_distance = std::sqrt(
+                std::pow(neigh_cart_coord[0] - center_cart_coord[0], 2) + 
+                std::pow(neigh_cart_coord[1] - center_cart_coord[1], 2) + 
+                std::pow(neigh_cart_coord[2] - center_cart_coord[2], 2)
+            );
+            printf("%f, ", tmp_distance);
+        }
+        printf("\n");
+    }
+
+    free(center_cart_coord);
+    free(neigh_cart_coord);
 }
 
 

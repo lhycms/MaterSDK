@@ -89,7 +89,7 @@ protected:
         frac_coords[11][1] = 0.833333333333;
         frac_coords[11][2] = 0.567656723452;
 
-        rcut = 3.0;
+        rcut = 3.3;
         bin_size_xyz[0] = 3.0;
         bin_size_xyz[1] = 3.0;
         bin_size_xyz[2] = 3.0;
@@ -111,7 +111,9 @@ TEST_F(NeighborListTest, constructor_1) {
     
     //neighbor_list._build();
     //neighbor_list.get_binLinkedList().show();
-    neighbor_list.show();
+    neighbor_list.show_in_an();
+    printf("\n");
+    neighbor_list.show_in_distances();
 }
 
 
