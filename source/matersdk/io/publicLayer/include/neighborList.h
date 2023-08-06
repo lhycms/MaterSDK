@@ -29,6 +29,8 @@ public:
 
     void show_in_index() const;
 
+    void show_in_prim_index() const;
+
     void show_in_an() const;
 
     void show_in_distances() const;
@@ -102,9 +104,21 @@ void NeighborList<CoordType>::_build() {
 template <typename CoordType>
 void NeighborList<CoordType>::show_in_index() const {
     for (int ii=0; ii<this->num_atoms; ii++) {
-        printf("%d:\t", ii);
+        printf("%4d:\t", ii);
         for (int jj: this->neighbor_lists[ii]) {
-            printf("%d, ", jj);
+            printf("%4d, ", jj);
+        }
+        printf("\n");
+    }
+}
+
+
+template <typename CoordType>
+void NeighborList<CoordType>::show_in_prim_index() const {
+    for (int ii=0; ii<this->num_atoms; ii++) {
+        printf("%4d:\t", ii);
+        for (int jj: this->neighbor_lists[ii]) {
+            printf("%4d, ", jj % this->num_atoms);
         }
         printf("\n");
     }
@@ -116,9 +130,9 @@ void NeighborList<CoordType>::show_in_an() const {
     const int* supercell_atomic_numbers = this->bin_linked_list.get_supercell().get_structure().get_atomic_numbers();
 
     for (int ii=0; ii<this->num_atoms; ii++) {
-        printf("%d:\t", supercell_atomic_numbers[ii]);
+        printf("%4d:\t", supercell_atomic_numbers[ii]);
         for (int jj: this->neighbor_lists[ii]) {
-            printf("%d, ", supercell_atomic_numbers[jj]);
+            printf("%4d, ", supercell_atomic_numbers[jj]);
         }
         printf("\n");
     }
@@ -150,7 +164,7 @@ void NeighborList<CoordType>::show_in_distances() const {
                 std::pow(neigh_cart_coord[1] - center_cart_coord[1], 2) + 
                 std::pow(neigh_cart_coord[2] - center_cart_coord[2], 2)
             );
-            printf("%f, ", tmp_distance);
+            printf("%6.6f, ", tmp_distance);
         }
         printf("\n");
     }

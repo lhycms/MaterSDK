@@ -109,8 +109,10 @@ TEST_F(NeighborListTest, constructor_1) {
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
     matersdk::NeighborList<double> neighbor_list(structure, rcut, bin_size_xyz, pbc_xyz);
     
-    //neighbor_list._build();
-    //neighbor_list.get_binLinkedList().show();
+    neighbor_list.show_in_index();
+    printf("\n");
+    neighbor_list.show_in_prim_index();
+    printf("\n");
     neighbor_list.show_in_an();
     printf("\n");
     neighbor_list.show_in_distances();
