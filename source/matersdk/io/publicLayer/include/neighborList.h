@@ -25,17 +25,19 @@ public:
 
     ~NeighborList();
 
-    void _build();
+    void _build();                      // Populate `this->neighbor_list` (`std::vector<int>* this->neighbor_list = new std::vector<int>[this->num_atoms];`)
 
-    void show_in_index() const;
+    void show_in_index() const;         // 展示 supercell 中的 atom_index
 
-    void show_in_prim_index() const;
+    void show_in_prim_index() const;    // 展示 primitive cell 中的 atom_index
 
-    void show_in_an() const;
+    void show_in_an() const;            // 展示 atomic_number
 
-    void show_in_distances() const;
+    void show_in_distances() const;     // 展示 距中心原子的距离
 
     const BinLinkedList<CoordType>& get_binLinkedList() const;
+
+    const int get_max_num_neigh_atoms() const;
 
 private:
     BinLinkedList<CoordType> bin_linked_list;
@@ -177,6 +179,18 @@ void NeighborList<CoordType>::show_in_distances() const {
 template <typename CoordType>
 const BinLinkedList<CoordType>& NeighborList<CoordType>::get_binLinkedList() const {
     return this->bin_linked_list;
+}
+
+
+template <typename CoordType>
+const int NeighborList<CoordType>::get_max_num_neigh_atoms() const {
+    int max_num_neigh_atoms = 0;
+    for (int ii=0; ii<this->num_atoms; ii++) {
+        if ( this->neighbor_lists[ii].size() > max_num_neigh_atoms ) {
+            max_num_neigh_atoms = this->neighbor_lists[ii].size();
+        }
+    }
+    return max_num_neigh_atoms;
 }
 
 

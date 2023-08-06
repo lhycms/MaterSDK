@@ -119,6 +119,16 @@ TEST_F(NeighborListTest, constructor_1) {
 }
 
 
+TEST_F(NeighborListTest, get_max_num_neigh_atoms) {
+    rcut = 3.3;
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    matersdk::NeighborList<double> neighbor_list(structure, rcut, bin_size_xyz, pbc_xyz);
+
+    const int max_num_neigh_atoms = neighbor_list.get_max_num_neigh_atoms();
+    EXPECT_EQ(max_num_neigh_atoms, 12);
+}
+
+
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
