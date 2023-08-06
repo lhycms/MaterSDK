@@ -26,7 +26,11 @@ if (BUILD_TEST)
     add_executable(test_binLinkedList ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_binLinkedList.cc)
     target_link_libraries(test_binLinkedList gtest_main gtest)
 
+    add_executable(test_neighborList ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_neighborList.cc)
+    target_link_libraries(test_neighborList gtest gtest_main)
+
     # gtest_discover_tests(test_CpuNeighborList)    
     gtest_discover_tests(test_structure)
     gtest_discover_tests(test_binLinkedList)
+    gtest_discover_tests(test_neighborList)
 endif()

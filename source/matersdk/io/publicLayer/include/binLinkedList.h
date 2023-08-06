@@ -959,8 +959,8 @@ std::vector<int> BinLinkedList<CoordType>::get_neigh_atoms(int prim_atom_idx) co
                 if (
                     ( relative_distance2 < std::pow(this->rcut, 2) ) &&
                     ( relative_distance2 > EPSILON ) 
-                ) { // 将在截断半径(rcut)内的近邻原子加入 neighbor list
-                    printf("%d,\t %f\n", this->supercell.get_structure().get_atomic_numbers()[neigh_atom_idx], std::sqrt(relative_distance2));
+                ) { // 将在截断半径(rcut)内、排除中心原子自身 的近邻原子加入 neighbor list
+                    //printf("%d,\t %f\n", this->supercell.get_structure().get_atomic_numbers()[neigh_atom_idx], std::sqrt(relative_distance2));
                     neigh_atom_idxs.push_back(neigh_atom_idx);
                 }
 
