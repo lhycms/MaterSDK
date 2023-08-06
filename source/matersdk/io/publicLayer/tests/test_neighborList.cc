@@ -129,6 +129,18 @@ TEST_F(NeighborListTest, get_max_num_neigh_atoms) {
 }
 
 
+TEST_F(NeighborListTest, get_max_num_neigh_atoms_ss) {
+    rcut = 2.8;
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    matersdk::NeighborList<double> neighbor_list(structure, rcut, bin_size_xyz, pbc_xyz);
+
+    const int max_num_neigh_atoms_42 = neighbor_list.get_max_num_neigh_atoms_ss(42);
+    const int max_num_neigh_atoms_16 = neighbor_list.get_max_num_neigh_atoms_ss(16);
+
+    printf("%d\t, %d\n", max_num_neigh_atoms_42, max_num_neigh_atoms_16);
+}
+
+
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

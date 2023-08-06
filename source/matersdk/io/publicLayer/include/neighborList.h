@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <cmath>
+#include <algorithm>
 #include "./binLinkedList.h"
 
 
@@ -38,6 +39,8 @@ public:
     const BinLinkedList<CoordType>& get_binLinkedList() const;
 
     const int get_max_num_neigh_atoms() const;
+
+    const int get_max_num_neigh_atoms_ss(int neigh_atomic_number) const; // `ss`: specified specie
 
 private:
     BinLinkedList<CoordType> bin_linked_list;
@@ -193,6 +196,38 @@ const int NeighborList<CoordType>::get_max_num_neigh_atoms() const {
     return max_num_neigh_atoms;
 }
 
+
+template <typename CoordType>
+const int NeighborList<CoordType>::get_max_num_neigh_atoms_ss(int neigh_atomic_number) const {
+    // Step 1. Initialize the value 
+    // Step 1.1. 
+    int max_num_neigh_atoms_ss = 0;             // return value
+    int tmp_max_num_neigh_atoms_ss = 0;         
+    std::vector<int> tmp_neigh_atomic_numbers;  
+    // Step 1.2. 
+    const int* supercell_atomic_numbers = this->bin_linked_list.get_supercell().get_structure().get_atomic_numbers();
+
+    // Step 2. Update the `max_num_neigh_atoms_ss`
+    for (int ii=0; ii<this->num_atoms; ii++) {
+        tmp_neigh_atomic_numbers.clear();   // Clears all elements from the vector, making it empty
+        // Step 2.1. 
+        for (int supercell_atom_index: this->neighbor_lists[ii]) {
+            tmp_neigh_atomic_numbers.push_back(supercell_atomic_numbers[supercell_atom_index]);
+        }
+
+        // Step 2.2. 
+        tmp_max_num_neigh_atoms_ss = std::count(
+                    tmp_neigh_atomic_numbers.begin(), 
+                    tmp_neigh_atomic_numbers.end(), 
+                    neigh_atomic_number
+        );
+
+        if (tmp_max_num_neigh_atoms_ss > max_num_neigh_atoms_ss) 
+            max_num_neigh_atoms_ss = tmp_max_num_neigh_atoms_ss;
+    }
+
+    return max_num_neigh_atoms_ss;
+}
 
 }; // namespace: matersdk
 
