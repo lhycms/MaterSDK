@@ -137,7 +137,8 @@ TEST_F(NeighborListTest, get_max_num_neigh_atoms_ss) {
     const int max_num_neigh_atoms_42 = neighbor_list.get_max_num_neigh_atoms_ss(42);
     const int max_num_neigh_atoms_16 = neighbor_list.get_max_num_neigh_atoms_ss(16);
 
-    printf("%d\t, %d\n", max_num_neigh_atoms_42, max_num_neigh_atoms_16);
+    EXPECT_EQ(max_num_neigh_atoms_42, 3);
+    EXPECT_EQ(max_num_neigh_atoms_16, 6);
 }
 
 

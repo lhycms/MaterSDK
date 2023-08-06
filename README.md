@@ -1,3 +1,10 @@
+## Contributors
+
+- [Liu Hanyu](https://github.com/lhycms)
+
+
+
+
 # Material Software Development Kit (MaterSDK)
 A python library for computational materials science. You can use it to:
 1. Process structure file (For PWmat, VASP, ATAT, ...)

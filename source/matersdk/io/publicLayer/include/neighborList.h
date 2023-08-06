@@ -26,7 +26,7 @@ public:
 
     ~NeighborList();
 
-    void _build();                      // Populate `this->neighbor_list` (`std::vector<int>* this->neighbor_list = new std::vector<int>[this->num_atoms];`)
+    void _build(bool sort=false);       // Populate `this->neighbor_list` (`std::vector<int>* this->neighbor_list = new std::vector<int>[this->num_atoms];`)
 
     void show_in_index() const;         // 展示 supercell 中的 atom_index
 
@@ -88,9 +88,10 @@ NeighborList<CoordType>::~NeighborList() {
  * @brief Populate `this->neighbor_lists`
  * 
  * @tparam CoordType 
+ * @param sort 是否按照距中心原子的距离排序
  */
 template <typename CoordType>
-void NeighborList<CoordType>::_build() {
+void NeighborList<CoordType>::_build(bool sort) {
     // Step 1. 得到 primitive cell 的相关信息
     // Step 1.1. primitive cell 中的原子个数、primitive cell 的 `prim_cell_idx`
     int prim_cell_idx = this->bin_linked_list.get_supercell().get_prim_cell_idx();
@@ -185,6 +186,12 @@ const BinLinkedList<CoordType>& NeighborList<CoordType>::get_binLinkedList() con
 }
 
 
+/**
+ * @brief 计算最大近邻原子数 （包含所有元素种类）
+ * 
+ * @tparam CoordType 
+ * @return const int 
+ */
 template <typename CoordType>
 const int NeighborList<CoordType>::get_max_num_neigh_atoms() const {
     int max_num_neigh_atoms = 0;
@@ -197,20 +204,27 @@ const int NeighborList<CoordType>::get_max_num_neigh_atoms() const {
 }
 
 
+/**
+ * @brief 计算 元素为`neigh_atomic_number` 的最大近邻原子数 （包含某种元素 -- `neigh_atomioc_number`）
+ * 
+ * @tparam CoordType 
+ * @param neigh_atomic_number 
+ * @return const int 
+ */
 template <typename CoordType>
 const int NeighborList<CoordType>::get_max_num_neigh_atoms_ss(int neigh_atomic_number) const {
     // Step 1. Initialize the value 
     // Step 1.1. 
     int max_num_neigh_atoms_ss = 0;             // return value
-    int tmp_max_num_neigh_atoms_ss = 0;         
-    std::vector<int> tmp_neigh_atomic_numbers;  
+    int tmp_max_num_neigh_atoms_ss = 0;         // 在循环中，暂时存储某个中心原子的 `tmp_max_num_neigh_atoms_ss`
+    std::vector<int> tmp_neigh_atomic_numbers;  // 将 `this->neighbor_lists[ii]` 的index换成 `atomic_number` 存储在 `std::vector<int>` 中
     // Step 1.2. 
     const int* supercell_atomic_numbers = this->bin_linked_list.get_supercell().get_structure().get_atomic_numbers();
 
     // Step 2. Update the `max_num_neigh_atoms_ss`
     for (int ii=0; ii<this->num_atoms; ii++) {
         tmp_neigh_atomic_numbers.clear();   // Clears all elements from the vector, making it empty
-        // Step 2.1. 
+        // Step 2.1. Populate `tmp_neigh_atomic_numbers`.
         for (int supercell_atom_index: this->neighbor_lists[ii]) {
             tmp_neigh_atomic_numbers.push_back(supercell_atomic_numbers[supercell_atom_index]);
         }
@@ -222,6 +236,7 @@ const int NeighborList<CoordType>::get_max_num_neigh_atoms_ss(int neigh_atomic_n
                     neigh_atomic_number
         );
 
+        // Step 2.3. 
         if (tmp_max_num_neigh_atoms_ss > max_num_neigh_atoms_ss) 
             max_num_neigh_atoms_ss = tmp_max_num_neigh_atoms_ss;
     }
