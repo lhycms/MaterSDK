@@ -128,7 +128,7 @@ NeighborList<CoordType>::~NeighborList() {
 
 
 /**
- * @brief Populate `this->neighbor_lists`
+ * @brief Populate `this->neighbor_lists` && Sort the `single_neighbor_list` according to `distances`
  * 
  * @tparam CoordType 
  * @param sort 是否按照距中心原子的距离排序
@@ -150,20 +150,21 @@ void NeighborList<CoordType>::_build(bool sort) {
     // Step 3.1. 得到 supercell 中所有sites的坐标
     const CoordType** supercell_cart_coords = this->bin_linked_list.get_supercell().get_structure().get_cart_coords();
 
-    // Step 3.2. 
+    // Step 3.2. Sort the `this->neighbor_lists[ii]` according to `distances`
     if (sort) {
         int tmp_num_neigh_atoms;        // 某中心原子近邻的原子数目
-        int tmp_center_atom_idx;        // `center_atom_idx`: atom 在 supercell 中对应的 index
+        int tmp_center_atom_idx;        // `center_atom_idx`: 中心 atom 在 supercell 中对应的 index
         int tmp_neigh_atom_idx;
         const CoordType* tmp_center_cart_coord; // 中心原子的笛卡尔坐标 
         const CoordType* tmp_neigh_cart_coord;  // 近邻原子的笛卡尔坐标
-        CoordType* diff_cart_coord = (CoordType*)malloc(sizeof(CoordType) * 3);             
         CoordType* distances;   // neigh_atom 距 center_atom 的距离
         int* indices;           // neigh_atom 的 index
 
         for (int ii=0; ii<this->num_atoms; ii++) {
             // Step 3.2.1. 得到 ii 原子在 supercell 中对应的 `center_atom_index`
             tmp_center_atom_idx = ii + prim_cell_idx * prim_num_atoms;
+            tmp_center_cart_coord = supercell_cart_coords[tmp_center_atom_idx];
+            
             tmp_num_neigh_atoms = this->neighbor_lists[ii].size();
             distances = (CoordType*)malloc(sizeof(CoordType) * tmp_num_neigh_atoms);
             
@@ -175,7 +176,6 @@ void NeighborList<CoordType>::_build(bool sort) {
             // Step 3.2.2. Calculate the distances
             for (int jj=0; jj<tmp_num_neigh_atoms; jj++) {
                 tmp_neigh_atom_idx = this->neighbor_lists[ii][jj];
-                tmp_center_cart_coord = supercell_cart_coords[tmp_center_atom_idx];
                 tmp_neigh_cart_coord = supercell_cart_coords[tmp_neigh_atom_idx];
 
                 distances[jj] = std::sqrt(
@@ -184,24 +184,18 @@ void NeighborList<CoordType>::_build(bool sort) {
                     std::pow(tmp_neigh_cart_coord[2] - tmp_center_cart_coord[2], 2)
                 );
             }
-            for (int jj=0; jj<tmp_num_neigh_atoms; jj++) {
-                printf("%f, ", distances[jj]);
-            }
-            printf("\n");
 
             // Step 3.2.3. Sort 
             std::sort(indices, indices + tmp_num_neigh_atoms, SingleNeighborListSortBasis<CoordType>(distances));
-            SingleNeighborListArrangement<CoordType> nsl_arrangement(this->neighbor_lists[ii], indices);
-            this->neighbor_lists[ii] = nsl_arrangement.arrange();
+            SingleNeighborListArrangement<CoordType> snl_arrangement(this->neighbor_lists[ii], indices);
+            this->neighbor_lists[ii] = snl_arrangement.arrange();
 
             // Step 3.2.4. Free `distances`
             free(distances);
             free(indices);
         }
 
-
     // Step . Free memory
-    free(diff_cart_coord);
     }
 }
 
