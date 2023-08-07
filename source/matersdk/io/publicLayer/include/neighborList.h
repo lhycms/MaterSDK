@@ -3,13 +3,56 @@
 
 #include <cassert>
 #include <cmath>
+#include <vector>
 #include <algorithm>
 #include "./binLinkedList.h"
+#include "../../../../core/include/vec3Operation.h"
 
 
 
 
 namespace matersdk {
+
+
+template <typename CoordType>
+class SingleNeighborListSortBasis {
+public:
+    SingleNeighborListSortBasis(CoordType* distances) : distances(distances)
+    {}
+
+    bool operator()(int index_i, int index_j) const {
+        return (this->distances[index_i] < this->distances[index_j]);
+    }
+
+private:
+    CoordType* distances;
+};
+
+
+template <typename CoordType>
+class SingleNeighborListArrangement {
+public:
+    SingleNeighborListArrangement(std::vector<int>& single_neighbor_list, int *new_indices)
+    : single_neighbor_list(single_neighbor_list), new_indices(new_indices)
+    {}
+
+
+    std::vector<int> arrange() const {
+        std::vector<int> new_single_neighbor_list(
+                    this->single_neighbor_list.size(), -1);
+
+        for (int ii=0; ii<this->single_neighbor_list.size(); ii++) {
+            new_single_neighbor_list[ii] = this->single_neighbor_list[this->new_indices[ii]];
+        }
+
+        return new_single_neighbor_list;
+    }
+
+
+private:
+    std::vector<int> single_neighbor_list;
+    int* new_indices;
+};
 
 
 /**
@@ -22,7 +65,7 @@ class NeighborList {
 public:
     friend class BinLinkedList<CoordType>;
     
-    NeighborList(Structure<CoordType> structure, CoordType rcut, CoordType* bin_size_xyz, bool* pbc_xyz);
+    NeighborList(Structure<CoordType> structure, CoordType rcut, CoordType* bin_size_xyz, bool* pbc_xyz, bool sort=false);
 
     ~NeighborList();
 
@@ -60,13 +103,13 @@ private:
  * @param pbc_xyz 
  */
 template <typename CoordType>
-NeighborList<CoordType>::NeighborList(Structure<CoordType> structure, CoordType rcut, CoordType* bin_size_xyz, bool* pbc_xyz) {
+NeighborList<CoordType>::NeighborList(Structure<CoordType> structure, CoordType rcut, CoordType* bin_size_xyz, bool* pbc_xyz, bool sort) {
     assert(structure.get_num_atoms() > 0);
-
+    
     this->bin_linked_list = BinLinkedList<CoordType>(structure, rcut, bin_size_xyz, pbc_xyz);
     this->num_atoms = this->bin_linked_list.get_supercell().get_prim_num_atoms();
     this->neighbor_lists = new std::vector<int>[this->num_atoms];
-    this->_build();     // Populate `this->neighbor_lists`
+    this->_build(sort);     // Populate `this->neighbor_lists`
 }
 
 
@@ -99,10 +142,66 @@ void NeighborList<CoordType>::_build(bool sort) {
     assert(prim_num_atoms == this->num_atoms);
 
     // Step 2. Populate `this->neighbor_lists`
-    int center_atom_idx;    // `center_atom_index`: atom 在 supercell 中对应的 index
-    int center_atomic_number;
     for (int ii=0; ii<this->num_atoms; ii++) {  // `ii`: atom 在 primitive cell 中的 index
         this->neighbor_lists[ii] = this->bin_linked_list.get_neigh_atoms(ii);
+    }
+    
+    // Step 3. Sort the `single_neighbor_list` according to distances
+    // Step 3.1. 得到 supercell 中所有sites的坐标
+    const CoordType** supercell_cart_coords = this->bin_linked_list.get_supercell().get_structure().get_cart_coords();
+
+    // Step 3.2. 
+    if (sort) {
+        int tmp_num_neigh_atoms;        // 某中心原子近邻的原子数目
+        int tmp_center_atom_idx;        // `center_atom_idx`: atom 在 supercell 中对应的 index
+        int tmp_neigh_atom_idx;
+        const CoordType* tmp_center_cart_coord; // 中心原子的笛卡尔坐标 
+        const CoordType* tmp_neigh_cart_coord;  // 近邻原子的笛卡尔坐标
+        CoordType* diff_cart_coord = (CoordType*)malloc(sizeof(CoordType) * 3);             
+        CoordType* distances;   // neigh_atom 距 center_atom 的距离
+        int* indices;           // neigh_atom 的 index
+
+        for (int ii=0; ii<this->num_atoms; ii++) {
+            // Step 3.2.1. 得到 ii 原子在 supercell 中对应的 `center_atom_index`
+            tmp_center_atom_idx = ii + prim_cell_idx * prim_num_atoms;
+            tmp_num_neigh_atoms = this->neighbor_lists[ii].size();
+            distances = (CoordType*)malloc(sizeof(CoordType) * tmp_num_neigh_atoms);
+            
+            indices = (int*)malloc(sizeof(int) * tmp_num_neigh_atoms);
+            for (int jj=0; jj<tmp_num_neigh_atoms; jj++) {
+                indices[jj] = jj;
+            }
+            
+            // Step 3.2.2. Calculate the distances
+            for (int jj=0; jj<tmp_num_neigh_atoms; jj++) {
+                tmp_neigh_atom_idx = this->neighbor_lists[ii][jj];
+                tmp_center_cart_coord = supercell_cart_coords[tmp_center_atom_idx];
+                tmp_neigh_cart_coord = supercell_cart_coords[tmp_neigh_atom_idx];
+
+                distances[jj] = std::sqrt(
+                    std::pow(tmp_neigh_cart_coord[0] - tmp_center_cart_coord[0], 2) + 
+                    std::pow(tmp_neigh_cart_coord[1] - tmp_center_cart_coord[1], 2) + 
+                    std::pow(tmp_neigh_cart_coord[2] - tmp_center_cart_coord[2], 2)
+                );
+            }
+            for (int jj=0; jj<tmp_num_neigh_atoms; jj++) {
+                printf("%f, ", distances[jj]);
+            }
+            printf("\n");
+
+            // Step 3.2.3. Sort 
+            std::sort(indices, indices + tmp_num_neigh_atoms, SingleNeighborListSortBasis<CoordType>(distances));
+            SingleNeighborListArrangement<CoordType> nsl_arrangement(this->neighbor_lists[ii], indices);
+            this->neighbor_lists[ii] = nsl_arrangement.arrange();
+
+            // Step 3.2.4. Free `distances`
+            free(distances);
+            free(indices);
+        }
+
+
+    // Step . Free memory
+    free(diff_cart_coord);
     }
 }
 
