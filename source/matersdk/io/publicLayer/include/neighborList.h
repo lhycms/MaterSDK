@@ -84,11 +84,13 @@ public:
 
     const int get_max_num_neigh_atoms_ss(int neigh_atomic_number) const; // `ss`: specified specie
 
-    int* get_neigh_atomic_numbers(int prim_atom_idx) const;       // 由 `this->neighbor_lists[ii]` 得到 prim_atom_idx 的近邻原子的原子序数
+    const int get_num_neigh_atoms(int prim_atom_idx) const;         // 由 `this->neighbor_lists[ii]` 得到 prim_atom_idx 的近邻原子的数目
 
-    CoordType* get_neigh_distances(int prim_atom_idx) const;    // 由 `this->neighbor_lists[ii]` 得到 prim_atom_idx 的近邻原子的距中心原子的距离
+    int* get_neigh_atomic_numbers(int prim_atom_idx) const;         // 由 `this->neighbor_lists[ii]` 得到 prim_atom_idx 的近邻原子的原子序数
 
-    CoordType** get_neigh_cart_coords(int prim_atom_idx) const; // 由 `this->neighbor_lists[ii]` 得到 prim_atom_idx 的近邻原子的距中心原子的坐标 (r_j - r_i)
+    CoordType* get_neigh_distances(int prim_atom_idx) const;        // 由 `this->neighbor_lists[ii]` 得到 prim_atom_idx 的近邻原子的距中心原子的距离
+
+    CoordType** get_neigh_cart_coords(int prim_atom_idx) const;     // 由 `this->neighbor_lists[ii]` 得到 prim_atom_idx 的近邻原子的距中心原子的坐标 (r_j - r_i)
 
 private:
     BinLinkedList<CoordType> bin_linked_list;
@@ -367,6 +369,19 @@ const int NeighborList<CoordType>::get_max_num_neigh_atoms_ss(int neigh_atomic_n
 
 
 /**
+ * @brief Get the number of neigh atoms given `prim_atom_idx`
+ * 
+ * @tparam CoordType 
+ * @param prim_atom_idx 
+ * @return const int 
+ */
+template <typename CoordType>
+const int NeighborList<CoordType>::get_num_neigh_atoms(int prim_atom_idx) const {
+    return this->neighbor_lists[prim_atom_idx].size();
+}
+
+
+/**
  * @brief Given `prim_atom_idx`，返回近邻的元素种类
  * 
  * @tparam CoordType 
@@ -378,11 +393,10 @@ int* NeighborList<CoordType>::get_neigh_atomic_numbers(int prim_atom_idx) const 
     // Step 1. 
     // Step 1.1. prim_atom_idx 的近邻原子数
     int num_neigh_atoms = this->neighbor_lists[prim_atom_idx].size();
-    // Step 1.2. 
+    // Step 1.2. 得到 supercell 的原子序数
     const int* supercell_atomic_numbers = this->bin_linked_list.get_supercell().get_structure().get_atomic_numbers();
     
     // Step 2. Populate `neigh_atomic_numbers`
-    printf("number = %d\n", num_neigh_atoms);
     int* neigh_atomic_numbers = (int*)malloc(sizeof(int) * num_neigh_atoms);
     for (int ii=0; ii<num_neigh_atoms; ii++) {
         neigh_atomic_numbers[ii] = supercell_atomic_numbers[this->neighbor_lists[prim_atom_idx][ii]];
@@ -391,6 +405,39 @@ int* NeighborList<CoordType>::get_neigh_atomic_numbers(int prim_atom_idx) const 
     return neigh_atomic_numbers;
 }
 
+
+
+template <typename CoordType>
+CoordType* NeighborList<CoordType>::get_neigh_distances(int prim_atom_index) const {
+    // Step 1. 
+    // Step 1.1. prim_atom_idx 的近邻原子数
+    int num_neigh_atoms = this->neighbor_lists[prim_atom_index].size();
+    // Step 1.2. 得到 supercell 中所有原子的坐标
+    const CoordType** supercell_cart_coords = this->bin_linked_list.get_supercell().get_structure().get_cart_coords();
+    
+    // Step 2. Populate `neigh_atomic_distances`
+    CoordType* distances = (CoordType*)malloc(sizeof(CoordType) * num_neigh_atoms);
+    int prim_cell_idx = this->bin_linked_list.get_supercell().get_prim_cell_idx();
+    int prim_num_atoms = this->bin_linked_list.get_supercell().get_prim_num_atoms();
+    int center_atom_idx = prim_atom_index + prim_cell_idx * prim_num_atoms;
+    int neigh_atom_idx;
+    const CoordType* center_cart_coord = supercell_cart_coords[center_atom_idx];
+    const CoordType* neigh_cart_coord;
+
+    for (int ii=0; ii<num_neigh_atoms; ii++) {  // 遍历 prim_atom_idx 的所有邻居原子
+        neigh_atom_idx = this->neighbor_lists[prim_atom_index][ii];
+        neigh_cart_coord = supercell_cart_coords[neigh_atom_idx];
+        distances[ii] = std::sqrt(
+                std::pow(neigh_cart_coord[0] - center_cart_coord[0], 2) + 
+                std::pow(neigh_cart_coord[1] - center_cart_coord[1], 2) + 
+                std::pow(neigh_cart_coord[2] - center_cart_coord[2], 2)
+        );
+    }
+
+    // Step . Free memory
+
+    return distances;
+}
 
 
 

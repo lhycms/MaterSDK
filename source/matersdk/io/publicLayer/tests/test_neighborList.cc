@@ -116,10 +116,10 @@ TEST_F(NeighborListTest, constructor_1) {
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
     matersdk::NeighborList<double> neighbor_list(structure, rcut, bin_size_xyz, pbc_xyz, true);
     
-    neighbor_list.show_in_index();
-    printf("\n");
-    neighbor_list.show_in_prim_index();
-    printf("\n");
+    //neighbor_list.show_in_index();
+    //printf("\n");
+    //neighbor_list.show_in_prim_index();
+    //printf("\n");
     neighbor_list.show_in_an();
     printf("\n");
     neighbor_list.show_in_distances();
@@ -134,10 +134,10 @@ TEST_F(NeighborListTest, constructor_2) {
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
     matersdk::NeighborList<double> neighbor_list(structure, rcut, pbc_xyz, true);
     
-    neighbor_list.show_in_index();
-    printf("\n");
-    neighbor_list.show_in_prim_index();
-    printf("\n");
+    //neighbor_list.show_in_index();
+    //printf("\n");
+    //neighbor_list.show_in_prim_index();
+    //printf("\n");
     neighbor_list.show_in_an();
     printf("\n");
     neighbor_list.show_in_distances();
@@ -173,7 +173,22 @@ TEST_F(NeighborListTest, get_max_num_neigh_atoms_ss) {
 }
 
 
-/*
+TEST_F(NeighborListTest, get_num_neigh_atoms) {
+    rcut = 3.3;
+    pbc_xyz[0] = true;
+    pbc_xyz[1] = true;
+    pbc_xyz[2] = false;
+
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    matersdk::NeighborList<double> neighbor_list(structure, rcut, pbc_xyz);
+    const int num_neigh_atoms_42 = neighbor_list.get_num_neigh_atoms(0);
+    const int num_neigh_atoms_16 = neighbor_list.get_num_neigh_atoms(1);
+    
+    EXPECT_EQ(num_neigh_atoms_42, 12);
+    EXPECT_EQ(num_neigh_atoms_16, 10);
+}
+
+
 TEST_F(NeighborListTest, get_neigh_atomic_numbers) {
     rcut = 3.3;
     pbc_xyz[0] = true;      
@@ -183,17 +198,58 @@ TEST_F(NeighborListTest, get_neigh_atomic_numbers) {
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
     matersdk::NeighborList<double> neighbor_list(structure, rcut, pbc_xyz, true);
 
-    int* neigh_atomic_numbers = neighbor_list.get_neigh_atomic_numbers(0);
+    // Step 1. Run the program
+    int* neigh_atomic_numbers_42 = neighbor_list.get_neigh_atomic_numbers(0);
+    int* neigh_atomic_numbers_16 = neighbor_list.get_neigh_atomic_numbers(1);
 
-    for (int ii=0; ii<10; ii++) {
-        printf("%d, ", neigh_atomic_numbers[ii]);
+    // Step 2. calculate the standard value
+    int standard_neigh_atomic_numbers_42[12] = { 16, 16, 16, 16, 16, 16, 42, 42, 42, 42, 42, 42 };
+    int standard_neigh_atomic_numbers_16[10] = { 42, 42, 42, 16, 16, 16, 16, 16, 16, 16 };
+
+    for (int ii=0; ii<neighbor_list.get_num_neigh_atoms(0); ii++) {
+        EXPECT_EQ(neigh_atomic_numbers_42[ii], standard_neigh_atomic_numbers_42[ii]);
     }
-    printf("\n");
+    for (int ii=0; ii<neighbor_list.get_num_neigh_atoms(1); ii++) {
+        EXPECT_EQ(neigh_atomic_numbers_16[ii], standard_neigh_atomic_numbers_16[ii]);
+    }
 
     // Step . Free memory
-    free(neigh_atomic_numbers);
+    free(neigh_atomic_numbers_42);
+    free(neigh_atomic_numbers_16);
 }
-*/
+
+
+TEST_F(NeighborListTest, get_neigh_distances) {
+    rcut = 3.3;
+    pbc_xyz[0] = true;
+    pbc_xyz[1] = true;
+    pbc_xyz[2] = false;
+
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    matersdk::NeighborList<double> neighbor_list(structure, rcut, pbc_xyz, true);
+
+    // Step 1. Run the program
+    double* distances_42 = neighbor_list.get_neigh_distances(0);
+    double* distances_16 = neighbor_list.get_neigh_distances(1);
+
+    // Step 2. Calculate the standard value
+    double standard_distances_42[] = 
+        { 2.416933, 2.416933, 2.416933, 2.416933, 2.416933, 2.416933, 3.190315, 3.190315, 3.190315, 3.190315, 3.190316, 3.190316 };
+    double standard_distances_16[] = 
+        { 2.416933, 2.416933, 2.416933, 3.129769, 3.190315, 3.190315, 3.190315, 3.190315, 3.190316, 3.190316 };
+
+    // Step Test
+    for (int ii=0; ii<neighbor_list.get_num_neigh_atoms(0); ii++) {
+        EXPECT_FLOAT_EQ(distances_42[ii], standard_distances_42[ii]);
+    }
+    for (int ii=0; ii<neighbor_list.get_num_neigh_atoms(1); ii++) {
+        EXPECT_FLOAT_EQ(distances_16[ii], standard_distances_16[ii]);
+    }
+
+    // Step . Free memory
+    free(distances_42);
+    free(distances_16);
+}
 
 
 int main(int argc, char **argv) {
