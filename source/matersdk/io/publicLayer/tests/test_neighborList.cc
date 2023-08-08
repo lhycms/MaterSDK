@@ -125,6 +125,23 @@ TEST_F(NeighborListTest, constructor_1) {
     neighbor_list.show_in_distances();
 }
 
+TEST_F(NeighborListTest, constructor_2) {
+    rcut = 3.3;             // 截断半径
+    pbc_xyz[0] = true;      // X 方向上是否具有周期性
+    pbc_xyz[1] = true;      // Y 方向上是否具有周期性
+    pbc_xyz[2] = false;     // Z 方向上是否具有周期性
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    matersdk::NeighborList<double> neighbor_list(structure, rcut, pbc_xyz, true);
+    
+    neighbor_list.show_in_index();
+    printf("\n");
+    neighbor_list.show_in_prim_index();
+    printf("\n");
+    neighbor_list.show_in_an();
+    printf("\n");
+    neighbor_list.show_in_distances();
+}
+
 
 TEST_F(NeighborListTest, get_max_num_neigh_atoms) {
     rcut = 3.3;             // 截断半径

@@ -62,7 +62,9 @@ class NeighborList {
 public:
     friend class BinLinkedList<CoordType>;
     
-    NeighborList(Structure<CoordType> structure, CoordType rcut, CoordType* bin_size_xyz, bool* pbc_xyz, bool sort=false);
+    NeighborList(Structure<CoordType>& structure, CoordType rcut, CoordType* bin_size_xyz, bool* pbc_xyz, bool sort=false);
+
+    NeighborList(Structure<CoordType>& structure, CoordType rcut, bool* pbc_xyz, bool sort=false);
 
     ~NeighborList();
 
@@ -100,13 +102,33 @@ private:
  * @param pbc_xyz 
  */
 template <typename CoordType>
-NeighborList<CoordType>::NeighborList(Structure<CoordType> structure, CoordType rcut, CoordType* bin_size_xyz, bool* pbc_xyz, bool sort) {
+NeighborList<CoordType>::NeighborList(Structure<CoordType>& structure, CoordType rcut, CoordType* bin_size_xyz, bool* pbc_xyz, bool sort) {
     assert(structure.get_num_atoms() > 0);
     
     this->bin_linked_list = BinLinkedList<CoordType>(structure, rcut, bin_size_xyz, pbc_xyz);
     this->num_atoms = this->bin_linked_list.get_supercell().get_prim_num_atoms();
     this->neighbor_lists = new std::vector<int>[this->num_atoms];
     this->_build(sort);     // Populate `this->neighbor_lists`
+}
+
+
+/**
+ * @brief Construct a new Neighbor List< Coord Type>:: Neighbor List object
+ * 
+ * @tparam CoordType 
+ * @param structure 
+ * @param rcut 
+ * @param pbc_xyz 
+ * @param sort 
+ */
+template <typename CoordType>
+NeighborList<CoordType>::NeighborList(Structure<CoordType>& structure, CoordType rcut, bool* pbc_xyz, bool sort) {
+    assert(structure.get_num_atoms() > 0);
+
+    this->bin_linked_list = BinLinkedList<CoordType>(structure, rcut, pbc_xyz);
+    this->num_atoms = this->bin_linked_list.get_supercell().get_prim_num_atoms();
+    this->neighbor_lists = new std::vector<int>[this->num_atoms];
+    this->_build(sort);
 }
 
 
