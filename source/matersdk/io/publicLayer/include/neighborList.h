@@ -62,9 +62,15 @@ class NeighborList {
 public:
     friend class BinLinkedList<CoordType>;
     
+    NeighborList();
+
     NeighborList(Structure<CoordType>& structure, CoordType rcut, CoordType* bin_size_xyz, bool* pbc_xyz, bool sort=false);
 
     NeighborList(Structure<CoordType>& structure, CoordType rcut, bool* pbc_xyz, bool sort=false);
+
+    NeighborList(const NeighborList& rhs);
+
+    NeighborList& operator=(const NeighborList& rhs);
 
     ~NeighborList();
 
@@ -98,6 +104,18 @@ private:
     std::vector<int>* neighbor_lists = nullptr;           // `num_atoms` 个 `neighbor_lists` 构成完整的 `neighbor_list`
 };  // class: NeighborList
 
+
+/**
+ * @brief Construct a new Neighbor List< Coord Type>:: Neighbor List object
+ * 
+ * @tparam CoordType 
+ */
+template <typename CoordType>
+NeighborList<CoordType>::NeighborList() {
+    this->bin_linked_list = BinLinkedList<CoordType>();
+    this->num_atoms = 0;
+    this->neighbor_lists = nullptr;
+}
 
 
 /**
@@ -141,6 +159,56 @@ NeighborList<CoordType>::NeighborList(Structure<CoordType>& structure, CoordType
     this->neighbor_lists = new std::vector<int>[this->num_atoms];
     this->_build(sort);
 }
+
+
+/**
+ * @brief Copy constructor
+ * 
+ * @tparam CoordType 
+ * @param rhs 
+ */
+template <typename CoordType>
+NeighborList<CoordType>::NeighborList(const NeighborList<CoordType>& rhs) {
+    this->bin_linked_list = rhs.bin_linked_list;
+    this->num_atoms = rhs.num_atoms;
+    
+    if (this->num_atoms != 0) {
+        this->neighbor_lists = new std::vector<int>[this->num_atoms];
+        for (int ii=0; ii<this->num_atoms; ii++) {  // 遍历中心原子
+            this->neighbor_lists[ii].resize( rhs.neighbor_lists[ii].size(), -1 );
+            for (int jj=0; jj<rhs.neighbor_lists[ii].size(); jj++) { // 遍历近邻原子
+                this->neighbor_lists[ii][jj] = rhs.neighbor_lists[ii][jj];
+            }
+        }
+    }
+}
+
+
+/**
+ * @brief Overloading the assignment operator
+ * 
+ * @tparam CoordType 
+ * @param rhs 
+ * @return NeighborList<CoordType>& 
+ */
+template <typename CoordType>
+NeighborList<CoordType>& NeighborList<CoordType>::operator=(const NeighborList<CoordType>& rhs) {
+    this->bin_linked_list = rhs.bin_linked_list;
+    this->num_atoms = rhs.num_atoms;
+
+    if (this->num_atoms != 0) {
+        this->neighbor_lists = new std::vector<int>[this->num_atoms];
+        for (int ii=0; ii<this->num_atoms; ii++) {
+            this->neighbor_lists[ii].resize( rhs.neighbor_lists[ii].size() , -1 );
+            for (int jj=0; jj<rhs.neighbor_lists[ii].size(); jj++) {
+                this->neighbor_lists[ii][jj] = rhs.neighbor_lists[ii][jj];
+            }
+        }
+    }
+
+    return *this;
+}
+
 
 
 /**
@@ -232,6 +300,10 @@ void NeighborList<CoordType>::_build(bool sort) {
 
 template <typename CoordType>
 void NeighborList<CoordType>::show_in_index() const {
+    if (this->num_atoms == 0) {
+        printf("This is NULL NeighborList.\n");
+    }
+
     for (int ii=0; ii<this->num_atoms; ii++) {
         printf("%4d:\t", ii);
         for (int jj: this->neighbor_lists[ii]) {
@@ -244,6 +316,10 @@ void NeighborList<CoordType>::show_in_index() const {
 
 template <typename CoordType>
 void NeighborList<CoordType>::show_in_prim_index() const {
+    if (this->num_atoms == 0) {
+        printf("This is NULL NeighborList.\n");
+    }
+
     for (int ii=0; ii<this->num_atoms; ii++) {
         printf("%4d:\t", ii);
         for (int jj: this->neighbor_lists[ii]) {
@@ -256,6 +332,10 @@ void NeighborList<CoordType>::show_in_prim_index() const {
 
 template <typename CoordType>
 void NeighborList<CoordType>::show_in_an() const {
+    if (this->num_atoms == 0) {
+        printf("This is NULL NeighborList.\n");
+    }
+
     const int* supercell_atomic_numbers = this->bin_linked_list.get_supercell().get_structure().get_atomic_numbers();
 
     for (int ii=0; ii<this->num_atoms; ii++) {
@@ -270,6 +350,10 @@ void NeighborList<CoordType>::show_in_an() const {
 
 template <typename CoordType>
 void NeighborList<CoordType>::show_in_distances() const {
+    if (this->num_atoms == 0) {
+        printf("This is NULL NeighborList.\n");
+    }
+
     const CoordType** supercell_cart_coords = this->bin_linked_list.get_supercell().get_structure().get_cart_coords();
     const int* supercell_atomic_numbers = this->bin_linked_list.get_supercell().get_structure().get_atomic_numbers();
     CoordType* center_cart_coord = (CoordType*)malloc(sizeof(CoordType) * 3);   // 中心原子的坐标

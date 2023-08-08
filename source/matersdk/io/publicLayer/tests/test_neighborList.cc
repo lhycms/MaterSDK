@@ -145,6 +145,45 @@ TEST_F(NeighborListTest, constructor_2) {
 }
 
 
+TEST_F(NeighborListTest, copy_constructor) {
+    rcut = 3.3;           
+    pbc_xyz[0] = true;    
+    pbc_xyz[1] = true;     
+    pbc_xyz[2] = false;
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    
+    matersdk::NeighborList<double> neighbor_list_1;
+    matersdk::NeighborList<double> neighbor_list_2(structure, rcut, pbc_xyz, false);
+
+    matersdk::NeighborList<double> neighbor_list_3(neighbor_list_1);
+    matersdk::NeighborList<double> neighbor_list_4(neighbor_list_2);
+
+    neighbor_list_3.show_in_an();
+    neighbor_list_4.show_in_an();
+}
+
+
+TEST_F(NeighborListTest, assignment_operator) {
+    rcut = 3.3;           
+    pbc_xyz[0] = true;    
+    pbc_xyz[1] = true;     
+    pbc_xyz[2] = false;
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+
+    matersdk::NeighborList<double> neighbor_list_1;
+    matersdk::NeighborList<double> neighbor_list_2(structure, rcut, pbc_xyz, false);
+    matersdk::NeighborList<double> neighbor_list_3;
+    matersdk::NeighborList<double> neighbor_list_4(structure, rcut, pbc_xyz, false);
+
+    neighbor_list_3 = neighbor_list_1;
+    //neighbor_list_3 = neighbor_list_2;
+    neighbor_list_4 = neighbor_list_1;
+    //neighbor_list_4 = neighbor_list_2;
+    
+    neighbor_list_4.show_in_an();
+}
+
+
 TEST_F(NeighborListTest, get_max_num_neigh_atoms) {
     rcut = 3.3;             // 截断半径
     bin_size_xyz[0] = 3.0;  // X 方向上的 bin_size (一般默认 rcut/2)
