@@ -239,7 +239,6 @@ class AvgBond(object):
             for center_idx in range(key_nbr2_rc.shape[0]):
                 for nbr2_idx in range(key_nbr2_rc.shape[1]):
                     for nbr3_idx in range(key_nbr3_rc.shape[1]):
-                        # 预防 `angle_standard = 0` 时，重复计算键长
                         tmp_nbr2_rc = key_nbr2_rc[center_idx, nbr2_idx, :]
                         tmp_nbr3_rc = key_nbr3_rc[center_idx, nbr3_idx, :]
                         # relative_coord 不能为 [0, 0, 0] ([0, 0, 0]代表无近邻原子)
