@@ -100,6 +100,8 @@ class BinLinkedList {
 public:
     BinLinkedList();
 
+    BinLinkedList(Structure<CoordType>& structure, CoordType rcut, bool* pbc_xyz);
+
     BinLinkedList(Structure<CoordType>& structure, CoordType rcut, CoordType* bin_size_xyz, bool* pbc_xyz);
 
     BinLinkedList(const BinLinkedList& rhs);
@@ -633,6 +635,62 @@ BinLinkedList<CoordType>::BinLinkedList(Structure<CoordType>& structure, CoordTy
     free(limit_xyz);
 }
 
+
+/**
+ * @brief Construct a new Bin Linked List< Coord Type>:: Bin Linked List object
+ * 
+ * @tparam CoordType 
+ * @param structure 
+ * @param rcut 
+ * @param pbc_xyz 
+ */
+template <typename CoordType>
+BinLinkedList<CoordType>::BinLinkedList(Structure<CoordType>& structure, CoordType rcut, bool* pbc_xyz) {
+    assert(structure.get_num_atoms() > 0);
+
+    // Step 1. 计算 `scaling_matrix` -- 根据 `rcut` 和 `interplanar_distances`
+    this->rcut = rcut;
+    this->bin_size_xyz[0] = this->bin_size_xyz[1] = this->bin_size_xyz[2] = this->rcut / 2;
+    this->pbc_xyz[0] = pbc_xyz[0];
+    this->pbc_xyz[1] = pbc_xyz[1];
+    this->pbc_xyz[2] = pbc_xyz[2];
+    CoordType* prim_interplanar_distances = (CoordType*)malloc(sizeof(CoordType) * 3);
+    int* scaling_matrix = (int*)malloc(sizeof(int) * 3);
+    int* extending_matrix = (int*)malloc(sizeof(int) * 3);
+    for (int ii=0; ii<3; ii++) {
+        extending_matrix[ii] = std::ceil( this->rcut / prim_interplanar_distances[ii] );
+        scaling_matrix[ii] = extending_matrix[ii] * 2 + 1;
+        if (pbc_xyz[ii] == false) 
+            scaling_matrix[ii] = 1;
+    }
+    
+    // Step 2. 初始化 Supercell 
+    Supercell<CoordType> supercell(structure, scaling_matrix);
+    this->supercell = supercell;
+    CoordType* projected_lengths = (CoordType*)supercell.structure.get_projected_lengths();
+    for (int ii=0; ii<3; ii++) {
+        this->num_bin_xyz[ii] = std::ceil( projected_lengths[ii] / this->bin_size_xyz[ii] );
+    }
+
+    // Step 3. 计算 `min_limit_xyz` -- Note!!!
+    CoordType** limit_xyz = this->supercell.get_structure().get_limit_xyz();
+    this->min_limit_xyz[0] = limit_xyz[0][0];
+    this->min_limit_xyz[1] = limit_xyz[1][0];
+    this->min_limit_xyz[2] = limit_xyz[2][0];
+
+    // Step 4. 构建 BinLinkedList -- 将 atoms 分配到不同的 bins 中
+    this->_build();
+
+    // Step . Free memory
+    free(prim_interplanar_distances);
+    free(scaling_matrix);
+    free(extending_matrix);
+    free(projected_lengths);
+    for (int ii=0; ii<3; ii++) {
+        free(limit_xyz[ii]);
+    }
+    free(limit_xyz);
+}
 
 
 /**

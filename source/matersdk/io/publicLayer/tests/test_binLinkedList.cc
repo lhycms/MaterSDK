@@ -620,6 +620,55 @@ TEST_F(BinLinkedListTest, constructor_1_case_1) {
 }
 
 
+TEST_F(BinLinkedListTest, constructor_2) {
+    rcut = 3.0;
+    pbc_xyz[0] = true;
+    pbc_xyz[1] = true;
+    pbc_xyz[2] = false;
+
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    matersdk::BinLinkedList<double> bin_linked_list(structure, rcut, pbc_xyz);
+    //bin_linked_list.show();
+
+
+    /*
+    // Step 1. 验证 `extending_matrix`, `scaling_matrix`
+    const int* scaling_matrix = bin_linked_list.get_supercell().get_scaling_matrix();
+    double* prim_interplanar_distances = (double *)structure.get_interplanar_distances();
+    int* standard_scaling_matrix = (int*)malloc(sizeof(int) * 3);
+    for (int ii=0; ii<3; ii++) {
+        standard_scaling_matrix[ii] = std::ceil(rcut / prim_interplanar_distances[ii]);
+        standard_scaling_matrix[ii] = standard_scaling_matrix[ii] * 2 + 1;
+
+        if (pbc_xyz[ii] != true) 
+            standard_scaling_matrix[ii] = 1;
+    }
+    EXPECT_EQ(scaling_matrix[0], standard_scaling_matrix[0]);
+    EXPECT_EQ(scaling_matrix[1], standard_scaling_matrix[1]);
+    EXPECT_EQ(scaling_matrix[2], standard_scaling_matrix[2]);
+
+
+    // Step 2. 验证 `num_bin_xyz`
+    const int* num_bin_xyz = bin_linked_list.get_num_bin_xyz();
+    double* projected_lengths = (double*)bin_linked_list.get_supercell().get_structure().get_projected_lengths();
+    int* standard_num_bin_xyz = (int*)malloc(sizeof(int) * 3);
+    for (int ii=0; ii<3; ii++) {
+        standard_num_bin_xyz[ii] = std::ceil( projected_lengths[ii] / (rcut/2) );
+    }
+    EXPECT_EQ(num_bin_xyz[0], standard_num_bin_xyz[0]);
+    EXPECT_EQ(num_bin_xyz[1], standard_num_bin_xyz[1]);
+    EXPECT_EQ(num_bin_xyz[2], standard_num_bin_xyz[2]);
+
+
+    // Step . Free memory
+    free(prim_interplanar_distances);
+    free(standard_scaling_matrix);
+    free(projected_lengths);
+    free(standard_num_bin_xyz);
+    */
+}
+
+
 TEST_F(BinLinkedListTest, copy_constructor) {
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
     matersdk::BinLinkedList<double> bin_linked_list_1(structure, rcut, bin_size_xyz, pbc_xyz);

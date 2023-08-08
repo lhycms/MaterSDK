@@ -6,9 +6,6 @@
 #include <vector>
 #include <algorithm>
 #include "./binLinkedList.h"
-#include "../../../../core/include/vec3Operation.h"
-
-
 
 
 namespace matersdk {
@@ -26,7 +23,7 @@ public:
 
 private:
     CoordType* distances;
-};
+};  // class: SingleNeighborListSortBasis
 
 
 template <typename CoordType>
@@ -52,7 +49,7 @@ public:
 private:
     std::vector<int> single_neighbor_list;
     int* new_indices;
-};
+};  // class: SingleNeighborListArrangement
 
 
 /**
@@ -87,8 +84,8 @@ public:
 
 private:
     BinLinkedList<CoordType> bin_linked_list;
-    int num_atoms;                              // The number of atoms in primitive cell.
-    std::vector<int>* neighbor_lists;           // `num_atoms` 个 `neighbor_lists` 构成完整的 `neighbor_list`
+    int num_atoms = 0;                              // The number of atoms in primitive cell.
+    std::vector<int>* neighbor_lists = nullptr;           // `num_atoms` 个 `neighbor_lists` 构成完整的 `neighbor_list`
 };  // class: NeighborList
 
 
