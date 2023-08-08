@@ -141,7 +141,7 @@ class AvgBond(object):
         '''
         Description
         -----------
-            1. 
+            1. Just for xhm, useless function.
         
         Parameters
         ----------
@@ -153,6 +153,10 @@ class AvgBond(object):
                 - 成键原子 2
             4. atomic_number_3: int
                 - 成键原子 3
+        
+        Return
+        ------
+            1. 
         '''
         ### Step 1. 按照中心原子种类筛选
         filter_center = np.where(
@@ -205,28 +209,59 @@ class AvgBond(object):
         
         
         ### Step 5. 
-        lengths_array = []    # `atom_2 - atom_1 - atom_3` 满足角度条件，存储 `atom_2 - atom_1` 的键长
-        for center_idx in range(key_nbr2_rc.shape[0]):
-            for nbr2_idx in range(key_nbr2_rc.shape[1]):
-                for nbr3_idx in range(key_nbr3_rc.shape[1]):
-                    # 预防 `angle_standard = 0` 时，重复计算键长
-                    if (atomic_number_2 == atomic_number_3) and (nbr2_idx == nbr3_idx):
-                        continue
-                    tmp_nbr2_rc = key_nbr2_rc[center_idx, nbr2_idx, :]
-                    tmp_nbr3_rc = key_nbr3_rc[center_idx, nbr3_idx, :]
-                    # relative_coord 不能为 [0, 0, 0] ([0, 0, 0]代表无近邻原子)
-                    if (not np.array_equal(tmp_nbr2_rc, np.zeros(3))) and \
+        shorter_bonds_array = []
+        longer_bonds_array = []
+        angles_array = []
+        ### Step 5.1. Case 1 -- 
+        if (atomic_number_2 == atomic_number_3):
+            for center_idx in range(key_nbr2_rc.shape[0]):
+                for nbr2_idx in range(key_nbr2_rc.shape[1]):
+                    for nbr3_idx in range(nbr2_idx, key_nbr3_rc.shape[1]):  # Note: 预防重复计算键角
+                        tmp_nbr2_rc = key_nbr2_rc[center_idx, nbr2_idx, :]
+                        tmp_nbr3_rc = key_nbr3_rc[center_idx, nbr3_idx, :]
+                        # relative_coord 不能为 [0, 0, 0] ([0, 0, 0]代表无近邻原子)
+                        if (not np.array_equal(tmp_nbr2_rc, np.zeros(3))) and \
                             (not np.array_equal(tmp_nbr3_rc, np.zeros(3))):
-                        # 角度满足 angle_standard ± angle_epsilon
-                        if( get_angle_equal(
-                                angle=get_angle(tmp_nbr2_rc, tmp_nbr3_rc),
-                                angle_standard=angle_standard,
-                                angle_epsilon=angle_epsilon) ):
-                            lengths_array.append(np.linalg.norm(tmp_nbr2_rc))
-                            break   # 针对 `中心原子 - nbr2`， 仅有一个 `nbr3` 使其键角满足条件，即可添加。同时需要注意防止重复添加！
+                                # 角度满足 angle_standard ± angle_epsilon
+                                if ( get_angle_equal(
+                                        angle=get_angle(tmp_nbr2_rc, tmp_nbr3_rc),
+                                        angle_standard=angle_standard,
+                                        angle_epsilon=angle_epsilon
+                                ) ):
+                                    angles_array.append(get_angle(tmp_nbr2_rc, tmp_nbr3_rc))
+                                    shorter_bonds_array.append( min([np.linalg.norm(tmp_nbr2_rc), np.linalg.norm(tmp_nbr3_rc)]) )
+                                    longer_bonds_array.append( max([np.linalg.norm(tmp_nbr2_rc), np.linalg.norm(tmp_nbr3_rc)]) )
+                                    
+            
+            
+        ### Step 5.2. Case 2 -- 
+        else:
+            for center_idx in range(key_nbr2_rc.shape[0]):
+                for nbr2_idx in range(key_nbr2_rc.shape[1]):
+                    for nbr3_idx in range(key_nbr3_rc.shape[1]):
+                        # 预防 `angle_standard = 0` 时，重复计算键长
+                        tmp_nbr2_rc = key_nbr2_rc[center_idx, nbr2_idx, :]
+                        tmp_nbr3_rc = key_nbr3_rc[center_idx, nbr3_idx, :]
+                        # relative_coord 不能为 [0, 0, 0] ([0, 0, 0]代表无近邻原子)
+                        if (not np.array_equal(tmp_nbr2_rc, np.zeros(3))) and \
+                                (not np.array_equal(tmp_nbr3_rc, np.zeros(3))):
+                            # 角度满足 angle_standard ± angle_epsilon
+                            if( get_angle_equal(
+                                    angle=get_angle(tmp_nbr2_rc, tmp_nbr3_rc),
+                                    angle_standard=angle_standard,
+                                    angle_epsilon=angle_epsilon) ):
+                                angles_array.append(get_angle(tmp_nbr2_rc, tmp_nbr3_rc))
+                                shorter_bonds_array.append( min([np.linalg.norm(tmp_nbr2_rc), np.linalg.norm(tmp_nbr3_rc)]) )
+                                longer_bonds_array.append( max([np.linalg.norm(tmp_nbr2_rc), np.linalg.norm(tmp_nbr3_rc)]) )
+        
+        ### Step 6. 合并
+        angles_array = np.array( angles_array ).reshape(-1, 1)
+        shorter_bonds_array = np.array( shorter_bonds_array ).reshape(-1, 1)
+        longer_bonds_array = np.array( longer_bonds_array ).reshape(-1, 1)
                             
-        lengths_array = np.array(lengths_array)
-        return lengths_array
+        result_array = np.concatenate((angles_array, shorter_bonds_array, longer_bonds_array), axis=1)
+        
+        return result_array
         
         
         

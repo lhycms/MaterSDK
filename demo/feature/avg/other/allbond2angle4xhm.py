@@ -23,7 +23,7 @@ struct_neigh = StructureNeighborsDescriptor.create(
                 rcut,
                 scaling_matrix)
 
-lengths_array = AvgBond.get_bond_lengths_lst_according2angle(
+result_array = AvgBond.get_bond_lengths_lst_according2angle(
                     struct_neigh=struct_neigh,
                     atomic_number_1=atomic_number_1,
                     atomic_number_2=atomic_number_2,
@@ -31,4 +31,4 @@ lengths_array = AvgBond.get_bond_lengths_lst_according2angle(
                     angle_standard=angle_standard,
                     angle_epsilon=angle_epsilon,
 )
-np.savetxt(fname=save_path, X=lengths_array.reshape(-1, 1))
+np.savetxt(fname=save_path, X=result_array)

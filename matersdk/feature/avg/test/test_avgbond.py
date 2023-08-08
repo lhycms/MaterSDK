@@ -70,7 +70,7 @@ class AvgBondTest(unittest.TestCase):
                         rcut,
                         scaling_matrix)
 
-        lengths_array = AvgBond.get_bond_lengths_lst_according2angle(
+        result_array = AvgBond.get_bond_lengths_lst_according2angle(
                             struct_neigh=struct_neigh,
                             atomic_number_1=atomic_number_1,
                             atomic_number_2=atomic_number_2,
@@ -78,7 +78,7 @@ class AvgBondTest(unittest.TestCase):
                             angle_standard=angle_standard,
                             angle_epsilon=angle_epsilon,
         )
-        print(lengths_array.shape)
+        print(result_array)
     
 
 
