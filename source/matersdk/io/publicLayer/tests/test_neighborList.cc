@@ -3,6 +3,7 @@
 
 #include "../include/structure.h"
 #include "../include/neighborList.h"
+#include "../../../../core/include/vec3Operation.h"
 
 
 class NeighborListTest : public ::testing::Test {
@@ -249,6 +250,34 @@ TEST_F(NeighborListTest, get_neigh_distances) {
     // Step . Free memory
     free(distances_42);
     free(distances_16);
+}
+
+
+TEST_F(NeighborListTest, get_neigh_relative_cart_coords) {
+    rcut = 3.3;
+    pbc_xyz[0] = true;
+    pbc_xyz[1] = true;
+    pbc_xyz[2] = false;
+
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    matersdk::NeighborList<double> neighbor_list(structure, rcut, pbc_xyz, true);
+
+    double** relative_cart_coords = neighbor_list.get_neigh_relative_cart_coords(0);
+    double tmp_distance;
+
+    for (int ii=0; ii<neighbor_list.get_num_neigh_atoms(0); ii++) {
+        tmp_distance = matersdk::vec3Operation::norm(relative_cart_coords[ii]);
+        printf("%f, ", tmp_distance);
+    }
+    printf("\n");
+
+
+    // Step . Free memory
+    for (int ii=0; ii<neighbor_list.get_num_neigh_atoms(0); ii++) {
+        free(relative_cart_coords[ii]);
+    }
+    free(relative_cart_coords);
+
 }
 
 

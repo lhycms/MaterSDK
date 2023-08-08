@@ -90,7 +90,7 @@ public:
 
     CoordType* get_neigh_distances(int prim_atom_idx) const;        // 由 `this->neighbor_lists[ii]` 得到 prim_atom_idx 的近邻原子的距中心原子的距离
 
-    CoordType** get_neigh_cart_coords(int prim_atom_idx) const;     // 由 `this->neighbor_lists[ii]` 得到 prim_atom_idx 的近邻原子的距中心原子的坐标 (r_j - r_i)
+    CoordType** get_neigh_relative_cart_coords(int prim_atom_idx) const;     // 由 `this->neighbor_lists[ii]` 得到 prim_atom_idx 的近邻原子的距中心原子的坐标 (r_j - r_i)
 
 private:
     BinLinkedList<CoordType> bin_linked_list;
@@ -407,6 +407,13 @@ int* NeighborList<CoordType>::get_neigh_atomic_numbers(int prim_atom_idx) const 
 
 
 
+/**
+ * @brief Get distances given `prim_atom_idx`
+ * 
+ * @tparam CoordType 
+ * @param prim_atom_index 
+ * @return CoordType* 
+ */
 template <typename CoordType>
 CoordType* NeighborList<CoordType>::get_neigh_distances(int prim_atom_index) const {
     // Step 1. 
@@ -439,6 +446,50 @@ CoordType* NeighborList<CoordType>::get_neigh_distances(int prim_atom_index) con
     return distances;
 }
 
+
+/**
+ * @brief Get relative cart coords given `prim_atom_idx`.
+ * 
+ * @tparam CoordType 
+ * @param prim_atom_idx 
+ * @return CoordType** 
+ */
+template <typename CoordType>
+CoordType** NeighborList<CoordType>::get_neigh_relative_cart_coords(int prim_atom_idx) const {
+    // Step 1. 
+    // Step 1.1. Get the number of neigh atoms
+    int num_neigh_atoms = this->neighbor_lists[prim_atom_idx].size();
+    // Step 1.2. Get the cart coords of atoms in supercell
+    const CoordType** supercell_cart_coords = this->bin_linked_list.get_supercell().get_structure().get_cart_coords();
+
+    // Step 2. Populate `relative_cart_coords`
+    // Step 2.1. Allocate memory for `relative_cart_coords`
+    CoordType** relative_cart_coords = (CoordType**)malloc(sizeof(CoordType*) * num_neigh_atoms);
+    for (int ii=0; ii<num_neigh_atoms; ii++) 
+        relative_cart_coords[ii] = (CoordType*)malloc(sizeof(CoordType) * 3);
+
+    // Step 2.2. 
+    int prim_cell_idx = this->bin_linked_list.get_supercell().get_prim_cell_idx();
+    int prim_num_atoms = this->bin_linked_list.get_supercell().get_prim_num_atoms();
+    int center_atom_idx = prim_atom_idx + prim_cell_idx * prim_num_atoms;
+    int neigh_atom_idx;
+    const CoordType* center_cart_coord = supercell_cart_coords[center_atom_idx];
+    const CoordType* neigh_cart_coord;
+
+    // Step 2.3. Populate `relative_cart_coords`
+    for (int ii=0; ii<num_neigh_atoms; ii++) {
+        neigh_atom_idx = this->neighbor_lists[prim_atom_idx][ii];
+        neigh_cart_coord = supercell_cart_coords[neigh_atom_idx];
+
+        relative_cart_coords[ii][0] = ( neigh_cart_coord[0] - center_cart_coord[0] );
+        relative_cart_coords[ii][1] = ( neigh_cart_coord[1] - center_cart_coord[1] );
+        relative_cart_coords[ii][2] = ( neigh_cart_coord[2] - center_cart_coord[2] );
+    }
+
+    // Step . Free memory
+
+    return relative_cart_coords;
+}
 
 
 }; // namespace: matersdk
