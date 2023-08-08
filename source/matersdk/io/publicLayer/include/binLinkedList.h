@@ -100,9 +100,9 @@ class BinLinkedList {
 public:
     BinLinkedList();
 
-    BinLinkedList(Structure<CoordType>& structure, CoordType rcut, bool* pbc_xyz);
-
     BinLinkedList(Structure<CoordType>& structure, CoordType rcut, CoordType* bin_size_xyz, bool* pbc_xyz);
+
+    BinLinkedList(Structure<CoordType>& structure, CoordType rcut, bool* pbc_xyz);
 
     BinLinkedList(const BinLinkedList& rhs);
 
@@ -627,6 +627,7 @@ BinLinkedList<CoordType>::BinLinkedList(Structure<CoordType>& structure, CoordTy
 
     // Step . Free memory
     free(prim_interplanar_distances);
+    free(scaling_matrix);
     free(projected_lengths);
     free(extending_matrix);
     for (int ii=0; ii<3; ii++) {
@@ -654,13 +655,13 @@ BinLinkedList<CoordType>::BinLinkedList(Structure<CoordType>& structure, CoordTy
     this->pbc_xyz[0] = pbc_xyz[0];
     this->pbc_xyz[1] = pbc_xyz[1];
     this->pbc_xyz[2] = pbc_xyz[2];
-    CoordType* prim_interplanar_distances = (CoordType*)malloc(sizeof(CoordType) * 3);
+    CoordType* prim_interplanar_distances = (CoordType*)structure.get_interplanar_distances();
     int* scaling_matrix = (int*)malloc(sizeof(int) * 3);
     int* extending_matrix = (int*)malloc(sizeof(int) * 3);
     for (int ii=0; ii<3; ii++) {
         extending_matrix[ii] = std::ceil( this->rcut / prim_interplanar_distances[ii] );
         scaling_matrix[ii] = extending_matrix[ii] * 2 + 1;
-        if (pbc_xyz[ii] == false) 
+        if (this->pbc_xyz[ii] == false) 
             scaling_matrix[ii] = 1;
     }
     
@@ -870,7 +871,6 @@ int BinLinkedList<CoordType>::get_num_neigh_bins() const {
     for (int ii=0; ii<3; ii++) {
         num_extend_neigh_bins[ii] = std::ceil(this->rcut / this->bin_size_xyz[ii]);
     }
-
     int num_neigh_bins = (
             ( 2 * num_extend_neigh_bins[0] + 1 ) *
             ( 2 * num_extend_neigh_bins[1] + 1 ) *

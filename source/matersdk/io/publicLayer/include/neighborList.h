@@ -84,6 +84,12 @@ public:
 
     const int get_max_num_neigh_atoms_ss(int neigh_atomic_number) const; // `ss`: specified specie
 
+    int* get_neigh_atomic_numbers(int prim_atom_idx) const;       // 由 `this->neighbor_lists[ii]` 得到 prim_atom_idx 的近邻原子的原子序数
+
+    CoordType* get_neigh_distances(int prim_atom_idx) const;    // 由 `this->neighbor_lists[ii]` 得到 prim_atom_idx 的近邻原子的距中心原子的距离
+
+    CoordType** get_neigh_cart_coords(int prim_atom_idx) const; // 由 `this->neighbor_lists[ii]` 得到 prim_atom_idx 的近邻原子的距中心原子的坐标 (r_j - r_i)
+
 private:
     BinLinkedList<CoordType> bin_linked_list;
     int num_atoms = 0;                              // The number of atoms in primitive cell.
@@ -125,6 +131,9 @@ template <typename CoordType>
 NeighborList<CoordType>::NeighborList(Structure<CoordType>& structure, CoordType rcut, bool* pbc_xyz, bool sort) {
     assert(structure.get_num_atoms() > 0);
 
+    CoordType bin_size_xyz[3];
+    // bin_size_xyz[0] = bin_size_xyz[1] = bin_size_xyz[2] = rcut / 2;
+    // this->bin_linked_list = BinLinkedList<CoordType>(structure, rcut, bin_size_xyz, pbc_xyz);
     this->bin_linked_list = BinLinkedList<CoordType>(structure, rcut, pbc_xyz);
     this->num_atoms = this->bin_linked_list.get_supercell().get_prim_num_atoms();
     this->neighbor_lists = new std::vector<int>[this->num_atoms];
@@ -352,9 +361,38 @@ const int NeighborList<CoordType>::get_max_num_neigh_atoms_ss(int neigh_atomic_n
         if (tmp_max_num_neigh_atoms_ss > max_num_neigh_atoms_ss) 
             max_num_neigh_atoms_ss = tmp_max_num_neigh_atoms_ss;
     }
-
+    
     return max_num_neigh_atoms_ss;
 }
+
+
+/**
+ * @brief Given `prim_atom_idx`，返回近邻的元素种类
+ * 
+ * @tparam CoordType 
+ * @param prim_atom_idx 
+ * @return int* 
+ */
+template <typename CoordType>
+int* NeighborList<CoordType>::get_neigh_atomic_numbers(int prim_atom_idx) const {
+    // Step 1. 
+    // Step 1.1. prim_atom_idx 的近邻原子数
+    int num_neigh_atoms = this->neighbor_lists[prim_atom_idx].size();
+    // Step 1.2. 
+    const int* supercell_atomic_numbers = this->bin_linked_list.get_supercell().get_structure().get_atomic_numbers();
+    
+    // Step 2. Populate `neigh_atomic_numbers`
+    printf("number = %d\n", num_neigh_atoms);
+    int* neigh_atomic_numbers = (int*)malloc(sizeof(int) * num_neigh_atoms);
+    for (int ii=0; ii<num_neigh_atoms; ii++) {
+        neigh_atomic_numbers[ii] = supercell_atomic_numbers[this->neighbor_lists[prim_atom_idx][ii]];
+    }
+
+    return neigh_atomic_numbers;
+}
+
+
+
 
 }; // namespace: matersdk
 

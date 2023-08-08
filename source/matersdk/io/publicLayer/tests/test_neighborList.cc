@@ -107,9 +107,9 @@ protected:
 
 TEST_F(NeighborListTest, constructor_1) {
     rcut = 3.3;             // 截断半径
-    bin_size_xyz[0] = 3.0;  // X 方向上的 bin_size (一般默认 rcut/2)
-    bin_size_xyz[1] = 3.0;  // Y 方向上的 bin_size
-    bin_size_xyz[2] = 3.0;  // Z 方向上的 bin_size
+    bin_size_xyz[0] = 1.65;  // X 方向上的 bin_size (一般默认 rcut/2)
+    bin_size_xyz[1] = 1.65;  // Y 方向上的 bin_size
+    bin_size_xyz[2] = 1.65;  // Z 方向上的 bin_size
     pbc_xyz[0] = true;      // X 方向上是否具有周期性
     pbc_xyz[1] = true;      // Y 方向上是否具有周期性
     pbc_xyz[2] = false;     // Z 方向上是否具有周期性
@@ -124,6 +124,7 @@ TEST_F(NeighborListTest, constructor_1) {
     printf("\n");
     neighbor_list.show_in_distances();
 }
+
 
 TEST_F(NeighborListTest, constructor_2) {
     rcut = 3.3;             // 截断半径
@@ -170,6 +171,29 @@ TEST_F(NeighborListTest, get_max_num_neigh_atoms_ss) {
     EXPECT_EQ(max_num_neigh_atoms_42, 3);
     EXPECT_EQ(max_num_neigh_atoms_16, 6);
 }
+
+
+/*
+TEST_F(NeighborListTest, get_neigh_atomic_numbers) {
+    rcut = 3.3;
+    pbc_xyz[0] = true;      
+    pbc_xyz[1] = true;      
+    pbc_xyz[2] = false; 
+    
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    matersdk::NeighborList<double> neighbor_list(structure, rcut, pbc_xyz, true);
+
+    int* neigh_atomic_numbers = neighbor_list.get_neigh_atomic_numbers(0);
+
+    for (int ii=0; ii<10; ii++) {
+        printf("%d, ", neigh_atomic_numbers[ii]);
+    }
+    printf("\n");
+
+    // Step . Free memory
+    free(neigh_atomic_numbers);
+}
+*/
 
 
 int main(int argc, char **argv) {

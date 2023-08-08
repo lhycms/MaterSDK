@@ -573,9 +573,6 @@ TEST_F(BinLinkedListTest, default_constructor) {
 
 TEST_F(BinLinkedListTest, constructor_1_case_1) {
     rcut = 3.0;
-    bin_size_xyz[0] = 3.0;
-    bin_size_xyz[1] = 3.0;
-    bin_size_xyz[2] = 3.0;
     pbc_xyz[0] = true;
     pbc_xyz[1] = true;
     pbc_xyz[2] = false;
@@ -628,7 +625,7 @@ TEST_F(BinLinkedListTest, constructor_2) {
 
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
     matersdk::BinLinkedList<double> bin_linked_list(structure, rcut, pbc_xyz);
-    //bin_linked_list.show();
+    bin_linked_list.show();
 
 
     /*
