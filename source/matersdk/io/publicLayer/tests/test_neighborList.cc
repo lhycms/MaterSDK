@@ -259,24 +259,35 @@ TEST_F(NeighborListTest, get_neigh_relative_cart_coords) {
     pbc_xyz[1] = true;
     pbc_xyz[2] = false;
 
+    // Step 1. Init
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
     matersdk::NeighborList<double> neighbor_list(structure, rcut, pbc_xyz, true);
+    int prim_num_atoms = structure.get_num_atoms();
 
-    double** relative_cart_coords = neighbor_list.get_neigh_relative_cart_coords(0);
-    double tmp_distance;
+    // Step 2. Run
+    // Step 2.1. 
+    int num_neigh_atoms;
+    double* distances;              // 每轮循环都变
+    double** relative_cart_coords;  // 每轮循环都变
 
-    for (int ii=0; ii<neighbor_list.get_num_neigh_atoms(0); ii++) {
-        tmp_distance = matersdk::vec3Operation::norm(relative_cart_coords[ii]);
-        printf("%f, ", tmp_distance);
+    // Step 2.2.
+    for (int ii=0; ii<prim_num_atoms; ii++) {
+        num_neigh_atoms = neighbor_list.get_num_neigh_atoms(ii);
+        distances = neighbor_list.get_neigh_distances(ii);
+        relative_cart_coords = neighbor_list.get_neigh_relative_cart_coords(ii);
+
+        for (int jj=0; jj<num_neigh_atoms; jj++) {
+            EXPECT_FLOAT_EQ(
+                matersdk::vec3Operation::norm( relative_cart_coords[jj] ),
+                distances[jj]
+            );
+        }
+
+        free(distances);
+        for (int jj=0; jj<num_neigh_atoms; jj++) 
+            free(relative_cart_coords[jj]);
+        free(relative_cart_coords);
     }
-    printf("\n");
-
-
-    // Step . Free memory
-    for (int ii=0; ii<neighbor_list.get_num_neigh_atoms(0); ii++) {
-        free(relative_cart_coords[ii]);
-    }
-    free(relative_cart_coords);
 
 }
 
