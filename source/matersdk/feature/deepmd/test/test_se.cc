@@ -258,7 +258,18 @@ TEST_F(PairTildeRTest, get_num_neigh_atoms) {
     matersdk::deepPotSE::PairTildeR<double> pair_tilde_r_16_16_(neighbor_list, center_atomic_number, neigh_atomic_number, num_neigh_atoms, rcut_smooth);
     double num_neigh_atoms_16_16_ = pair_tilde_r_16_16_.get_num_neigh_atoms();
     EXPECT_EQ(num_neigh_atoms_16_16_, 100);
+}
 
+
+TEST_F(PairTildeRTest, generate) {
+    center_atomic_number = 16;
+    neigh_atomic_number = 42;
+    rcut = 3.3;
+    rcut_smooth = 3.0;
+
+    matersdk::NeighborList<double> neighbor_list(structure, rcut, pbc_xyz, true);
+    matersdk::deepPotSE::PairTildeR<double> pair_tilde_r(neighbor_list, center_atomic_number, neigh_atomic_number, rcut_smooth);
+    pair_tilde_r.generate();
 }
 
 

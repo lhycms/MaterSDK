@@ -76,6 +76,8 @@ public:
 
     void _build(bool sort=false);       // Populate `this->neighbor_list` (`std::vector<int>* this->neighbor_list = new std::vector<int>[this->num_atoms];`)
 
+    const std::vector<int>* get_neighbor_lists() const;
+
     const int get_num_center_atoms() const;
 
     const CoordType get_rcut() const;
@@ -307,6 +309,12 @@ void NeighborList<CoordType>::_build(bool sort) {
 
     // Step . Free memory
     }
+}
+
+
+template <typename CoordType>
+const std::vector<int>* NeighborList<CoordType>::get_neighbor_lists() const {
+    return this->neighbor_lists;
 }
 
 
