@@ -31,3 +31,5 @@ file(MAKE_DIRECTORY ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/core)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/matersdk/io/publicLayer)
+
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/matersdk/feature/deepmd)

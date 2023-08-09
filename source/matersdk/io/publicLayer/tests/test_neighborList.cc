@@ -202,6 +202,7 @@ TEST_F(NeighborListTest, get_max_num_neigh_atoms) {
 
 TEST_F(NeighborListTest, get_max_num_neigh_atoms_ss) {
     rcut = 2.8;
+    // rcut = 3.3;
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
     matersdk::NeighborList<double> neighbor_list(structure, rcut, bin_size_xyz, pbc_xyz);
 
@@ -210,6 +211,25 @@ TEST_F(NeighborListTest, get_max_num_neigh_atoms_ss) {
 
     EXPECT_EQ(max_num_neigh_atoms_42, 3);
     EXPECT_EQ(max_num_neigh_atoms_16, 6);
+}
+
+
+TEST_F(NeighborListTest, get_max_num_neigh_atoms_ssss) {
+    rcut = 3.3;
+
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    matersdk::NeighborList<double> neighbor_list(structure, rcut, pbc_xyz, true);
+    neighbor_list.show_in_an();
+
+    const int max_num_neigh_atoms_42_42 = neighbor_list.get_max_num_neigh_atoms_ssss(42, 42);
+    const int max_num_neigh_atoms_42_16 = neighbor_list.get_max_num_neigh_atoms_ssss(42, 16);
+    const int max_num_neigh_atoms_16_42 = neighbor_list.get_max_num_neigh_atoms_ssss(16, 42);
+    const int max_num_neigh_atoms_16_16 = neighbor_list.get_max_num_neigh_atoms_ssss(16, 16);
+
+    printf("max_num_neigh_atoms_42_42 = %d\n", max_num_neigh_atoms_42_42);
+    printf("max_num_neigh_atoms_42_16 = %d\n", max_num_neigh_atoms_42_16);
+    printf("max_num_neigh_atoms_16_42 = %d\n", max_num_neigh_atoms_16_42);
+    printf("max_num_neigh_atoms_16_16 = %d\n", max_num_neigh_atoms_16_16);
 }
 
 

@@ -90,6 +90,8 @@ public:
 
     const int get_max_num_neigh_atoms_ss(int neigh_atomic_number) const; // `ss`: specified specie
 
+    const int get_max_num_neigh_atoms_ssss(int center_atomic_number, int neigh_atomic_number) const;
+
     const int get_num_neigh_atoms(int prim_atom_idx) const;         // 由 `this->neighbor_lists[ii]` 得到 prim_atom_idx 的近邻原子的数目
 
     int* get_neigh_atomic_numbers(int prim_atom_idx) const;         // 由 `this->neighbor_lists[ii]` 得到 prim_atom_idx 的近邻原子的原子序数
@@ -449,6 +451,49 @@ const int NeighborList<CoordType>::get_max_num_neigh_atoms_ss(int neigh_atomic_n
     }
     
     return max_num_neigh_atoms_ss;
+}
+
+
+/**
+ * @brief 指定 `atomic_number`, `neigh_atomic_number`，计算最大近邻原子数
+ * 
+ * @tparam CoordType 
+ * @param center_atomic_number 
+ * @param neigh_atomic_number 
+ * @return const int 
+ */
+template <typename CoordType>
+const int NeighborList<CoordType>::get_max_num_neigh_atoms_ssss(int center_atomic_number, int neigh_atomic_number) const {
+    // Step 1. Initialize the value 
+    // Step 1.1.
+    int max_num_neigh_atoms_ssss = 0;
+    int tmp_max_num_neigh_atoms_ssss = 0;
+    std::vector<int> tmp_neigh_atomic_numbers;
+    // Step 1.2. 
+    const int* supercell_atomic_numbers = this->bin_linked_list.get_supercell().get_structure().get_atomic_numbers();
+
+    // Step 2. Update `max_num_nrigh_atoms_ssss`
+    for (int ii=0; ii<this->num_atoms; ii++) {
+        tmp_neigh_atomic_numbers.resize(this->neighbor_lists[ii].size());
+        if (supercell_atomic_numbers[ii] == center_atomic_number) {
+            // Step 2.1. Populate `tmp_neigh_atomic_numbers`
+            for (int jj=0; jj<this->neighbor_lists[ii].size(); jj++)
+                tmp_neigh_atomic_numbers[jj] = supercell_atomic_numbers[this->neighbor_lists[ii][jj]];
+
+            // Step 2.2. 
+            tmp_max_num_neigh_atoms_ssss = std::count(
+                        tmp_neigh_atomic_numbers.begin(),
+                        tmp_neigh_atomic_numbers.end(),
+                        neigh_atomic_number
+            );
+
+            // Step 2.3. 
+            if (tmp_max_num_neigh_atoms_ssss > max_num_neigh_atoms_ssss)
+                max_num_neigh_atoms_ssss = tmp_max_num_neigh_atoms_ssss;
+        }
+    }
+
+    return max_num_neigh_atoms_ssss;
 }
 
 
