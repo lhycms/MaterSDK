@@ -18,6 +18,7 @@ protected:
 
     int center_atomic_number;
     int neigh_atomic_number;
+    int num_neigh_atoms;
 
     matersdk::Structure<double> structure;
     matersdk::NeighborList<double> neighbor_list;
@@ -124,11 +125,21 @@ TEST_F(PairTildeRTest, default_constructor) {
 TEST_F(PairTildeRTest, constructor_1) {
     center_atomic_number = 42;
     neigh_atomic_number = 16;
+    num_neigh_atoms = 24;
+    
+    matersdk::deepPotSE::PairTildeR<double> pair_tilde_r(neighbor_list, center_atomic_number, neigh_atomic_number, num_neigh_atoms);
+    pair_tilde_r.show();
+}
+
+
+TEST_F(PairTildeRTest, constructor_2) {
+    center_atomic_number = 42;
+    neigh_atomic_number = 16;
 
     matersdk::deepPotSE::PairTildeR<double> pair_tilde_r(neighbor_list, center_atomic_number, neigh_atomic_number);
     pair_tilde_r.show();
-
 }
+
 
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
