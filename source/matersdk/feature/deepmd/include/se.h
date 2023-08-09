@@ -12,11 +12,35 @@ namespace deepPotSE{
 
 
 template <typename CoordType>
-CoordType smooth_func(CoordType r_recip) {
-
+CoordType smooth_func(CoordType& distance_ji, CoordType& rcut, CoordType& rcut_smooth) {
+    CoordType smooth_value;     // return value
+    // Step 1. calculate `r_recip`
+    CoordType r_recip = 0;
+    if (distance_ji == 0)
+        r_recip = 0;
+    else
+        r_recip = 1 / distance_ji;
+    
+    // Step 2. uu = (r - r_s) / (r_c - r_s)
+    CoordType uu = (distance_ji - rcut_smooth) / (rcut - rcut_smooth);
+    
+    // Step 3. Calculate `smooth_value`
+    if (distance_ji < rcut_smooth)
+        smooth_value = r_recip;
+    else if ( (distance_ji >= rcut_smooth) && (distance_ji < rcut) )
+        smooth_value = r_recip * ( std::pow(uu, 3) * (-6*std::pow(uu, 2) + 15*uu - 10) + 1);
+    else
+        smooth_value = 0;
+    
+    return smooth_value;
 }
 
 
+/**
+ * @brief 指定 `center_atomic_number` 和 `neigh_atomic_number`，计算 DeepPot-SE 的 feature
+ * 
+ * @tparam CoordType 
+ */
 template <typename CoordType>
 class PairTildeR {
 public:
@@ -35,7 +59,6 @@ public:
                 int neigh_atomic_number,
                 CoordType rcut_smooth);
 
-    // 一般不会使用，速度比较慢
     PairTildeR(
                 Structure<CoordType>& structure,
                 CoordType rcut,
@@ -46,7 +69,6 @@ public:
                 int num_neigh_atoms,
                 CoordType rcut_smooth);
     
-    // 一般不会使用，速度比较慢
     PairTildeR(
                 Structure<CoordType>& structure,
                 CoordType rcut,

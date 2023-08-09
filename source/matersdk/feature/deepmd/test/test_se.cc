@@ -6,6 +6,48 @@
 #include "../include/se.h"
 
 
+class SmoothFuncTest : public ::testing::Test {
+protected:
+    double rcut;
+    double rcut_smooth;
+
+    double distance_ji;
+
+
+    static void SetUpTestSuite() {
+        std::cout << "SmoothFuncTest TestSuite is setting up...\n";
+    }
+
+
+    static void TearDownTestSuite() {
+        std::cout << "SmoothFuncTest TestSuite is tearing down...\n";
+    }
+
+    void SetUp() override {
+        
+    }
+
+    void TearDown() override {
+
+    }
+};
+
+
+TEST_F(SmoothFuncTest, operation) {
+    rcut = 3.3;
+    rcut_smooth = 3.0;
+    distance_ji = 3.3;
+    double result = matersdk::deepPotSE::smooth_func<double>(distance_ji, rcut, rcut_smooth);
+    EXPECT_FLOAT_EQ(result, 0);
+
+    distance_ji = 3.0;
+    result = matersdk::deepPotSE::smooth_func<double>(distance_ji, rcut, rcut_smooth);
+    EXPECT_FLOAT_EQ(result, 1.0/3.0);   //  `= 1/r`
+}
+
+
+
+
 class PairTildeRTest : public ::testing::Test {
 protected:
     int num_atoms;
