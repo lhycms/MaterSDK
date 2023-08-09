@@ -118,7 +118,8 @@ PairTildeR<CoordType>::PairTildeR(
     this->neigh_atomic_number = neigh_atomic_number;
     this->num_center_atoms = this->get_num_center_atoms();
     this->num_neigh_atoms = num_neigh_atoms;
-    // Note :: this->rcut = this->neighbor_list.get_rcut;
+    this->rcut = this->neighbor_list.get_rcut();
+    this->rcut_smooth = rcut_smooth;
 }
 
 
@@ -131,12 +132,14 @@ PairTildeR<CoordType>::PairTildeR(
  * @param neigh_atomic_number 
  */
 template <typename CoordType>
-PairTildeR<CoordType>::PairTildeR(NeighborList<CoordType>& neighbor_list, int center_atomic_number, int neigh_atomic_number) {
+PairTildeR<CoordType>::PairTildeR(NeighborList<CoordType>& neighbor_list, int center_atomic_number, int neigh_atomic_number, CoordType rcut_smooth) {
     this->neighbor_list = neighbor_list;
     this->center_atomic_number = center_atomic_number;
     this->neigh_atomic_number = neigh_atomic_number;
     this->num_center_atoms = this->get_num_center_atoms();
     this->num_neigh_atoms = this->get_max_num_neigh_atoms();
+    this->rcut = this->neighbor_list.get_rcut();
+    this->rcut_smooth = rcut_smooth;
 }
 
 
@@ -147,11 +150,13 @@ void PairTildeR<CoordType>::show() const {
         printf("This is a NULL PairTildeR.\n");
     else {
         int max_num_neigh_atoms = this->neighbor_list.get_max_num_neigh_atoms_ssss(this->center_atomic_number, this->neigh_atomic_number);
-        printf("center_atomic_number = %d\n", this->center_atomic_number);
-        printf("neigh_atomic_number = %d\n", this->neigh_atomic_number);
-        printf("num_center_atoms = %d\n", this->num_center_atoms);
-        printf("num_neigh_atoms = %d\n", this->num_neigh_atoms);
-        printf("max_num_neigh_atoms_ss = %d\n", this->get_max_num_neigh_atoms());
+        printf("center_atomic_number = %20d\n", this->center_atomic_number);
+        printf("neigh_atomic_number = %20d\n", this->neigh_atomic_number);
+        printf("num_center_atoms = %20d\n", this->num_center_atoms);
+        printf("num_neigh_atoms = %20d\n", this->num_neigh_atoms);
+        printf("max_num_neigh_atoms_ss = %20d\n", this->get_max_num_neigh_atoms());
+        printf("rcut = %20f\n", this->rcut);
+        printf("rcut_smooth = %20f\n", this->rcut_smooth);
     }
 }
 

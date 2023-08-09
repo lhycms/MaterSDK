@@ -184,6 +184,38 @@ TEST_F(NeighborListTest, assignment_operator) {
 }
 
 
+TEST_F(NeighborListTest, get_num_center_atoms) {
+    rcut = 3.3;             // 截断半径
+    bin_size_xyz[0] = 3.0;  // X 方向上的 bin_size (一般默认 rcut/2)
+    bin_size_xyz[1] = 3.0;  // Y 方向上的 bin_size
+    bin_size_xyz[2] = 3.0;  // Z 方向上的 bin_size
+    pbc_xyz[0] = true;      // X 方向上是否具有周期性
+    pbc_xyz[1] = true;      // Y 方向上是否具有周期性
+    pbc_xyz[2] = false;     // Z 方向上是否具有周期性
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    matersdk::NeighborList<double> neighbor_list(structure, rcut, bin_size_xyz, pbc_xyz);
+
+    const int num_center_atoms = neighbor_list.get_num_center_atoms();
+    EXPECT_EQ(num_center_atoms, 12);
+}
+
+
+TEST_F(NeighborListTest, get_rcut) {
+    rcut = 3.3;             // 截断半径
+    bin_size_xyz[0] = 3.0;  // X 方向上的 bin_size (一般默认 rcut/2)
+    bin_size_xyz[1] = 3.0;  // Y 方向上的 bin_size
+    bin_size_xyz[2] = 3.0;  // Z 方向上的 bin_size
+    pbc_xyz[0] = true;      // X 方向上是否具有周期性
+    pbc_xyz[1] = true;      // Y 方向上是否具有周期性
+    pbc_xyz[2] = false;     // Z 方向上是否具有周期性
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    matersdk::NeighborList<double> neighbor_list(structure, rcut, bin_size_xyz, pbc_xyz);
+
+    const double rcut = neighbor_list.get_rcut();
+    EXPECT_FLOAT_EQ(rcut, 3.3);
+}
+
+
 TEST_F(NeighborListTest, get_max_num_neigh_atoms) {
     rcut = 3.3;             // 截断半径
     bin_size_xyz[0] = 3.0;  // X 方向上的 bin_size (一般默认 rcut/2)

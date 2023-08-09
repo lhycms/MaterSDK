@@ -76,6 +76,10 @@ public:
 
     void _build(bool sort=false);       // Populate `this->neighbor_list` (`std::vector<int>* this->neighbor_list = new std::vector<int>[this->num_atoms];`)
 
+    const int get_num_center_atoms() const;
+
+    const CoordType get_rcut() const;
+
     void show_in_index() const;         // 展示 supercell 中的 atom_index
 
     void show_in_prim_index() const;    // 展示 primitive cell 中的 atom_index
@@ -303,6 +307,18 @@ void NeighborList<CoordType>::_build(bool sort) {
 
     // Step . Free memory
     }
+}
+
+
+template <typename CoordType>
+const int NeighborList<CoordType>::get_num_center_atoms() const {
+    return this->num_atoms;
+}
+
+
+template <typename CoordType>
+const CoordType NeighborList<CoordType>::get_rcut() const {
+    return this->rcut;
 }
 
 
