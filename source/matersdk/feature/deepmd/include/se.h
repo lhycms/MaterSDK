@@ -3,6 +3,7 @@
 
 
 #include <stdlib.h>
+#include "../../../io/publicLayer/include/structure.h"
 #include "../../../io/publicLayer/include/neighborList.h"
 
 
@@ -11,29 +12,69 @@ namespace deepPotSE{
 
 
 template <typename CoordType>
+CoordType smooth_func(CoordType r_recip) {
+
+}
+
+
+
+template <typename CoordType>
 class PairTildeR {
 public:
     PairTildeR();
 
-    PairTildeR(NeighborList<CoordType>& neighbor_list, int center_atomic_number, int neigh_atomic_number, int num_neigh_atoms);
+    PairTildeR(
+                NeighborList<CoordType>& neighbor_list, 
+                int center_atomic_number, 
+                int neigh_atomic_number, 
+                int num_neigh_atoms,
+                CoordType rcut_smmoth);
 
-    PairTildeR(NeighborList<CoordType>& neighbor_list, int center_atomic_number, int neigh_atomic_number);
+    PairTildeR(
+                NeighborList<CoordType>& neighbor_list, 
+                int center_atomic_number, 
+                int neigh_atomic_number,
+                CoordType rcut_smooth);
+
+    PairTildeR(
+                Structure<CoordType>& structure,
+                CoordType rcut,
+                CoordType* bin_size_xyz,
+                bool* pbc_xyz,
+                bool sort,
+                int center_atomic_number,
+                int neigh_atomic_number,
+                int num_neigh_atoms,
+                CoordType rcut_smooth);
+    
+    PairTildeR(
+                Structure<CoordType>& structure,
+                CoordType rcut,
+                bool* pbc_xyz,
+                bool sort,
+                int center_atomic_number,
+                int neigh_atomic_number,
+                int num_neigh_atoms,
+                CoordType rcut_smooth);
 
     void show() const;
 
-    const int get_max_num_neigh_atoms() const;  // 指定 `center_atomic_number`, `neigh_atomic_number`, 计算最大近邻原子数
+    const int get_max_num_neigh_atoms() const;  // 得到最大近邻原子数目 （指定 `center_atomic_number`, `neigh_atomic_number`, 计算最大近邻原子数）
 
-    const int get_num_center_atoms() const;
+    const int get_num_center_atoms() const;     // 得到中心原子的数目
 
-    const int get_num_neigh_atoms() const;      // 相当于指定了 zero-padding 的尺寸
+    const int get_num_neigh_atoms() const;      // 得到指定的近邻原子数目（`this->num_neigh_atoms`相当于指定了 zero-padding 的尺寸）
 
-    void generate(int num_neigh_atoms);         // 产生 $\tilde{R^i}$ 特征
+    CoordType** generate() const;         // 产生 $\tilde{R^i}$ 特征
 
 private:
     NeighborList<CoordType> neighbor_list;
     int center_atomic_number = 0;
     int neigh_atomic_number = 0;
+    int num_center_atoms = 0;
     int num_neigh_atoms = 0;                    // 相当于指定了 zero-padding 的尺寸
+    CoordType rcut = 0;
+    CoordType rcut_smooth = 0;
 };  // class PairTildeR
 
 
@@ -49,7 +90,10 @@ PairTildeR<CoordType>::PairTildeR() {
     this->neighbor_list = NeighborList<CoordType>();
     this->center_atomic_number = 0;
     this->neigh_atomic_number = 0;
+    this->num_center_atoms = 0;
     this->num_neigh_atoms = 0;
+    this->rcut = 0;
+    this->rcut_smooth = 0;
 }
 
 
@@ -63,11 +107,18 @@ PairTildeR<CoordType>::PairTildeR() {
  * @param num_neigh_atoms 
  */
 template <typename CoordType>
-PairTildeR<CoordType>::PairTildeR(NeighborList<CoordType>& neighbor_list, int center_atomic_number, int neigh_atomic_number, int num_neigh_atoms) {
+PairTildeR<CoordType>::PairTildeR(
+                            NeighborList<CoordType>& neighbor_list, 
+                            int center_atomic_number, 
+                            int neigh_atomic_number, 
+                            int num_neigh_atoms,
+                            CoordType rcut_smooth) {
     this->neighbor_list = neighbor_list;
     this->center_atomic_number = center_atomic_number;
     this->neigh_atomic_number = neigh_atomic_number;
+    this->num_center_atoms = this->get_num_center_atoms();
     this->num_neigh_atoms = num_neigh_atoms;
+    // Note :: this->rcut = this->neighbor_list.get_rcut;
 }
 
 
@@ -84,8 +135,10 @@ PairTildeR<CoordType>::PairTildeR(NeighborList<CoordType>& neighbor_list, int ce
     this->neighbor_list = neighbor_list;
     this->center_atomic_number = center_atomic_number;
     this->neigh_atomic_number = neigh_atomic_number;
+    this->num_center_atoms = this->get_num_center_atoms();
     this->num_neigh_atoms = this->get_max_num_neigh_atoms();
 }
+
 
 
 template <typename CoordType>
@@ -96,8 +149,8 @@ void PairTildeR<CoordType>::show() const {
         int max_num_neigh_atoms = this->neighbor_list.get_max_num_neigh_atoms_ssss(this->center_atomic_number, this->neigh_atomic_number);
         printf("center_atomic_number = %d\n", this->center_atomic_number);
         printf("neigh_atomic_number = %d\n", this->neigh_atomic_number);
-        printf("num_center_atoms = %d\n", this->get_num_center_atoms());
-        printf("num_neigh_atoms = %d\n", this->get_num_neigh_atoms());
+        printf("num_center_atoms = %d\n", this->num_center_atoms);
+        printf("num_neigh_atoms = %d\n", this->num_neigh_atoms);
         printf("max_num_neigh_atoms_ss = %d\n", this->get_max_num_neigh_atoms());
     }
 }
@@ -144,6 +197,29 @@ const int PairTildeR<CoordType>::get_num_center_atoms() const {
 template <typename CoordType>
 const int PairTildeR<CoordType>::get_num_neigh_atoms() const {
     return this->num_neigh_atoms;
+}
+
+
+/**
+ * @brief Generate $\tilde{R}$, $\tilde{R}$ .shape = (this->num_center_atoms, this->num_neigh_atoms)
+ * 
+ * @tparam CoordType 
+ * @return CoordType** 
+ */
+template <typename CoordType>
+CoordType** PairTildeR<CoordType>::generate() const {
+    // Step 1. Allocate memory for $\tilde{R}$
+    CoordType** tilde_r = (CoordType**)malloc(sizeof(CoordType*) * this->num_center_atoms);
+    for (int ii=0; ii<this->num_center_atoms; ii++) 
+        tilde_r[ii] = (CoordType*)malloc(sizeof(CoordType) * this->neigh_atomic_number);
+
+    // Step 2. 
+    for (int ii=0; ii<this->num_center_atoms; ii++) {
+        for (int jj=0; jj<this->num_neigh_atoms; jj++) {
+
+        }
+    }
+
 }
 
 
