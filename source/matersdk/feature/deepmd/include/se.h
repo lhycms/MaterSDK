@@ -35,10 +35,10 @@ public:
                 int neigh_atomic_number,
                 CoordType rcut_smooth);
 
+    // 一般不会使用，速度比较慢
     PairTildeR(
                 Structure<CoordType>& structure,
                 CoordType rcut,
-                CoordType* bin_size_xyz,
                 bool* pbc_xyz,
                 bool sort,
                 int center_atomic_number,
@@ -46,6 +46,7 @@ public:
                 int num_neigh_atoms,
                 CoordType rcut_smooth);
     
+    // 一般不会使用，速度比较慢
     PairTildeR(
                 Structure<CoordType>& structure,
                 CoordType rcut,
@@ -53,7 +54,6 @@ public:
                 bool sort,
                 int center_atomic_number,
                 int neigh_atomic_number,
-                int num_neigh_atoms,
                 CoordType rcut_smooth);
 
     void calc_num_center_atoms();
@@ -138,6 +138,72 @@ PairTildeR<CoordType>::PairTildeR(NeighborList<CoordType>& neighbor_list, int ce
     this->center_atomic_number = center_atomic_number;
     this->neigh_atomic_number = neigh_atomic_number;
     this->calc_num_center_atoms();  // 计算 `this->num_center_atoms`
+    this->num_neigh_atoms = this->get_max_num_neigh_atoms();
+    this->rcut = this->neighbor_list.get_rcut();
+    this->rcut_smooth = rcut_smooth;
+}
+
+
+/**
+ * @brief Construct a new Pair Tilde R< Coord Type>:: Pair Tilde R object
+ * 
+ * @tparam CoordType 
+ * @param structure 
+ * @param rcut 
+ * @param pbc_xyz 
+ * @param sort 
+ * @param center_atomic_number 
+ * @param neigh_atomic_number 
+ * @param num_neigh_atoms 
+ * @param rcut_smooth 
+ */
+template <typename CoordType>
+PairTildeR<CoordType>::PairTildeR(
+                        Structure<CoordType>& structure,
+                        CoordType rcut,
+                        bool* pbc_xyz,
+                        bool sort,
+                        int center_atomic_number,
+                        int neigh_atomic_number,
+                        int num_neigh_atoms,
+                        CoordType rcut_smooth)
+{
+    this->neighbor_list = NeighborList<CoordType>(structure, rcut, pbc_xyz, sort);
+    this->center_atomic_number = center_atomic_number;
+    this->neigh_atomic_number = neigh_atomic_number;
+    this->calc_num_center_atoms();
+    this->num_neigh_atoms = num_neigh_atoms;
+    this->rcut = this->neighbor_list.get_rcut();
+    this->rcut_smooth = rcut_smooth;
+}
+
+
+/**
+ * @brief Construct a new Pair Tilde R< Coord Type>:: Pair Tilde R object
+ * 
+ * @tparam CoordType 
+ * @param structure 
+ * @param rcut 
+ * @param pbc_xyz 
+ * @param sort 
+ * @param center_atomic_number 
+ * @param neigh_atomic_number 
+ * @param rcut_smooth 
+ */
+template <typename CoordType>
+PairTildeR<CoordType>::PairTildeR(
+                        Structure<CoordType>& structure,
+                        CoordType rcut,
+                        bool* pbc_xyz,
+                        bool sort,
+                        int center_atomic_number,
+                        int neigh_atomic_number,
+                        CoordType rcut_smooth)
+{
+    this->neighbor_list = NeighborList<CoordType>(structure, rcut, pbc_xyz, sort);
+    this->center_atomic_number = center_atomic_number;
+    this->neigh_atomic_number = neigh_atomic_number;
+    this->calc_num_center_atoms();
     this->num_neigh_atoms = this->get_max_num_neigh_atoms();
     this->rcut = this->neighbor_list.get_rcut();
     this->rcut_smooth = rcut_smooth;

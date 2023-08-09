@@ -119,7 +119,7 @@ protected:
 
 TEST_F(PairTildeRTest, default_constructor) {
     matersdk::deepPotSE::PairTildeR<double> pair_tilde_r;
-    pair_tilde_r.show();
+    //pair_tilde_r.show();
 }
 
 
@@ -141,6 +141,39 @@ TEST_F(PairTildeRTest, constructor_2) {
 
     matersdk::deepPotSE::PairTildeR<double> pair_tilde_r(neighbor_list, center_atomic_number, neigh_atomic_number, rcut_smooth);
     //pair_tilde_r.show();
+}
+
+
+TEST_F(PairTildeRTest, constructor_3) {
+    pbc_xyz[0] = true;
+    pbc_xyz[1] = true;
+    pbc_xyz[2] = false;
+    bool sort = true;
+
+    center_atomic_number = 42;
+    neigh_atomic_number = 16;
+    num_neigh_atoms = 100;
+    rcut = 3.3;
+    rcut_smooth = 3.0;
+
+    matersdk::deepPotSE::PairTildeR<double> pair_tilde_r(structure, rcut, pbc_xyz, sort, center_atomic_number, neigh_atomic_number, num_neigh_atoms, rcut_smooth);
+    //pair_tilde_r.show();
+}
+
+
+TEST_F(PairTildeRTest, constructor_4) {
+    pbc_xyz[0] = true;
+    pbc_xyz[1] = true;
+    pbc_xyz[2] = false;
+    bool sort = true;
+
+    center_atomic_number = 16;
+    neigh_atomic_number = 16;
+    rcut = 3.3;
+    rcut_smooth = 3.0;
+
+    matersdk::deepPotSE::PairTildeR<double> pair_tilde_r(structure, rcut, pbc_xyz, sort, center_atomic_number, neigh_atomic_number, rcut_smooth);
+    pair_tilde_r.show();
 }
 
 
