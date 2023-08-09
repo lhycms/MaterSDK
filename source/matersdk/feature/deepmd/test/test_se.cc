@@ -19,6 +19,7 @@ protected:
     int center_atomic_number;
     int neigh_atomic_number;
     int num_neigh_atoms;
+    double rcut_smooth;
 
     matersdk::Structure<double> structure;
     matersdk::NeighborList<double> neighbor_list;
@@ -126,19 +127,65 @@ TEST_F(PairTildeRTest, constructor_1) {
     center_atomic_number = 42;
     neigh_atomic_number = 16;
     num_neigh_atoms = 24;
+    rcut_smooth = 3.0;
     
-    matersdk::deepPotSE::PairTildeR<double> pair_tilde_r(neighbor_list, center_atomic_number, neigh_atomic_number, num_neigh_atoms);
-    pair_tilde_r.show();
+    matersdk::deepPotSE::PairTildeR<double> pair_tilde_r(neighbor_list, center_atomic_number, neigh_atomic_number, num_neigh_atoms, rcut_smooth);
+    //pair_tilde_r.show();
 }
 
 
 TEST_F(PairTildeRTest, constructor_2) {
     center_atomic_number = 42;
     neigh_atomic_number = 16;
+    rcut_smooth = 3.0;
 
-    matersdk::deepPotSE::PairTildeR<double> pair_tilde_r(neighbor_list, center_atomic_number, neigh_atomic_number);
-    pair_tilde_r.show();
+    matersdk::deepPotSE::PairTildeR<double> pair_tilde_r(neighbor_list, center_atomic_number, neigh_atomic_number, rcut_smooth);
+    //pair_tilde_r.show();
 }
+
+
+TEST_F(PairTildeRTest, get_num_center_atoms) {
+    // Case 1.
+    center_atomic_number = 42;
+    neigh_atomic_number = 16;
+    rcut_smooth = 3.0;
+
+    matersdk::deepPotSE::PairTildeR<double> pair_tilde_r_42_16(neighbor_list, center_atomic_number, neigh_atomic_number, rcut_smooth);
+    double num_center_atoms_42_16 = pair_tilde_r_42_16.get_num_center_atoms();
+    EXPECT_EQ(num_center_atoms_42_16, 4);
+
+    // Case 2.
+    center_atomic_number = 16;
+    neigh_atomic_number = 16;
+    rcut_smooth = 3.0;
+    matersdk::deepPotSE::PairTildeR<double> pair_tilde_r_16_16(neighbor_list, center_atomic_number, neigh_atomic_number, rcut_smooth);
+    double num_center_atoms_16_16 = pair_tilde_r_16_16.get_num_center_atoms();
+    EXPECT_EQ(num_center_atoms_16_16, 8);
+}
+
+
+TEST_F(PairTildeRTest, get_num_neigh_atoms) {
+    // Case 1.
+    center_atomic_number = 16;
+    neigh_atomic_number = 16;
+    rcut_smooth = 3.0;
+
+    matersdk::deepPotSE::PairTildeR<double> pair_tilde_r_16_16(neighbor_list, center_atomic_number, neigh_atomic_number, rcut_smooth);
+    double num_neigh_atoms_16_16 = pair_tilde_r_16_16.get_num_neigh_atoms();
+    EXPECT_EQ(num_neigh_atoms_16_16, 7);
+
+    // Case 2.
+    center_atomic_number = 16;
+    neigh_atomic_number = 16;
+    num_neigh_atoms = 100;
+    rcut_smooth = 3.0;
+
+    matersdk::deepPotSE::PairTildeR<double> pair_tilde_r_16_16_(neighbor_list, center_atomic_number, neigh_atomic_number, num_neigh_atoms, rcut_smooth);
+    double num_neigh_atoms_16_16_ = pair_tilde_r_16_16_.get_num_neigh_atoms();
+    EXPECT_EQ(num_neigh_atoms_16_16_, 100);
+
+}
+
 
 
 int main(int argc, char** argv) {

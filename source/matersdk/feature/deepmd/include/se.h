@@ -17,7 +17,6 @@ CoordType smooth_func(CoordType r_recip) {
 }
 
 
-
 template <typename CoordType>
 class PairTildeR {
 public:
@@ -57,13 +56,15 @@ public:
                 int num_neigh_atoms,
                 CoordType rcut_smooth);
 
-    void show() const;
-
-    const int get_max_num_neigh_atoms() const;  // 得到最大近邻原子数目 （指定 `center_atomic_number`, `neigh_atomic_number`, 计算最大近邻原子数）
+    void calc_num_center_atoms();
 
     const int get_num_center_atoms() const;     // 得到中心原子的数目
 
     const int get_num_neigh_atoms() const;      // 得到指定的近邻原子数目（`this->num_neigh_atoms`相当于指定了 zero-padding 的尺寸）
+
+    void show() const;
+
+    const int get_max_num_neigh_atoms() const;  // 得到最大近邻原子数目 （指定 `center_atomic_number`, `neigh_atomic_number`, 计算最大近邻原子数）
 
     CoordType** generate() const;         // 产生 $\tilde{R^i}$ 特征
 
@@ -116,7 +117,7 @@ PairTildeR<CoordType>::PairTildeR(
     this->neighbor_list = neighbor_list;
     this->center_atomic_number = center_atomic_number;
     this->neigh_atomic_number = neigh_atomic_number;
-    this->num_center_atoms = this->get_num_center_atoms();
+    this->calc_num_center_atoms();  // 计算 `this->num_center_atoms`
     this->num_neigh_atoms = num_neigh_atoms;
     this->rcut = this->neighbor_list.get_rcut();
     this->rcut_smooth = rcut_smooth;
@@ -136,12 +137,43 @@ PairTildeR<CoordType>::PairTildeR(NeighborList<CoordType>& neighbor_list, int ce
     this->neighbor_list = neighbor_list;
     this->center_atomic_number = center_atomic_number;
     this->neigh_atomic_number = neigh_atomic_number;
-    this->num_center_atoms = this->get_num_center_atoms();
+    this->calc_num_center_atoms();  // 计算 `this->num_center_atoms`
     this->num_neigh_atoms = this->get_max_num_neigh_atoms();
     this->rcut = this->neighbor_list.get_rcut();
     this->rcut_smooth = rcut_smooth;
 }
 
+
+/**
+ * @brief 计算 `this->num_center_atoms`
+ * 
+ * @tparam CoordType 
+ */
+template <typename CoordType>
+void PairTildeR<CoordType>::calc_num_center_atoms() {
+    int num_center_atoms = 0;
+    int prim_num_atoms = this->neighbor_list.get_binLinkedList().get_supercell().get_prim_num_atoms();
+    const int* supercell_atomic_numbers = this->neighbor_list.get_binLinkedList().get_supercell().get_structure().get_atomic_numbers();
+
+    for (int ii=0; ii<prim_num_atoms; ii++) {
+        if (supercell_atomic_numbers[ii] == this->center_atomic_number)
+            num_center_atoms++;
+    }
+
+    this->num_center_atoms = num_center_atoms;
+}
+
+
+template <typename CoordType>
+const int PairTildeR<CoordType>::get_num_center_atoms() const {
+    return this->num_center_atoms;
+}
+
+
+template <typename CoordType>
+const int PairTildeR<CoordType>::get_num_neigh_atoms() const {
+    return this->num_neigh_atoms;
+}
 
 
 template <typename CoordType>
@@ -150,13 +182,13 @@ void PairTildeR<CoordType>::show() const {
         printf("This is a NULL PairTildeR.\n");
     else {
         int max_num_neigh_atoms = this->neighbor_list.get_max_num_neigh_atoms_ssss(this->center_atomic_number, this->neigh_atomic_number);
-        printf("center_atomic_number = %20d\n", this->center_atomic_number);
-        printf("neigh_atomic_number = %20d\n", this->neigh_atomic_number);
-        printf("num_center_atoms = %20d\n", this->num_center_atoms);
-        printf("num_neigh_atoms = %20d\n", this->num_neigh_atoms);
-        printf("max_num_neigh_atoms_ss = %20d\n", this->get_max_num_neigh_atoms());
-        printf("rcut = %20f\n", this->rcut);
-        printf("rcut_smooth = %20f\n", this->rcut_smooth);
+        printf("center_atomic_number = %d\n", this->center_atomic_number);
+        printf("neigh_atomic_number = %d\n", this->neigh_atomic_number);
+        printf("num_center_atoms = %d\n", this->num_center_atoms);
+        printf("num_neigh_atoms = %d\n", this->num_neigh_atoms);
+        printf("max_num_neigh_atoms_ss = %d\n", this->get_max_num_neigh_atoms());
+        printf("rcut = %f\n", this->rcut);
+        printf("rcut_smooth = %f\n", this->rcut_smooth);
     }
 }
 
@@ -170,38 +202,6 @@ void PairTildeR<CoordType>::show() const {
 template <typename CoordType>
 const int PairTildeR<CoordType>::get_max_num_neigh_atoms() const {
     return this->neighbor_list.get_max_num_neigh_atoms_ssss(this->center_atomic_number, this->neigh_atomic_number);
-}
-
-
-/**
- * @brief 计算 `this->num_center_atoms`
- * 
- * @tparam CoordType 
- */
-template <typename CoordType>
-const int PairTildeR<CoordType>::get_num_center_atoms() const {
-    int num_center_atoms = 0;
-    int prim_num_atoms = this->neighbor_list.get_binLinkedList().get_supercell().get_prim_num_atoms();
-    const int* supercell_atomic_numbers = this->neighbor_list.get_binLinkedList().get_supercell().get_structure().get_atomic_numbers();
-
-    for (int ii=0; ii<prim_num_atoms; ii++) {
-        if (supercell_atomic_numbers[ii] == this->center_atomic_number)
-            num_center_atoms++;
-    }
-
-    return num_center_atoms;
-}
-
-
-/**
- * @brief `this->num_neigh_atoms` 指定了 zero-padding 的尺寸
- * 
- * @tparam CoordType 
- * @return const int 
- */
-template <typename CoordType>
-const int PairTildeR<CoordType>::get_num_neigh_atoms() const {
-    return this->num_neigh_atoms;
 }
 
 
