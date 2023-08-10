@@ -48,6 +48,35 @@ TEST_F(SmoothFuncTest, operation) {
 
 
 
+class RecipTest : public ::testing::Test {
+protected:
+    double value;
+    double value_recip;
+
+    static void SetUpTestSuite() {
+        std::cout << "RecipTest TestSuite is setting up...\n";
+    }
+
+
+    static void TearDownTestSuite() {
+        std::cout << "RecipTest TestSuite is tearing down...\n";
+    }
+};  // class : RecipTest
+
+
+TEST_F(RecipTest, operation) {
+    value = 1;
+    value_recip = matersdk::deepPotSE::recip(value);
+    EXPECT_FLOAT_EQ(value_recip, 1.0);
+
+    value = 2;
+    value_recip = matersdk::deepPotSE::recip(value);
+    EXPECT_FLOAT_EQ(value_recip, 0.5);
+}
+
+
+
+
 class PairTildeRTest : public ::testing::Test {
 protected:
     int num_atoms;
@@ -269,7 +298,9 @@ TEST_F(PairTildeRTest, generate) {
 
     matersdk::NeighborList<double> neighbor_list(structure, rcut, pbc_xyz, true);
     matersdk::deepPotSE::PairTildeR<double> pair_tilde_r(neighbor_list, center_atomic_number, neigh_atomic_number, rcut_smooth);
-    pair_tilde_r.generate();
+    double*** pair_tilde_r_matrix = pair_tilde_r.generate();
+    
+    //pair_tilde_r.show_in_value();
 }
 
 
