@@ -279,7 +279,7 @@ TEST_F(PairTildeRTest, get_num_neigh_atoms) {
     EXPECT_EQ(num_neigh_atoms_16_16, 7);
 
     // Case 2.
-    center_atomic_number = 16;
+    center_atomic_number = 42;
     neigh_atomic_number = 16;
     num_neigh_atoms = 100;
     rcut_smooth = 3.0;
@@ -291,7 +291,7 @@ TEST_F(PairTildeRTest, get_num_neigh_atoms) {
 
 
 TEST_F(PairTildeRTest, generate) {
-    center_atomic_number = 16;
+    center_atomic_number = 42;
     neigh_atomic_number = 42;
     rcut = 3.3;
     rcut_smooth = 3.0;
@@ -300,7 +300,7 @@ TEST_F(PairTildeRTest, generate) {
     matersdk::deepPotSE::PairTildeR<double> pair_tilde_r(neighbor_list, center_atomic_number, neigh_atomic_number, rcut_smooth);
     double*** pair_tilde_r_matrix = pair_tilde_r.generate();
     
-    //pair_tilde_r.show_in_value();
+    pair_tilde_r.show_in_value();
 }
 
 

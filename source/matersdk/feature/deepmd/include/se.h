@@ -122,7 +122,10 @@ public:
 
     const int get_max_num_neigh_atoms() const;  // 得到最大近邻原子数目 （指定 `center_atomic_number`, `neigh_atomic_number`, 计算最大近邻原子数）
 
-    CoordType*** generate() const;         // 产生 $\tilde{R^i}$ 特征 .shape = (num_center_atoms, num_neigh_atoms, 4)
+    CoordType*** generate() const;         // 计算 $\tilde{R^i}$ 特征 .shape = (num_center_atoms, num_neigh_atoms, 4)
+
+    CoordType**** deriv() const;           // 计算 $\tilde{R^i}$ 特征的导数 .shape = (num_center_atoms, num_neigh_atoms, 4, 3)
+
 
 private:
     NeighborList<CoordType> neighbor_list;
@@ -386,7 +389,7 @@ CoordType*** PairTildeR<CoordType>::generate() const {
         }
     }
 
-    // Step 2.
+    // Step 2. ·
     const CoordType** supercell_cart_coords = this->neighbor_list.get_binLinkedList().get_supercell().get_structure().get_cart_coords();
     const int* supercell_atomic_numbers = this->neighbor_list.get_binLinkedList().get_supercell().get_structure().get_atomic_numbers();
 

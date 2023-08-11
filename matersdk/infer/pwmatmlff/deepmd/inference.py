@@ -7,6 +7,11 @@ from ..deepmd.preprocess import InferPreprocessor
 
 
 class DpInfer(object):
+    '''
+    Note
+    ----
+        1. 单卡inference -- "cuda:0"
+    '''
     def __init__(
                 self,
                 pt_file_path:str,
@@ -109,6 +114,7 @@ class DpInfer(object):
 
     def infer(self, structure:DStructure):
         model = torch.load(f=self.pt_file_path)
+        print("model.to : ", self.device)
         model.to(self.device)
         model.eval()
         
@@ -117,6 +123,7 @@ class DpInfer(object):
                         self._preprocess(structure=structure)
         
         ### Step 2. Do calculation
+        print(model)
         e_tot, e_atoms, f_atoms, virial = model(rc, tildeR, tildeR_deriv, list_neigh, natoms_image)
          
         ### Step 3. cuda -> cpu; tensor -> ndarray
