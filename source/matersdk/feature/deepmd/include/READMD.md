@@ -24,11 +24,11 @@ $$
 # 2. 便于求导的形式
 ## 2.1. $s(r)$ -- represented with `switching function`
 $$
-switch_func(r) = 
+switch\_func(r) = 
 \begin{aligned}
-& = 1, \quad r<r_s \\
-& = x^3(-6x^2+15x-10) + 1, \quad r_s \leq r < r_c \\
-& = 0, \quad r > r_c
+& 1, \quad r<r_s \\
+& x^3(-6x^2+15x-10) + 1, \quad r_s \leq r < r_c \\
+& 0, \quad r > r_c
 \end{aligned}
 $$
 
