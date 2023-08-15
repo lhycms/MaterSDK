@@ -432,7 +432,7 @@ void PairTildeR<CoordType>::show_in_deriv() const {
 
         for (int ii=0; ii<this->num_center_atoms; ii++) {
             for (int jj=0; jj<this->num_neigh_atoms; jj++) {
-                printf("[%d, %d] -- [%f, %f, %f], [%f, %f, %f], [%f, %f, %f], [%f, %f, %f, %f]\n", 
+                printf("[%d, %d] -- [%f, %f, %f], [%f, %f, %f], [%f, %f, %f], [%f, %f, %f]\n", 
                         ii, jj,
                         pair_tilde_r_deriv[ii][jj][0][0],
                         pair_tilde_r_deriv[ii][jj][0][1],
