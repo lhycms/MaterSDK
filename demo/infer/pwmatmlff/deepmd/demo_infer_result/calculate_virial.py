@@ -7,5 +7,5 @@ class VirialTensor(object):
         self.f_atoms = f_atoms
         
     
-    def calculate(self):
-        pass
+    def calculate_virial_value(self, direction_1:int, direction_2:int):
+        

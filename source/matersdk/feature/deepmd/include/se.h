@@ -357,7 +357,7 @@ const int PairTildeR<CoordType>::get_max_num_neigh_atoms() const {
  * @brief 
  * 
  * @tparam CoordType 
- * @return CoordType*** 
+ * @return CoordType***     : shape = (num_center_atoms, num_neigh_atoms, 4)
  */
 template <typename CoordType>
 CoordType*** PairTildeR<CoordType>::generate() const {

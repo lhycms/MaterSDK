@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include <iostream>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "../../../io/publicLayer/include/structure.h"
 #include "../include/se.h"
@@ -301,6 +302,14 @@ TEST_F(PairTildeRTest, generate) {
     double*** pair_tilde_r_matrix = pair_tilde_r.generate();
     
     pair_tilde_r.show_in_value();
+
+    for (int ii=0; ii<pair_tilde_r.get_num_center_atoms(); ii++) {
+        for (int jj=0; jj<pair_tilde_r.get_num_neigh_atoms(); jj++) {
+            free(pair_tilde_r_matrix[ii][jj]);
+        }
+        free(pair_tilde_r_matrix[ii]);
+    }
+    free(pair_tilde_r_matrix);
 }
 
 
