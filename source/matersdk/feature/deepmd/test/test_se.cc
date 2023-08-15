@@ -375,6 +375,19 @@ TEST_F(PairTildeRTest, generate) {
 }
 
 
+TEST_F(PairTildeRTest, deriv) {
+    center_atomic_number = 42;
+    neigh_atomic_number = 42;
+    rcut = 3.3;
+    rcut_smooth = 3.0;
+    num_neigh_atoms = 7;
+
+    matersdk::NeighborList<double> neighbor_list(structure, rcut, pbc_xyz, true);
+    matersdk::deepPotSE::PairTildeR<double> pair_tilde_r(neighbor_list, center_atomic_number, neigh_atomic_number, num_neigh_atoms, rcut_smooth);
+    //double**** pair_tilde_r_deriv = pair_tilde_r.deriv();
+    pair_tilde_r.show_in_deriv();
+}
+
 
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);

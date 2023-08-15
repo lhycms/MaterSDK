@@ -423,6 +423,36 @@ void PairTildeR<CoordType>::show_in_value() const {
 }
 
 
+template <typename CoordType>
+void PairTildeR<CoordType>::show_in_deriv() const {
+    if (this->center_atomic_number == 0)
+        printf("This is a NULL PairTildeR.\n");
+    else {
+        CoordType**** pair_tilde_r_deriv = this->deriv();
+
+        for (int ii=0; ii<this->num_center_atoms; ii++) {
+            for (int jj=0; jj<this->num_neigh_atoms; jj++) {
+                printf("[%d, %d] -- [%f, %f, %f], [%f, %f, %f], [%f, %f, %f], [%f, %f, %f, %f]\n", 
+                        ii, jj,
+                        pair_tilde_r_deriv[ii][jj][0][0],
+                        pair_tilde_r_deriv[ii][jj][0][1],
+                        pair_tilde_r_deriv[ii][jj][0][2],
+                        pair_tilde_r_deriv[ii][jj][1][0],
+                        pair_tilde_r_deriv[ii][jj][1][1],
+                        pair_tilde_r_deriv[ii][jj][1][2],
+                        pair_tilde_r_deriv[ii][jj][2][0],
+                        pair_tilde_r_deriv[ii][jj][2][1],
+                        pair_tilde_r_deriv[ii][jj][2][2],
+                        pair_tilde_r_deriv[ii][jj][3][0],
+                        pair_tilde_r_deriv[ii][jj][3][1],
+                        pair_tilde_r_deriv[ii][jj][3][2]                
+                );
+            }
+        }
+    }
+}
+
+
 /**
  * @brief 指定 `center_atomic_number`, `neigh_atomic_number`, 计算最大近邻原子数
  * 
@@ -565,46 +595,101 @@ CoordType**** PairTildeR<CoordType>::deriv() const {
         }
     }
 
+    // Step 1.3. 
+    SwitchFunc<CoordType> switch_func(this->rcut, this->rcut_smooth);
+
     // Step 2. 存储 `supercell_cart_coords` && `atomic_numbers`
     const CoordType** supercell_cart_coords = this->neighbor_list.get_binLinkedList().get_supercell().get_structure().get_cart_coords();
     const int* supercell_atomic_numbers = this->neighbor_list.get_binLinkedList().get_supercell().get_structure().get_atomic_numbers();
 
     // Step 3. Populate `pair_tilde_r_deriv`
     int tmp_cidx = 0;
-    for (int ii=0; ii<this->num_center_atoms; ii++) {  // 遍历中心原子
+    for (int ii=0; ii<this->neighbor_list.get_num_center_atoms(); ii++) {  // 遍历中心原子
         center_atom_idx = ii + prim_cell_idx * prim_num_atoms;
         if (supercell_atomic_numbers[center_atom_idx] != this->center_atomic_number)
             continue;
         center_cart_coord = supercell_cart_coords[center_atom_idx];
 
         int tmp_nidx = 0;
-        for (int jj=0; jj<this->num_neigh_atoms; jj++) {    // 遍历近邻原子
-            neigh_atom_idx = this->neighbor_list.neighbor_lists[ii][jj];
+        for (int jj=0; jj<this->neighbor_list.get_neighbor_lists()[ii].size(); jj++) {    // 遍历近邻原子
+            neigh_atom_idx = this->neighbor_list.get_neighbor_lists()[ii][jj];
             if (supercell_atomic_numbers[neigh_atom_idx] != this->neigh_atomic_number)
                 continue;
             neigh_cart_coord = supercell_cart_coords[neigh_atom_idx];
 
+            // Step 3.1. 给一些常用于计算导数的变量赋值
+            for (int kk=0; kk<3; kk++)
+                diff_cart_coord[kk] = neigh_cart_coord[kk] - center_cart_coord[kk];
+            distance_ji = vec3Operation::norm(diff_cart_coord);
+            distance_ji_recip = recip(distance_ji);
+        
             /*
                 1. smooth func = s(r) = \frac{1}{r} \cdot switch_func
                 2. s(r) = \frac{1}{r} \cdot switch_func -- 需要分步求导
-                3. 根据 r_ji 与 rcut, rcut_smooth 的关系分情况:
-                    1. switch_func_0 / switch_func_deriv_0, r<rcut_smooth
-                    2. switch_func_1 / switch_func_deriv_1, rcut_smooth <= r < rcut
-                    3. switch_func_2 / switch_func_deriv_2, r >= rcut
             */
-            // Step 3.1. 
+            // Step 3.2.1. s(r) = switchFunc(r) * $\frac{1}{r}$
+            pair_tilde_r_deriv[tmp_cidx][tmp_nidx][0][0] = (
+                switch_func.get_result(distance_ji) * diff_cart_coord[0] * std::pow(distance_ji_recip, 3) - \
+                switch_func.get_deriv2r(distance_ji) * diff_cart_coord[0] * std::pow(distance_ji_recip, 2)
+            );
+            pair_tilde_r_deriv[tmp_cidx][tmp_nidx][0][1] = (
+                switch_func.get_result(distance_ji) * diff_cart_coord[1] * std::pow(distance_ji_recip, 3) - \
+                switch_func.get_deriv2r(distance_ji) * diff_cart_coord[1] * std::pow(distance_ji_recip, 2)
+            );
+            pair_tilde_r_deriv[tmp_cidx][tmp_nidx][0][2] = (
+                switch_func.get_result(distance_ji) * diff_cart_coord[2] * std::pow(distance_ji_recip, 3) - \
+                switch_func.get_deriv2r(distance_ji) * diff_cart_coord[2] * std::pow(distance_ji_recip, 2)
+            );
+        
+            // Step 3.2.2. s(r)x/r = switchFunc(r) * $\frac{x}{r^2}$
+            pair_tilde_r_deriv[tmp_cidx][tmp_nidx][1][0] = (
+                2 * std::pow(diff_cart_coord[0], 2) * switch_func.get_result(distance_ji) * std::pow(distance_ji_recip, 4) - \
+                switch_func.get_result(distance_ji) * std::pow(distance_ji_recip, 2) - \
+                std::pow(diff_cart_coord[0], 2) * std::pow(distance_ji_recip, 3) * switch_func.get_deriv2r(distance_ji)
+            );
+            pair_tilde_r_deriv[tmp_cidx][tmp_nidx][1][1] = (
+                2 * diff_cart_coord[0] * diff_cart_coord[1] * switch_func.get_result(distance_ji) * std::pow(distance_ji_recip, 4) - \
+                diff_cart_coord[0] * diff_cart_coord[1] * std::pow(distance_ji_recip, 3) * switch_func.get_deriv2r(distance_ji)
+            );
+            pair_tilde_r_deriv[tmp_cidx][tmp_nidx][1][2] = (
+                2 * diff_cart_coord[0] * diff_cart_coord[2] * switch_func.get_result(distance_ji) * std::pow(distance_ji_recip, 4) - \
+                diff_cart_coord[0] * diff_cart_coord[2] * std::pow(distance_ji_recip, 3) * switch_func.get_deriv2r(distance_ji)
+            );
 
+            // Step 3.2.3. s(r)y/r = switchFunc(r) * $\frac{y}{r^2}$
+            pair_tilde_r_deriv[tmp_cidx][tmp_nidx][2][0] = (
+                2 * diff_cart_coord[1] * diff_cart_coord[0] * switch_func.get_result(distance_ji) * std::pow(distance_ji_recip, 4) - \
+                diff_cart_coord[1] * diff_cart_coord[0] * std::pow(distance_ji_recip, 3) * switch_func.get_deriv2r(distance_ji)
+            );
+            pair_tilde_r_deriv[tmp_cidx][tmp_nidx][2][1] = (
+                2 * std::pow(diff_cart_coord[1], 2) * switch_func.get_result(distance_ji) * std::pow(distance_ji_recip, 4) - \
+                switch_func.get_result(distance_ji) * std::pow(distance_ji_recip, 2) - \
+                std::pow(diff_cart_coord[1], 2) * std::pow(distance_ji_recip, 3) * switch_func.get_deriv2r(distance_ji)
+            );
+            pair_tilde_r_deriv[tmp_cidx][tmp_nidx][2][2] = (
+                2 * diff_cart_coord[1] * diff_cart_coord[2] * switch_func.get_result(distance_ji) * std::pow(distance_ji_recip, 4) - \
+                diff_cart_coord[1] * diff_cart_coord[2] * std::pow(distance_ji_recip, 3) * switch_func.get_deriv2r(distance_ji)
+            );
 
-            // Step 3.2.1.
-
-            // Step 3.2.2.
-
-            // Step 3.2.3.
-
-            // Step 3.2.4.
+            // Step 3.2.4. s(r)z/r = switchFunc(r) * $\frac{z}{r^2}$
+            pair_tilde_r_deriv[tmp_cidx][tmp_nidx][3][0] = (
+                2 * diff_cart_coord[2] * diff_cart_coord[0] * switch_func.get_result(distance_ji) * std::pow(distance_ji_recip, 4) - \
+                diff_cart_coord[2] * diff_cart_coord[0] * std::pow(distance_ji_recip, 3) * switch_func.get_deriv2r(distance_ji)
+            );
+            pair_tilde_r_deriv[tmp_cidx][tmp_nidx][3][1] = (
+                2 * diff_cart_coord[2] * diff_cart_coord[1] * switch_func.get_result(distance_ji) * std::pow(distance_ji_recip, 4) - \
+                diff_cart_coord[2] * diff_cart_coord[1] * std::pow(distance_ji_recip, 3) * switch_func.get_deriv2r(distance_ji)
+            );
+            pair_tilde_r_deriv[tmp_cidx][tmp_nidx][3][2] = (
+                2 * std::pow(diff_cart_coord[2], 2) * switch_func.get_result(distance_ji) * std::pow(distance_ji_recip, 4) - \
+                switch_func.get_result(distance_ji) * std::pow(distance_ji_recip, 2) - \
+                std::pow(diff_cart_coord[2], 2) * std::pow(distance_ji_recip, 3) * switch_func.get_deriv2r(distance_ji)
+            );
+            tmp_nidx++;
+            printf("+++ %d, %d\n", tmp_cidx, tmp_nidx);
         }
+        tmp_cidx++;
     }
-
 
     // Step . Free memory
     free(diff_cart_coord);
