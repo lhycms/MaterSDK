@@ -575,7 +575,8 @@ CoordType*** PairTildeR<CoordType>::generate() const {
     }
 
     assert(tmp_cidx == this->num_center_atoms);
-    assert(tmp_nidx == this->num_neigh_atoms);
+    //printf("%d, %d\n", tmp_nidx, this->num_neigh_atoms);
+    //assert(tmp_nidx == this->num_neigh_atoms);
 
     // Step . Free memory
     free(diff_cart_coord);

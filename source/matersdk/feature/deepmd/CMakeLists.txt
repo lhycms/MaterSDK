@@ -18,6 +18,7 @@ if (BUILD_TEST)
     add_executable(test_se ${CMAKE_CURRENT_SOURCE_DIR}/test/test_se.cc)
     target_link_libraries(test_se gtest gtest_main)
 
+    add_executable(demo ${CMAKE_CURRENT_SOURCE_DIR}/test/demo.cc)
 
     gtest_discover_tests(test_se)
 endif()
