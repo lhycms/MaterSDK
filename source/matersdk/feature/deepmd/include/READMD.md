@@ -34,5 +34,5 @@ $$
 
 ## 2.2. $\tilde{R}$ -- represented with `switching function`
 $$
-\tilde{R} = (\frac{switch_func(r)}{r}, \frac{switch_func(r)x_{ji}}{r^2_{ji}}, \frac{switch_func(r)y_{ji}}{r^2_{ji}}, \frac{switch_func(r)z_{ji}}{r^2_{ji}})
+\tilde{R} = (\frac{switch\_func(r)}{r}, \frac{switch\_func(r)x_{ji}}{r^2_{ji}}, \frac{switch\_func(r)y_{ji}}{r^2_{ji}}, \frac{switch\_func(r)z_{ji}}{r^2_{ji}})
 $$
