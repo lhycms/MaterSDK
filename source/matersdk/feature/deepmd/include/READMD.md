@@ -2,14 +2,14 @@
 ## 1.1. Note
 $$r_{ji} = r_j - r_i$$
 
-$$x = \frac{r-r_s}{r_c-r_s}$$
+$$uu = \frac{r-r_s}{r_c-r_s}$$
 
 ## 1.2. $s(r)$ -- `smooth function`
 $$
 s(r) = 
 \begin{aligned}
 & \frac{1}{r}, \quad r < r_s    \\
-& \frac{1}{r} \cdot [x^3(-6x^2+15x-10) + 1], \quad r_s \leq r < r_c \\
+& \frac{1}{r} \cdot [uu^3(-6uu^2+15uu-10) + 1], \quad r_s \leq r < r_c \\
 & 0, \quad r \geq r_c
 \end{aligned}
 $$
@@ -27,7 +27,7 @@ $$
 switchFunc(r) = 
 \begin{aligned}
 & 1, \quad r < r_s    \\
-& x^3(-6x^2+15x-10) + 1, \quad r_s \leq r < r_c \\
+& uu^3(-6uu^2+15uu-10) + 1, \quad r_s \leq r < r_c \\
 & 0, \quad r \geq r_c
 \end{aligned}
 $$

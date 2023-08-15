@@ -14,7 +14,37 @@ namespace deepPotSE{
 
 
 /**
- * @brief Smooth function is DeepPot-SE
+ * @brief Switching Function in DeepPot-SE
+ *          1. switchFunc(x) = 
+ *              1. 1
+ *              2. x^3(-6x^2+15x-10) + 1
+ *              3. 0
+ *          2. the gradient of switchFunc(x) with respect to x:
+ *              1. 0
+ *              2. 
+ *              3. 0
+ * 
+ * @tparam CoordType 
+ */
+template <typename CoordType>
+class SwitchFunc {
+public:
+    SwitchFunc(CoordType rcut, CoordType)
+
+    CoordType get_result(CoordType distance_ji) const;
+
+    CoordType get_deriv2r(CoordType distance_ji) const;
+
+    CoordType get_deriv2xyz(CoordType distance_ji) const;
+
+private:
+    CoordType rcut = 0;
+    CoordType rcut_smooth = 0;
+}
+
+
+/**
+ * @brief Smooth function(`s(r)`) is DeepPot-SE
  * 
  * @tparam CoordType 
  * @param distance_ji 
@@ -505,13 +535,12 @@ CoordType**** PairTildeR<CoordType>::deriv() const {
                 1. smooth func = s(r) = \frac{1}{r} \cdot switch_func
                 2. s(r) = \frac{1}{r} \cdot switch_func -- 需要分步求导
                 3. 根据 r_ji 与 rcut, rcut_smooth 的关系分情况:
-                    1. switch_func_0 / switch_func_deriv_0
-                    2. switch_func_1 / switch_func_deriv_1
-                    3. switch_func_2 / switch_func_deriv_2
+                    1. switch_func_0 / switch_func_deriv_0, r<rcut_smooth
+                    2. switch_func_1 / switch_func_deriv_1, rcut_smooth <= r < rcut
+                    3. switch_func_2 / switch_func_deriv_2, r >= rcut
             */
             // Step 3.1. 
-            
-            
+
 
             // Step 3.2.1.
 
