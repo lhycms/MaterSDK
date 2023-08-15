@@ -419,7 +419,17 @@ void PairTildeR<CoordType>::show_in_value() const {
                 );
             }
         }
+
+        // Step . Free memory
+        for (int ii=0; ii<this->num_center_atoms; ii++) {
+            for (int jj=0; jj<this->num_neigh_atoms; jj++) {
+                free(pair_tilde_r[ii][jj]);
+            }
+            free(pair_tilde_r[ii]);
+        }
+        free(pair_tilde_r);
     }
+
 }
 
 
@@ -449,6 +459,18 @@ void PairTildeR<CoordType>::show_in_deriv() const {
                 );
             }
         }
+
+        // Step . Free memory
+        for (int ii=0; ii<this->num_center_atoms; ii++) {
+            for (int jj=0; jj<this->num_neigh_atoms; jj++) {
+                for (int kk=0; kk<4; kk++) {
+                    free(pair_tilde_r_deriv[ii][jj][kk]);
+                }
+                free(pair_tilde_r_deriv[ii][jj]);
+            }
+            free(pair_tilde_r_deriv[ii]);
+        }
+        free(pair_tilde_r_deriv);
     }
 }
 
@@ -686,7 +708,6 @@ CoordType**** PairTildeR<CoordType>::deriv() const {
                 std::pow(diff_cart_coord[2], 2) * std::pow(distance_ji_recip, 3) * switch_func.get_deriv2r(distance_ji)
             );
             tmp_nidx++;
-            printf("+++ %d, %d\n", tmp_cidx, tmp_nidx);
         }
         tmp_cidx++;
     }
