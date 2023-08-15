@@ -24,15 +24,15 @@ $$
 # 2. 便于求导的形式
 ## 2.1. $s(r)$ -- represented with `switching function`
 $$
-switch\_func(r) = 
+switchFunc(r) = 
 \begin{aligned}
-& 1, \quad r<r_s \\
+& 1, \quad r < r_s    \\
 & x^3(-6x^2+15x-10) + 1, \quad r_s \leq r < r_c \\
-& 0, \quad r > r_c
+& 0, \quad r \geq r_c
 \end{aligned}
 $$
 
 ## 2.2. $\tilde{R}$ -- represented with `switching function`
 $$
-\tilde{R} = (\frac{switch\_func(r)}{r}, \frac{switch\_func(r)x_{ji}}{r^2_{ji}}, \frac{switch\_func(r)y_{ji}}{r^2_{ji}}, \frac{switch\_func(r)z_{ji}}{r^2_{ji}})
+\tilde{R} = (\frac{switchFunc(r)}{r}, \frac{switchFunc(r)x_{ji}}{r^2_{ji}}, \frac{switchFunc(r)y_{ji}}{r^2_{ji}}, \frac{switchFunc(r)z_{ji}}{r^2_{ji}})
 $$
