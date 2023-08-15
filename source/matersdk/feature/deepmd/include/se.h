@@ -449,6 +449,89 @@ CoordType*** PairTildeR<CoordType>::generate() const {
 }
 
 
+/**
+ * @brief Calculate the gradient of with $\tilde{R}$ respect to x, y and z
+ * 
+ * @tparam CoordType 
+ * @return CoordType****    shape = (num_center_atoms, num_neigh_atoms, 4, 3)
+ */
+template <typename CoordType>
+CoordType**** PairTildeR<CoordType>::deriv() const {
+    // Step 1. 初始化一些必要的变量
+    // Step 1.1. 
+    int prim_cell_idx = this->neighbor_list.get_binLinkedList().get_supercell().get_prim_cell_idx();
+    int prim_num_atoms = this->neighbor_list.get_binLinkedList().get_supercell().get_prim_num_atoms();
+
+    int center_atom_idx;        // 中心原子在 supercell 中的 index
+    int neigh_atom_idx;         // 近邻原子在 supercell 中的 index
+    const CoordType* center_cart_coord; // 中心原子在 supercell 中的笛卡尔坐标
+    const CoordType* neigh_cart_coord;  // 近邻原子在 supercell 中的笛卡尔坐标
+    CoordType* diff_cart_coord = (CoordType*)malloc(sizeof(CoordType) * 3); // 近邻原子 - 中心原子 的相对坐标
+    CoordType distance_ji;          // 中心原子与近邻原子的距离
+    CoordType distance_ji_recip;    // 中心原子与近邻原子的距离的倒数
+
+    // Step 1.2. Allocate memory for `pair_tilde_r_deriv`
+    CoordType**** pair_tilde_r_deriv = (CoordType****)malloc(sizeof(CoordType***) * this->num_center_atoms);
+    for (int ii=0; ii<this->num_center_atoms; ii++) {
+        pair_tilde_r_deriv[ii] = (CoordType***)malloc(sizeof(CoordType**) * this->num_neigh_atoms);
+        for (int jj=0; jj<this->num_neigh_atoms; jj++) {
+            pair_tilde_r_deriv[ii][jj] = (CoordType**)malloc(sizeof(CoordType*) * 4);
+            for (int kk=0; kk<4; kk++) {
+                pair_tilde_r_deriv[ii][jj][kk] = (CoordType*)malloc(sizeof(CoordType) * 3);
+            }
+        }
+    }
+
+    // Step 2. 存储 `supercell_cart_coords` && `atomic_numbers`
+    const CoordType** supercell_cart_coords = this->neighbor_list.get_binLinkedList().get_supercell().get_structure().get_cart_coords();
+    const int* supercell_atomic_numbers = this->neighbor_list.get_binLinkedList().get_supercell().get_structure().get_atomic_numbers();
+
+    // Step 3. Populate `pair_tilde_r_deriv`
+    int tmp_cidx = 0;
+    for (int ii==0; ii<this->num_center_atoms; ii++) {  // 遍历中心原子
+        center_atom_idx = ii + prim_cell_idx * prim_num_atoms;
+        if (supercell_atomic_numbers[center_atom_idx] != this->center_atomic_number)
+            continue;
+        center_cart_coord = supercell_cart_coords[center_atom_idx];
+
+        int tmp_nidx = 0;
+        for (int jj=0; jj<this->num_neigh_atoms; jj++) {    // 遍历近邻原子
+            neigh_atom_idx = this->neighbor_list.neighbor_lists[ii][jj];
+            if (supercell_atomic_numbers[neigh_atom_idx] != this->neigh_atomic_number)
+                continue;
+            neigh_cart_coord = supercell_cart_coords[neigh_atom_idx];
+
+            /*
+                1. smooth func = s(r) = \frac{1}{r} \cdot switch_func
+                2. s(r) = \frac{1}{r} \cdot switch_func -- 需要分步求导
+                3. 根据 r_ji 与 rcut, rcut_smooth 的关系分情况:
+                    1. switch_func_0 / switch_func_deriv_0
+                    2. switch_func_1 / switch_func_deriv_1
+                    3. switch_func_2 / switch_func_deriv_2
+            */
+            // Step 3.1. 
+            
+            
+
+            // Step 3.2.1.
+
+            // Step 3.2.2.
+
+            // Step 3.2.3.
+
+            // Step 3.2.4.
+        }
+    }
+
+
+    // Step . Free memory
+    free(diff_cart_coord);
+
+
+    return pair_tilde_r_deriv;
+}
+
+
 }   // namespace : deepPotSE
 }   // namespace : matersdk
 
