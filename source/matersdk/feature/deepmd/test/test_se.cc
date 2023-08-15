@@ -7,6 +7,68 @@
 #include "../include/se.h"
 
 
+class SwitchFuncTest : public ::testing::Test {
+protected:
+    double rcut;
+    double rcut_smooth;
+
+    static void SetUpTestSuite() {
+        std::cout << "SwitchFuncTest (TestSuite) is setting up...\n";
+    }
+
+    static void TearDownTestSuite() {
+        std::cout << "SwitchFuncTest (TestSuite) is tearing down...\n";
+    }
+
+    void SetUp() override {
+        rcut = 3.5;
+        rcut_smooth = 3.0;
+    }
+
+    void TearDown() override {
+
+    }
+};  // class : SwitchFuncTest
+
+
+
+TEST_F(SwitchFuncTest, show) {
+    matersdk::deepPotSE::SwitchFunc<double> switch_func(rcut, rcut_smooth);
+    //switch_func.show();
+}
+
+
+TEST_F(SwitchFuncTest, get_result) {
+    matersdk::deepPotSE::SwitchFunc<double> switch_func(rcut, rcut_smooth);
+    // Case 1
+    EXPECT_FLOAT_EQ(switch_func.get_result(3.0), 1.0);      // Case 3
+    EXPECT_FLOAT_EQ(switch_func.get_result(2.9), 1.0);      // Case 3
+    // Case 2
+    EXPECT_FLOAT_EQ(switch_func.get_result(3.2), 0.68256);  // Case 2
+    // Case 3
+    EXPECT_FLOAT_EQ(switch_func.get_result(3.6), 0.0);      // Case 1
+    EXPECT_FLOAT_EQ(switch_func.get_result(3.5), 0.0);      // Case 1
+}
+
+
+TEST_F(SwitchFuncTest, get_deriv2r) {
+    matersdk::deepPotSE::SwitchFunc<double> switch_func(rcut, rcut_smooth);
+
+    // Case 1
+    EXPECT_FLOAT_EQ(switch_func.get_deriv2r(2.9), 0.0);
+    EXPECT_FLOAT_EQ(switch_func.get_deriv2r(3.0), 0.0);
+
+    // Case 2
+    EXPECT_FLOAT_EQ(switch_func.get_deriv2r(3.2), -3.456);
+
+    // Case 3
+    EXPECT_FLOAT_EQ(switch_func.get_deriv2r(3.5), 0.0);
+    EXPECT_FLOAT_EQ(switch_func.get_deriv2r(3.6), 0.0);
+}
+
+
+
+
 class SmoothFuncTest : public ::testing::Test {
 protected:
     double rcut;

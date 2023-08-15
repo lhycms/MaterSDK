@@ -15,13 +15,18 @@ namespace deepPotSE{
 
 /**
  * @brief Switching Function in DeepPot-SE
- *          1. switchFunc(x) = 
+ *          0. uu = \frac{r - r_s}{r_c - r_s}
+ *          1. switchFunc(uu) = 
  *              1. 1
- *              2. x^3(-6x^2+15x-10) + 1
+ *              2. uu^3(-6uu^2+15uu-10) + 1
  *              3. 0
- *          2. the gradient of switchFunc(x) with respect to x:
+ *          2. the gradient of switchFunc(uu) with respect to uu:
  *              1. 0
- *              2. 
+ *              2. -30 uu^4 + 60 uu^3 - 30 uu^2
+ *              3. 0
+ *          3. the gradient of switchFunc(uu) with respect to r:
+ *              1. 0
+ *              2. (-30 uu^4 _ 60 uu^3 - 30 uu^2) * 1/(r_c-r_s)
  *              3. 0
  * 
  * @tparam CoordType 
@@ -29,18 +34,66 @@ namespace deepPotSE{
 template <typename CoordType>
 class SwitchFunc {
 public:
-    SwitchFunc(CoordType rcut, CoordType)
+    SwitchFunc(CoordType rcut, CoordType rcut_smooth);
 
     CoordType get_result(CoordType distance_ji) const;
 
     CoordType get_deriv2r(CoordType distance_ji) const;
 
-    CoordType get_deriv2xyz(CoordType distance_ji) const;
+    void show() const;
 
 private:
     CoordType rcut = 0;
     CoordType rcut_smooth = 0;
+}; // class : SwitchFunc
+
+
+template <typename CoordType>
+SwitchFunc<CoordType>::SwitchFunc(CoordType rcut, CoordType rcut_smooth) {
+    this->rcut = rcut;
+    this->rcut_smooth = rcut_smooth;
 }
+
+
+template <typename CoordType>
+CoordType SwitchFunc<CoordType>::get_result(CoordType distance_ji) const {
+    CoordType result;
+    CoordType uu = (distance_ji - this->rcut_smooth) / (this->rcut - this->rcut_smooth);
+
+    if (distance_ji < this->rcut_smooth)
+        result = 1;
+    else if ((distance_ji>=this->rcut_smooth) && (distance_ji<this->rcut))
+        result = std::pow(uu, 3) * (-6*std::pow(uu, 2) + 15*uu - 10) + 1;
+    else
+        result = 0;
+
+    return result;
+}
+
+
+template <typename CoordType>
+CoordType SwitchFunc<CoordType>::get_deriv2r(CoordType distance_ji) const {
+    CoordType derive2r;
+    CoordType uu = (distance_ji - this->rcut_smooth) / (this->rcut - this->rcut_smooth);
+
+    if (distance_ji < this->rcut_smooth)
+        derive2r = 0;
+    else if ((distance_ji>=this->rcut_smooth) && (distance_ji<this->rcut))
+        derive2r = 1/(this->rcut - this->rcut_smooth) * ( -30*std::pow(uu, 4) + 60*std::pow(uu, 3) - 30*std::pow(uu, 2) );
+    else
+        derive2r = 0;
+    
+    return derive2r;
+}
+
+
+template <typename CoordType>
+void SwitchFunc<CoordType>::show() const {
+    printf("Inner SwitchFunc:\n");
+    printf("\tthis->rcut = %f\n", this->rcut);
+    printf("\tthis->rcut_smooth = %f\n", this->rcut_smooth);
+}
+
 
 
 /**
@@ -518,7 +571,7 @@ CoordType**** PairTildeR<CoordType>::deriv() const {
 
     // Step 3. Populate `pair_tilde_r_deriv`
     int tmp_cidx = 0;
-    for (int ii==0; ii<this->num_center_atoms; ii++) {  // 遍历中心原子
+    for (int ii=0; ii<this->num_center_atoms; ii++) {  // 遍历中心原子
         center_atom_idx = ii + prim_cell_idx * prim_num_atoms;
         if (supercell_atomic_numbers[center_atom_idx] != this->center_atomic_number)
             continue;
