@@ -264,7 +264,7 @@ TEST_F(PairTildeRTest, constructor_1) {
     rcut_smooth = 3.0;
     
     matersdk::deepPotSE::PairTildeR<double> pair_tilde_r(neighbor_list, center_atomic_number, neigh_atomic_number, num_neigh_atoms, rcut_smooth);
-    //pair_tilde_r.show();
+    // pair_tilde_r.show();
 }
 
 
@@ -320,6 +320,69 @@ TEST_F(PairTildeRTest, constructor_5) {
 
     matersdk::deepPotSE::PairTildeR<double> pair_tilde_r(structure, rcut, pbc_xyz, sort, center_atomic_number, neigh_atomic_number, rcut_smooth);
     pair_tilde_r.show();
+}
+
+
+TEST_F(PairTildeRTest, copy_constructor) {
+    pbc_xyz[0] = true;
+    pbc_xyz[1] = true;
+    pbc_xyz[2] = true;
+    bool sort = true;
+
+    center_atomic_number = 16;
+    neigh_atomic_number = 16;
+    rcut = 3.3;
+    rcut_smooth = 3.0;
+
+    matersdk::NeighborList<double> neighbor_list(structure, rcut, pbc_xyz, sort);
+
+    matersdk::deepPotSE::PairTildeR<double> pair_tilde_r_1;
+    matersdk::deepPotSE::PairTildeR<double> pair_tilde_r_2(neighbor_list, center_atomic_number, neigh_atomic_number, rcut_smooth);
+    
+    matersdk::deepPotSE::PairTildeR<double> pair_tilde_r_3(pair_tilde_r_1);
+    matersdk::deepPotSE::PairTildeR<double> pair_tilde_r_4(pair_tilde_r_2);
+    //pair_tilde_r_3.show();
+    //pair_tilde_r_4.show();
+}
+
+
+TEST_F(PairTildeRTest, assignment_operator) {
+    pbc_xyz[0] = true;
+    pbc_xyz[1] = true;
+    pbc_xyz[2] = false;
+
+    center_atomic_number = 16;
+    neigh_atomic_number = 16;
+    rcut = 3.3;
+    rcut_smooth = 3.0;
+
+    matersdk::NeighborList<double> neighbor_list(structure, rcut, pbc_xyz, true);
+    
+    matersdk::deepPotSE::PairTildeR<double> pair_tilde_r_1;
+    matersdk::deepPotSE::PairTildeR<double> pair_tilde_r_2(neighbor_list, center_atomic_number, neigh_atomic_number, rcut_smooth);
+
+    matersdk::deepPotSE::PairTildeR<double> pair_tilde_r_3;
+    matersdk::deepPotSE::PairTildeR<double> pair_tilde_r_4(neighbor_list, center_atomic_number, neigh_atomic_number, rcut_smooth);
+
+    pair_tilde_r_3 = pair_tilde_r_1;
+    //pair_tilde_r_3.show();
+    //pair_tilde_r_3.show_in_value();
+    //pair_tilde_r_3.show_in_deriv();
+
+    pair_tilde_r_3 = pair_tilde_r_2;
+    //pair_tilde_r_3.show();
+    //pair_tilde_r_3.show_in_value();
+    //pair_tilde_r_3.show_in_deriv();
+
+    pair_tilde_r_4 = pair_tilde_r_1;
+    //pair_tilde_r_4.show();
+    //pair_tilde_r_4.show_in_value();
+    //pair_tilde_r_4.show_in_deriv();
+
+    pair_tilde_r_4 = pair_tilde_r_2;
+    //pair_tilde_r_4.show();
+    //pair_tilde_r_4.show_in_value();
+    //pair_tilde_r_4.show_in_deriv();
 }
 
 

@@ -7,6 +7,7 @@
 #include "../../../io/publicLayer/include/structure.h"
 #include "../../../io/publicLayer/include/neighborList.h"
 #include "../../../../core/include/vec3Operation.h"
+#include "../../../../core/include/arrayUtils.h"
 
 
 namespace matersdk {
@@ -199,6 +200,12 @@ public:
                 int center_atomic_number,
                 int neigh_atomic_number,
                 CoordType rcut_smooth);
+
+    PairTildeR(const PairTildeR& rhs);
+
+    PairTildeR& operator=(const PairTildeR& rhs);
+
+    // ~PairTildeR();
 
     void calc_num_center_atoms();
 
@@ -454,6 +461,33 @@ PairTildeR<CoordType>::PairTildeR(
     this->rcut = this->neighbor_list.get_rcut();
     this->rcut_smooth = rcut_smooth;
 }
+
+
+template <typename CoordType>
+PairTildeR<CoordType>::PairTildeR(const PairTildeR<CoordType>& rhs) {
+    this->neighbor_list = rhs.neighbor_list;
+    this->center_atomic_number = rhs.center_atomic_number;
+    this->neigh_atomic_number = rhs.neigh_atomic_number;
+    this->num_center_atoms = rhs.num_center_atoms;
+    this->num_neigh_atoms = rhs.num_neigh_atoms;
+    this->rcut = rhs.rcut;
+    this->rcut_smooth = rhs.rcut_smooth;
+}
+
+
+template <typename CoordType>
+PairTildeR<CoordType>& PairTildeR<CoordType>::operator=(const PairTildeR<CoordType>& rhs) {
+    this->neighbor_list = rhs.neighbor_list;
+    this->center_atomic_number = rhs.center_atomic_number;
+    this->neigh_atomic_number = rhs.neigh_atomic_number;
+    this->num_center_atoms = rhs.num_center_atoms;
+    this->num_neigh_atoms = rhs.num_neigh_atoms;
+    this->rcut = rhs.rcut;
+    this->rcut_smooth = rhs.rcut_smooth;
+
+    return *this;
+}
+
 
 
 /**
