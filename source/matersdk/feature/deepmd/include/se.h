@@ -281,6 +281,10 @@ public:
         int* neigh_atomic_numbers_lst,
         CoordType rcut_smooth);
 
+    void calc_num_center_atoms_lst();
+
+    void calc_num_neigh_atoms_lst();
+
     void show() const;
 
 
@@ -891,6 +895,8 @@ TildeR<CoordType>::TildeR(
     for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++)
         this->neigh_atomic_numbers_lst[ii] = neigh_atomic_numbers_lst[ii];
     
+    this->calc_num_center_atoms_lst();  // 计算 `this->num_center_atoms_lst`
+
     this->num_neigh_atoms_lst = (int*)malloc(sizeof(int) * num_neigh_atomic_numbers);
     for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++)
         this->num_neigh_atoms_lst[ii] = num_neigh_atoms_lst[ii];
@@ -932,7 +938,8 @@ TildeR<CoordType>::TildeR(
     for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++)
         this->neigh_atomic_numbers_lst[ii] = neigh_atomic_numbers[ii];
 
-    this->num_neigh_atoms_lst = nullptr;
+    this->calc_num_center_atoms_lst();  // 计算 `this->num_center_atoms_lst`
+    this->calc_num_neigh_atoms_lst();   // 计算 `this->num_neigh_atoms_lst`
     
     this->rcut = this->neighbor_list.get_rcut();
     this->rcut_smooth = rcut_smooth;
@@ -979,6 +986,8 @@ TildeR<CoordType>::TildeR(
     for (int ii=0; ii<this->num_center_atomic_numbers; ii++) 
         this->neigh_atomic_numbers_lst = neigh_atomic_numbers_lst[ii];
     
+    this->calc_num_center_atoms_lst();  // 计算 `this->num_center_atoms_lst`
+
     this->num_neigh_atoms_lst = (int*)malloc(sizeof(int) * this->num_neigh_atomic_numbers);
     for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++)
         this->num_neigh_atoms_lst = num_neigh_atoms_lst[ii];
@@ -1026,9 +1035,50 @@ TildeR<CoordType>::TildeR(
     for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++)
         this->neigh_atomic_numbers_lst[ii] = neigh_atomic_numbers_lst[ii];
     
-    this->num_neigh_atoms_lst = nullptr;
+    this->calc_num_center_atoms_lst();  // 计算 `this->num_center_atoms_lst`
+    this->calc_num_neigh_atoms_lst();   // 计算 `this->num_neigh_atoms_lst`
+
     this->rcut = this->neighbor_list.get_rcut();
     this->rcut_smooth = rcut_smooth;
+}
+
+
+template <typename CoordType>
+void TildeR<CoordType>::calc_num_center_atoms_lst() {
+    int tmp_num_center_atoms;
+    const int* supercell_atomic_numbers = this->neighbor_list.get_binLinkedList().get_supercell().get_structure().get_atomic_numbers();
+    this->num_center_atoms_lst = (int*)malloc(sizeof(int) * this->num_center_atomic_numbers);
+    
+    for (int ii=0; ii<this->num_center_atomic_numbers; ii++) {
+        tmp_num_center_atoms = 0;
+        for (int jj=0; jj<this->neighbor_list.get_num_center_atoms(); jj++) {
+            if (supercell_atomic_numbers[jj] == this->center_atomic_numbers_lst[ii])
+                tmp_num_center_atoms++;
+        }
+        this->num_center_atoms_lst[ii] = tmp_num_center_atoms;
+    }
+}
+
+
+template <typename CoordType>
+void TildeR<CoordType>::calc_num_neigh_atoms_lst() {
+    int tmp_num_neigh_atoms;
+    const int* supercell_atomic_numbers = this->neighbor_list.get_binLinkedList().get_supercell().get_structure().get_atomic_numbers();
+    this->num_neigh_atoms_lst = (int*)malloc(sizeof(int) * this->num_neigh_atomic_numbers);
+    for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++)
+        this->num_neigh_atoms_lst[ii] = 0;
+
+    for (int ii=0; ii<this->num_center_atomic_numbers; ii++) {
+        for (int jj=0; jj<this->neighbor_list.get_num_center_atoms(); jj++) {
+            tmp_num_neigh_atoms = 0;
+            for (int kk=0; kk<this->neighbor_list.get_neighbor_lists()[jj].size(); kk++) {
+                if (supercell_atomic_numbers[this->neighbor_list.get_neighbor_lists()[jj][kk]] == this->center_atomic_numbers_lst[ii])
+                    tmp_num_neigh_atoms++;
+            }
+            if (tmp_num_neigh_atoms > this->num_neigh_atoms_lst[ii])
+                this->num_neigh_atoms_lst[ii] = tmp_num_neigh_atoms;
+        }
+    }
 }
 
 
@@ -1050,6 +1100,12 @@ void TildeR<CoordType>::show() const {
 
     printf("rcut = %f\n", this->rcut);
     printf("rcut_smooth = %f\n", this->rcut_smooth);
+
+    printf("num_center_atoms_lst: ");
+    printf("[");
+    for (int ii=0; ii<this->num_center_atomic_numbers; ii++)
+        printf("%5d, ", this->num_center_atoms_lst[ii]);
+    printf("]\n");
 
     printf("num_neigh_atoms_lst: ");
     printf("[");

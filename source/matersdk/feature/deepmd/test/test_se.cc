@@ -543,7 +543,7 @@ TEST_F(TildeRTest, constructor_1) {
                                 num_neigh_atoms_lst,
                                 rcut_smooth);
     
-    //tilde_r.show();
+    tilde_r.show();
 }
 
 
