@@ -75,5 +75,63 @@ void show3dArray(CoordType*** pointer_3dArray, int element_size_0, int element_s
 }
 
 
+
+
+template <typename CoordType>
+CoordType**** allocate4dArray(int element_size_0, int element_size_1, int element_size_2, int element_size_3, bool init_mark) {
+    CoordType**** pointer_4dArray = (CoordType****)malloc(sizeof(CoordType***) * element_size_0);
+    for (int ii=0; ii<element_size_0; ii++) {
+        pointer_4dArray[ii] = (CoordType***)malloc(sizeof(CoordType**) * element_size_1);
+        for (int jj=0; jj<element_size_1; jj++) {
+            pointer_4dArray[ii][jj] = (CoordType**)malloc(sizeof(CoordType*) * element_size_2);
+            for (int kk=0; kk<element_size_2; kk++) {
+                pointer_4dArray[ii][jj][kk] = (CoordType*)malloc(sizeof(CoordType) * element_size_3);
+            }
+        }
+    }
+
+    if (init_mark) {
+        for (int ii=0; ii<element_size_0; ii++) {
+            for (int jj=0; jj<element_size_1; jj++) {
+                for (int kk=0; kk<element_size_2; kk++) {
+                    for (int ll=0; ll<element_size_3; ll++)
+                        pointer_4dArray[ii][jj][kk][ll] = 0;
+                }
+            }
+        }
+    }
+
+
+    return pointer_4dArray;
+}
+
+
+template <typename CoordType>
+void free4dArray(CoordType**** pointer_4dArray, int element_size_0, int element_size_1, int element_size_2) {
+    for (int ii=0; ii<element_size_0; ii++) {
+        for (int jj=0; jj<element_size_1; jj++) {
+            for (int kk=0; kk<element_size_2; kk++)
+                free(pointer_4dArray[ii][jj][kk]);
+            free(pointer_4dArray[ii][jj]);
+        }
+        free(pointer_4dArray[ii]);
+    }
+    free(pointer_4dArray);
+}
+
+
+template <typename CoordType>
+void show4dArray(CoordType**** pointer_4dArray, int element_size_0, int element_size_1, int element_size_2, int element_size_3) {
+    for (int ii=0; ii<element_size_0; ii++) {
+        for (int jj=0; jj<element_size_1; jj++) {
+            for (int kk=0; kk<element_size_2; kk++) {
+                for (int ll=0; ll<element_size_3; ll++)
+                    printf("[%d, %d, %d, %d] : %f\n", ii, jj, kk, ll, pointer_4dArray[ii][jj][kk][ll]);
+            }
+        }
+    }
+}
+·
+
 };  // namespace : matersdk
 };  // namespace : arrayUtils

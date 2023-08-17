@@ -11,6 +11,7 @@ protected:
     int element_size_0;
     int element_size_1;
     int element_size_2;
+    int element_size_3;
     bool init_mark;
 
     static void SetUpTestSuite() {
@@ -25,6 +26,7 @@ protected:
         element_size_0 = 3;
         element_size_1 = 4;
         element_size_2 = 5;
+        element_size_3 = 6;
         init_mark = true;
     }
 
@@ -37,11 +39,25 @@ protected:
 
 TEST_F(ArrayUtilsTest, array_3d) {
     init_mark = true;
-    
+
     double*** pointer_3dArray = matersdk::arrayUtils::allocate3dArray<double>(element_size_0, element_size_1, element_size_2, init_mark);
     matersdk::arrayUtils::show3dArray(pointer_3dArray, element_size_0, element_size_1, element_size_2);
     matersdk::arrayUtils::free3dArray(pointer_3dArray, element_size_0, element_size_1);
 }
+
+
+TEST_F(ArrayUtilsTest, array_4d) {
+    init_mark = true;
+    double**** pointer_4dArray = matersdk::arrayUtils::allocate4dArray<double>(element_size_0, element_size_1, element_size_2, element_size_3, init_mark);
+    matersdk::arrayUtils::show4dArray(pointer_4dArray, element_size_0, element_size_1, element_size_2, element_size_3);
+    matersdk::arrayUtils::free4dArray(pointer_4dArray, element_size_0, element_size_1, element_size_2);
+}
+
+
+
+
+
+
 
 
 int main(int argc, char** argv) {
