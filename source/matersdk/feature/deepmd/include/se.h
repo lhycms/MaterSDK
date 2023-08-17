@@ -169,7 +169,7 @@ public:
     
     // This constructor just for `TildeR`
     PairTildeR(
-                NeighborList<CoordType>& neighbor_list,
+                const NeighborList<CoordType>& neighbor_list,
                 int center_atomic_number,
                 int neigh_atomic_number,
                 int num_center_atoms,
@@ -294,6 +294,10 @@ public:
 
     void show() const;
 
+    void show_in_value() const;
+
+    void show_in_deriv() const;
+
     CoordType*** generate() const;
 
     CoordType**** deriv() const;
@@ -361,7 +365,7 @@ PairTildeR<CoordType>::PairTildeR(
 
 template <typename CoordType>
 PairTildeR<CoordType>::PairTildeR(
-                            NeighborList<CoordType>& neighbor_list,
+                            const NeighborList<CoordType>& neighbor_list,
                             int center_atomic_number,
                             int neigh_atomic_number,
                             int num_center_atoms,
@@ -656,7 +660,7 @@ CoordType*** PairTildeR<CoordType>::generate() const {
     // Step 1.2. Allocate memory for $\tilde{R}$
     CoordType*** pair_tilde_r = (CoordType***)malloc(sizeof(CoordType**) * this->num_center_atoms);
     for (int ii=0; ii<this->num_center_atoms; ii++) {
-        pair_tilde_r[ii] = (CoordType**)malloc(sizeof(CoordType*) * this->neigh_atomic_number);
+        pair_tilde_r[ii] = (CoordType**)malloc(sizeof(CoordType*) * this->num_neigh_atoms);
         for (int jj=0; jj<this->num_neigh_atoms; jj++) {
             pair_tilde_r[ii][jj] = (CoordType*)malloc(sizeof(CoordType) * 4);
         }
@@ -664,11 +668,11 @@ CoordType*** PairTildeR<CoordType>::generate() const {
 
     for (int ii=0; ii<this->num_center_atoms; ii++) {
         for (int jj=0; jj<this->num_neigh_atoms; jj++) {
-            for (int kk=0; kk<4; kk++) 
+            for (int kk=0; kk<4; kk++) {
                 pair_tilde_r[ii][jj][kk] = 0;
+            }
         }
     }
-
 
     // Step 2. ·
     const CoordType** supercell_cart_coords = this->neighbor_list.get_binLinkedList().get_supercell().get_structure().get_cart_coords();
@@ -1152,13 +1156,140 @@ void TildeR<CoordType>::show() const {
 }
 
 
-/*
 template <typename CoordType>
-CoordType TildeR<CoordType>::generate() const {
+void TildeR<CoordType>::show_in_value() const {
+    // Step 1.
+    int tot_num_center_atoms = 0;
+    for (int ii=0; ii<this->num_center_atomic_numbers; ii++)
+        tot_num_center_atoms += this->num_center_atoms_lst[ii];
     
-}
-*/
+    int tot_num_neigh_atoms = 0;
+    for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++) 
+        tot_num_neigh_atoms += this->num_neigh_atoms_lst[ii];
 
+    CoordType*** tilde_r = this->generate();
+
+    // Step 2.
+    for (int ii=0; ii<tot_num_center_atoms; ii++) {
+        for (int jj=0; jj<tot_num_neigh_atoms; jj++) {
+            printf("[%d, %d] : [%10f, %10f, %10f, %10f]\n", ii, jj, tilde_r[ii][jj][0], tilde_r[ii][jj][1], tilde_r[ii][jj][2], tilde_r[ii][jj][3]);
+        }
+    }
+}
+
+
+/**
+ * @brief Generate the $\tilde{R}$ for deepPot-SE. (组合 `PairTildeR`)
+ * 
+ * @tparam CoordType 
+ * @return CoordType*** 
+ */
+template <typename CoordType>
+CoordType*** TildeR<CoordType>::generate() const {
+    // Step 1. Allocate memory for `tilde_r`. `tilde_r.shape = (num_center_atoms, num_neigh_atoms, 3)`
+    int tot_num_center_atoms = 0;
+    for (int ii=0; ii<this->num_center_atomic_numbers; ii++)
+        tot_num_center_atoms += this->num_center_atoms_lst[ii];
+
+    int tot_num_neigh_atoms = 0;
+    for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++)
+        tot_num_neigh_atoms += this->num_neigh_atoms_lst[ii];
+
+    CoordType*** tilde_r = arrayUtils::allocate3dArray<CoordType>(tot_num_center_atoms, tot_num_neigh_atoms, 4);
+
+
+    // Step 2. Populate `tilde_r`
+    // Step 2.1. 
+    int tmp_center_atomic_number;           // 存储 `PairTildeR.center_atomic_number`
+    int tmp_neigh_atomic_number;            // 存储 `PairTildeR.neigh_atomic_number`
+    PairTildeR<CoordType> tmp_pair_tilde_r; // 存储 `PairTildeR`
+    CoordType*** tmp_pair_tilde_r_value;    // 存储 `PairTildeR.generate()`
+    int tmp_cidx;
+    int tmp_nidx;
+
+    // Step 2.2. 计算中心原子对应tilde_r[m, n, q] 的 m 索引起始；计算近邻原子对应的 tilde_r[m, n, q] 的 n 索引起始
+    /*
+    e.g.
+    ----
+        1. 12 原子的 MoS2:
+            1. (4, 80, 4)       -- Mo-Mo
+            2. (4, 100, 4)      -- Mo-S
+            3. (8, 80, 4)       -- S-Mo
+            4. (8, 1000, 4)     -- S-S
+    */
+    int* cstart_idxs = (int*)malloc(sizeof(int) * this->num_center_atomic_numbers);
+    for (int ii=0; ii<this->num_center_atomic_numbers; ii++)
+        cstart_idxs[ii] = 0;
+    for (int ii=0; ii<this->num_center_atomic_numbers; ii++) {
+        for (int jj=0; jj<ii; jj++)
+            cstart_idxs[ii] += this->num_center_atoms_lst[jj];
+    }
+
+    int* nstart_idxs = (int*)malloc(sizeof(int) * this->num_neigh_atomic_numbers);
+    for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++)
+        nstart_idxs[ii] = 0;
+    for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++) {
+        for (int jj=0; jj<ii; jj++)
+            nstart_idxs[ii] += this->num_neigh_atoms_lst[jj];
+    }
+    /*
+    test
+    ----
+        printf("cstart_idxs: ");
+        for (int ii=0; ii<this->num_center_atomic_numbers; ii++) {
+            printf("%d, ", cstart_idxs[ii]);
+        }
+        printf("\n");
+        printf("nstart_idxs: ");
+        for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++) {
+            printf("%d, ", nstart_idxs[ii]);
+        }
+        printf("\n");
+    */
+    
+    // Step 2.3. 
+    for (int ii=0; ii<this->num_center_atomic_numbers; ii++) {
+        tmp_center_atomic_number = this->center_atomic_numbers_lst[ii];
+        for (int jj=0; jj<this->num_neigh_atomic_numbers; jj++) {
+            tmp_neigh_atomic_number = this->neigh_atomic_numbers_lst[jj];
+            tmp_pair_tilde_r = PairTildeR<CoordType>(
+                                        this->neighbor_list, 
+                                        this->center_atomic_numbers_lst[ii], 
+                                        this->neigh_atomic_numbers_lst[jj], 
+                                        this->num_center_atoms_lst[ii], 
+                                        this->num_neigh_atoms_lst[jj], 
+                                        this->rcut_smooth
+                                );
+            tmp_pair_tilde_r_value = tmp_pair_tilde_r.generate();
+
+            tmp_cidx = cstart_idxs[ii];         // 0, 4
+            for (int kk=0; kk<this->num_center_atoms_lst[ii]; kk++) {
+                tmp_nidx = nstart_idxs[jj];     // 0, 80
+                for (int ll=0; ll<this->num_neigh_atoms_lst[jj]; ll++) {
+                    tilde_r[tmp_cidx][tmp_nidx][0] = tmp_pair_tilde_r_value[kk][ll][0];
+                    tilde_r[tmp_cidx][tmp_nidx][1] = tmp_pair_tilde_r_value[kk][ll][1];
+                    tilde_r[tmp_cidx][tmp_nidx][2] = tmp_pair_tilde_r_value[kk][ll][2];
+                    tilde_r[tmp_cidx][tmp_nidx][3] = tmp_pair_tilde_r_value[kk][ll][3];
+                    tmp_nidx++;
+                }
+                tmp_cidx++;
+            }
+
+            // Step . Free memory
+            arrayUtils::free3dArray(
+                            tmp_pair_tilde_r_value, 
+                            this->num_center_atoms_lst[ii], 
+                            this->num_neigh_atoms_lst[jj]
+                        );
+        }
+    }
+
+    // Step . Free memory
+    free(cstart_idxs);
+    free(nstart_idxs);
+    
+    return tilde_r;
+}
 
 
 }   // namespace : deepPotSE
