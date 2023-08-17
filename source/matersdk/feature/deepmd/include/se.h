@@ -222,6 +222,76 @@ private:
 
 
 
+/**
+ * @brief TildeR : Stack PairTildeRs
+ * 
+ * @tparam CoordType 
+ */
+template <typename CoordType>
+class TildeR {
+public:
+    TildeR();
+
+    TildeR(
+        NeighborList<CoordType>& neighbor_list,
+        int num_center_atomic_numbers,
+        int* center_atomic_numbers_lst,
+        int num_neigh_atomic_numbers,
+        int* neigh_atomic_numbers_lst,
+        int* num_neigh_atoms_lst,
+        CoordType rcut_smooth);
+    
+    TildeR(
+        NeighborList<CoordType>& neighbor_list,
+        int num_center_atomic_numbers,
+        int* center_atomic_numbers_lst,
+        int num_neigh_atomic_numbers,
+        int* neigh_atomic_numbers_lst,
+        CoordType rcut_smooth);
+
+    TildeR(
+        Structure<CoordType>& structure,
+        CoordType rcut,
+        bool* pbc_xyz,
+        bool sort,
+        int num_center_atomic_numbers,
+        int* center_atomic_numbers_lst,
+        int num_neigh_atomic_numbers,
+        int* neigh_atomic_numbers_lst,
+        int* num_neigh_atoms_lst,
+        CoordType rcut_smooth);
+
+    TildeR(
+        Structure<CoordType>& structure,
+        CoordType rcut, 
+        bool* pbc_xyz,
+        bool sort,
+        int num_center_atomic_numbers,
+        int* center_atomic_numbers_lst,
+        int num_neigh_atomic_numbers,
+        int* neigh_atomic_numbers_lst,
+        CoordType rcut_smooth);
+
+    void show() const;
+
+
+private:
+    NeighborList<CoordType> neighbor_list;
+    int num_center_atomic_numbers = 0;
+    int* center_atomic_numbers_lst = nullptr;
+    int num_neigh_atomic_numbers = 0;
+    int* neigh_atomic_numbers_lst = nullptr;
+    int* num_center_atoms_lst = nullptr;
+    int* num_neigh_atoms_lst = nullptr;
+    CoordType rcut = 0;
+    CoordType rcut_smooth = 0;
+};  // class : TildeR
+
+
+
+
+
+
 
 /**
  * @brief Construct a new Pair Tilde R< Coord Type>:: Pair Tilde R object
@@ -736,6 +806,186 @@ CoordType**** PairTildeR<CoordType>::deriv() const {
 
     return pair_tilde_r_deriv;
 }
+
+
+
+
+/**
+ * @brief Construct a new Tilde R< Coord Type>:: Tilde R object
+ * 
+ * @tparam CoordType 
+ */
+template <typename CoordType>
+TildeR<CoordType>::TildeR() {
+    this->neigh_atomic_numbers_lst = NeighborList<CoordType>();
+    this->num_center_atomic_numbers = 0;
+    this->center_atomic_numbers_lst = nullptr;
+    this->num_neigh_atomic_numbers = 0;
+    this->neigh_atomic_numbers_lst = nullptr;
+    this->num_center_atoms_lst = nullptr;
+    this->num_neigh_atoms_lst = nullptr;
+    this->rcut = 0;
+    this->rcut_smooth = 0;
+}
+
+
+/**
+ * @brief Construct a new Tilde R< Coord Type>:: Tilde R object
+ * 
+ * @tparam CoordType 
+ * @param neighbor_list matersdk::NeighborList<CoordType> object
+ * @param num_center_atomic_numbers 中心原子的种类数
+ * @param center_atomic_numbers_lst 中心原子的种类
+ * @param num_neigh_atomic_numbers 近邻原子的种类数
+ * @param neigh_atomic_numbers_lst 近邻原子的种类
+ * @param num_neigh_atoms_lst 
+ * @param rcut_smooth 
+ */
+template <typename CoordType>
+TildeR<CoordType>::TildeR(
+                    NeighborList<CoordType>& neighbor_list,
+                    int num_center_atomic_numbers,
+                    int* center_atomic_numbers_lst, 
+                    int num_neigh_atomic_numbers,
+                    int* neigh_atomic_numbers_lst, 
+                    int* num_neigh_atoms_lst,
+                    CoordType rcut_smooth)
+{
+    // Step 1. Init `TildeR` member variable
+    this->neighbor_list = neighbor_list;
+
+    this->num_center_atomic_numbers = num_center_atomic_numbers;
+    this->center_atomic_numbers_lst = (int*)malloc(sizeof(int) * num_center_atomic_numbers);
+    for (int ii=0; ii<this->num_center_atomic_numbers; ii++)
+        this->center_atomic_numbers_lst[ii] = center_atomic_numbers_lst[ii];
+
+    this->num_neigh_atomic_numbers = num_neigh_atomic_numbers;
+    this->neigh_atomic_numbers_lst = (int*)malloc(sizeof(int) * num_neigh_atomic_numbers);
+    for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++)
+        this->neigh_atomic_numbers_lst[ii] = neigh_atomic_numbers_lst[ii];
+    
+    this->num_neigh_atoms_lst = (int*)malloc(sizeof(int) * num_neigh_atomic_numbers);
+    for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++)
+        this->num_neigh_atoms_lst[ii] = num_neigh_atoms_lst[ii];
+    
+    this->rcut_smooth = rcut_smooth;
+}
+
+
+/**
+ * @brief Construct a new Tilde R< Coord Type>:: Tilde R object
+ * 
+ * @tparam CoordType 
+ * @param neighbor_list 
+ * @param num_center_atomic_numbers 
+ * @param center_atomic_numbers_lst 
+ * @param num_neigh_atomic_numbers 
+ * @param neigh_atomic_numbers 
+ * @param rcut_smooth 
+ */
+template <typename CoordType>
+TildeR<CoordType>::TildeR(
+                    NeighborList<CoordType>& neighbor_list,
+                    int num_center_atomic_numbers,
+                    int* center_atomic_numbers_lst,
+                    int num_neigh_atomic_numbers,
+                    int* neigh_atomic_numbers,
+                    CoordType rcut_smooth) 
+{
+    this->neighbor_list = neighbor_list;
+
+    this->num_center_atomic_numbers = num_center_atomic_numbers;
+    this->center_atomic_numbers_lst = (int*)malloc(sizeof(int) * num_center_atomic_numbers);
+    for (int ii=0; ii<this->num_center_atomic_numbers; ii++)
+        this->center_atomic_numbers_lst[ii] = center_atomic_numbers_lst[ii];
+    
+    this->num_neigh_atomic_numbers = num_neigh_atomic_numbers;
+    this->neigh_atomic_numbers_lst = (int*)malloc(sizeof(int) * num_neigh_atomic_numbers);
+    for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++) 
+        this->neigh_atomic_numbers_lst[ii] = neigh_atomic_numbers[ii];
+
+    this->num_neigh_atoms_lst = nullptr;
+    
+    this->rcut_smooth = rcut_smooth;
+}
+
+
+/**
+ * @brief Construct a new Tilde R< Coord Type>:: Tilde R object
+ * 
+ * @tparam CoordType 
+ * @param structure matersdk::Structure object
+ * @param rcut 截断半径
+ * @param pbc_xyz 周期性边界条件
+ * @param sort 原子是否按照距中心原子距离排序
+ * @param num_center_atomic_numbers 
+ * @param center_atomic_numbers_lst 
+ * @param num_neigh_atomic_numbers 
+ * @param neigh_atomic_numbers_lst 
+ * @param num_neigh_atoms_lst 
+ * @param rcut_smooth 
+ */
+template <typename CoordType>
+TildeR<CoordType>::TildeR(
+                    Structure<CoordType>& structure,
+                    CoordType rcut,
+                    bool* pbc_xyz,
+                    bool sort,
+                    int num_center_atomic_numbers,
+                    int* center_atomic_numbers_lst,
+                    int num_neigh_atomic_numbers,
+                    int* neigh_atomic_numbers_lst,
+                    int* num_neigh_atoms_lst,
+                    CoordType rcut_smooth)
+{
+    this->neighbor_list = NeighborList<CoordType>(structure, rcut, pbc_xyz, sort);
+    
+    this->num_center_atomic_numbers = num_center_atomic_numbers;
+    this->center_atomic_numbers_lst = (int*)malloc(sizeof(int) * this->num_center_atomic_numbers);
+    for (int ii=0; ii<this->num_center_atomic_numbers; ii++)
+        this->center_atomic_numbers_lst = center_atomic_numbers_lst[ii];
+    
+    this->num_neigh_atomic_numbers = num_neigh_atomic_numbers;
+    this->neigh_atomic_numbers_lst = (int*)malloc(sizeof(int) * this->num_neigh_atomic_numbers);
+    for (int ii=0; ii<this->num_center_atomic_numbers; ii++) 
+        this->neigh_atomic_numbers_lst = neigh_atomic_numbers_lst[ii];
+    
+    this->num_neigh_atoms_lst = (int*)malloc(sizeof(int) * this->num_neigh_atoms_lst);
+    for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++)
+        this->num_neigh_atoms_lst = num_neigh_atoms_lst[ii];
+    
+    this->rcut_smooth = rcut_smooth;
+}
+
+
+template <typename CoordType>
+TildeR<CoordType>::TildeR(
+                    Structure<CoordType>& structure,
+                    CoordType rcut, 
+                    bool* pbc_xyz,
+                    bool sort,
+                    int num_center_atomic_numbers,
+                    int* center_atomic_numbers_lst,
+                    int num_neigh_atomic_numbers,
+                    int* neigh_atomic_numbers_lst,
+                    CoordType rcut_smooth)
+{
+    this->neighbor_list = NeighborList<CoordType>(structure, rcut, pbc_xyz, sort);
+    
+    this->num_center_atomic_numbers = num_center_atomic_numbers;
+    this->center_atomic_numbers_lst = (int*)malloc(sizeof(int) * this->num_center_atomic_numbers);
+    for (int ii=0; ii<this->num_center_atomic_numbers; ii++)
+        this->center_atomic_numbers_lst[ii] = center_atomic_numbers_lst[ii];
+
+    this->num_neigh_atomic_numbers = num_neigh_atomic_numbers;
+    this->neigh_atomic_numbers_lst = (int*)malloc(sizeof(int) * this->num_neigh_atomic_numbers);
+    for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++)
+        this->neigh_atomic_numbers_lst[ii] = neigh_atomic_numbers_lst[ii];
+    
+    this->num_neigh_atoms_lst = nullptr;
+    this->rcut_smooth = rcut_smooth;
+}
+
 
 
 }   // namespace : deepPotSE
