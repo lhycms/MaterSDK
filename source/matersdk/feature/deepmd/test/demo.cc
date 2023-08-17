@@ -103,6 +103,8 @@ int main() {
                     frac_coords,        // num_atoms * 3 的数组
                     false               // coords 是否为笛卡尔坐标
     );
+    //const int scaling_matrix[3] = {100, 100, 1};
+    //structure.make_supercell(scaling_matrix);
 
     // Step 4. 构建 matersdk::NeighborList 对象
     matersdk::NeighborList<double> neighbor_list(
@@ -111,6 +113,7 @@ int main() {
                     pbc_xyz,            // [true, true, false]，在各个方向上周期性
                     true                // 是否按照近邻原子的距离排序
     );
+    
     
     // Step 5. 构建 matersdk::deepPotSE::PairTildeR 对象
     matersdk::deepPotSE::PairTildeR<double> pair_tilde_r(
@@ -123,5 +126,5 @@ int main() {
     pair_tilde_r.show_in_value();           // 输出特征的值
     printf("\n\n");
     pair_tilde_r.show_in_deriv();           // 输出特征的导数
-
+    
 }
