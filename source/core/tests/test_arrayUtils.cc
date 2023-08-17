@@ -12,6 +12,7 @@ protected:
     int element_size_1;
     int element_size_2;
     int element_size_3;
+    int element_size_4;
     bool init_mark;
 
     static void SetUpTestSuite() {
@@ -27,6 +28,7 @@ protected:
         element_size_1 = 4;
         element_size_2 = 5;
         element_size_3 = 6;
+        element_size_4 = 7;
         init_mark = true;
     }
 
@@ -54,7 +56,12 @@ TEST_F(ArrayUtilsTest, array_4d) {
 }
 
 
-
+TEST_F(ArrayUtilsTest, array_5d) {
+    init_mark= true;
+    double***** pointer_5dArray = matersdk::arrayUtils::allocate5dArray<double>(element_size_0, element_size_1, element_size_2, element_size_3, element_size_4);
+    matersdk::arrayUtils::show5dArray(pointer_5dArray, element_size_0, element_size_1, element_size_2, element_size_3, element_size_4);
+    matersdk::arrayUtils::free5dArray(pointer_5dArray, element_size_0, element_size_1, element_size_2, element_size_3);
+}
 
 
 

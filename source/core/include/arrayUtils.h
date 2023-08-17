@@ -131,7 +131,93 @@ void show4dArray(CoordType**** pointer_4dArray, int element_size_0, int element_
         }
     }
 }
-·
+
+
+
+template <typename CoordType>
+CoordType***** allocate5dArray(
+                        int element_size_0,
+                        int element_size_1,
+                        int element_size_2,
+                        int element_size_3,
+                        int element_size_4,
+                        bool init_mark=false)
+{
+    CoordType***** pointer_5dArray = (CoordType*****)malloc(sizeof(CoordType****) * element_size_0);
+    for (int ii=0; ii<element_size_0; ii++) {
+        pointer_5dArray[ii] = (CoordType****)malloc(sizeof(CoordType***) * element_size_1);
+        for (int jj=0; jj<element_size_1; jj++) {
+            pointer_5dArray[ii][jj] = (CoordType***)malloc(sizeof(CoordType**) * element_size_2);
+            for (int kk=0; kk<element_size_2; kk++) {
+                pointer_5dArray[ii][jj][kk] = (CoordType**)malloc(sizeof(CoordType*) * element_size_3);
+                for (int ll=0; ll<element_size_3; ll++) {
+                    pointer_5dArray[ii][jj][kk][ll] = (CoordType*)malloc(sizeof(CoordType) * element_size_4);
+                }
+            }
+        }
+    }
+
+    if (init_mark) {
+        for (int ii=0; ii<element_size_0; ii++) {
+            for (int jj=0; jj<element_size_1; jj++) {
+                for (int kk=0; kk<element_size_2; kk++) {
+                    for (int ll=0; ll<element_size_3; ll++) {
+                        for (int mm=0; mm<element_size_4; mm++)
+                            pointer_5dArray[ii][jj][kk][ll][mm] = 0;
+                    }
+                }
+            }
+        }
+    }
+
+    return pointer_5dArray;
+}
+
+
+template <typename CoordType>
+void free5dArray(
+                CoordType***** pointer_5dArray,
+                int element_size_0,
+                int element_size_1,
+                int element_size_2,
+                int element_size_3)
+{
+    for (int ii=0; ii<element_size_0; ii++) {
+        for (int jj=0; jj<element_size_1; jj++) {
+            for (int kk=0; kk<element_size_2; kk++) {
+                for (int ll=0; ll<element_size_3; ll++) 
+                    free(pointer_5dArray[ii][jj][kk][ll]);
+                free(pointer_5dArray[ii][jj][kk]);
+            }
+            free(pointer_5dArray[ii][jj]);
+        }
+        free(pointer_5dArray[ii]);
+    }
+    free(pointer_5dArray);
+}
+
+
+template <typename CoordType>
+void show5dArray(
+                CoordType***** pointer_5dArray,
+                int element_size_0,
+                int element_size_1,
+                int element_size_2, 
+                int element_size_3,
+                int element_size_4)
+{
+    for (int ii=0; ii<element_size_0; ii++) {
+        for (int jj=0; jj<element_size_1; jj++) {
+            for (int kk=0; kk<element_size_2; kk++) {
+                for (int ll=0; ll<element_size_3; ll++) {
+                    for (int mm=0; mm<element_size_4; mm++) 
+                        printf("[%d, %d, %d, %d, %d] : %f\n", ii, jj, kk, ll, mm, pointer_5dArray[ii][jj][kk][ll][mm]);
+                }
+            }
+        }
+    }
+}
+
 
 };  // namespace : matersdk
 };  // namespace : arrayUtils

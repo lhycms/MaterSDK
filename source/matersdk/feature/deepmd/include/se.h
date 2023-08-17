@@ -1117,6 +1117,7 @@ void TildeR<CoordType>::show() const {
     printf("]\n");
 }
 
+
 /*
 template <typename CoordType>
 CoordType TildeR<CoordType>::generate() const {
