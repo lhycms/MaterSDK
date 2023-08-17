@@ -165,6 +165,15 @@ public:
                 int neigh_atomic_number, 
                 int num_neigh_atoms,
                 CoordType rcut_smmoth);
+    
+    // This constructor just for `TildeR`
+    PairTildeR(
+                NeighborList<CoordType>& neighbor_list,
+                int center_atomic_number,
+                int neigh_atomic_number,
+                int num_center_atoms,
+                int num_neigh_atoms,
+                CoordType rcut_smooth);
 
     PairTildeR(
                 NeighborList<CoordType>& neighbor_list, 
@@ -335,6 +344,24 @@ PairTildeR<CoordType>::PairTildeR(
     this->rcut_smooth = rcut_smooth;
 }
 
+
+template <typename CoordType>
+PairTildeR<CoordType>::PairTildeR(
+                            NeighborList<CoordType>& neighbor_list,
+                            int center_atomic_number,
+                            int neigh_atomic_number,
+                            int num_center_atoms,
+                            int num_neigh_atoms,
+                            CoordType rcut_smooth)
+{
+    this->neighbor_list = neighbor_list;
+    this->center_atomic_number = center_atomic_number;
+    this->neigh_atomic_number = neigh_atomic_number;
+    this->num_center_atoms = num_center_atoms;
+    this->num_neigh_atoms = num_neigh_atoms;
+    this->rcut = this->neighbor_list.get_rcut();
+    this->rcut_smooth = rcut_smooth;
+}
 
 /**
  * @brief Construct a new Pair Tilde R< Coord Type>:: Pair Tilde R object
@@ -867,7 +894,8 @@ TildeR<CoordType>::TildeR(
     this->num_neigh_atoms_lst = (int*)malloc(sizeof(int) * num_neigh_atomic_numbers);
     for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++)
         this->num_neigh_atoms_lst[ii] = num_neigh_atoms_lst[ii];
-    
+
+    this->rcut = this->neighbor_list.get_rcut();
     this->rcut_smooth = rcut_smooth;
 }
 
@@ -890,7 +918,7 @@ TildeR<CoordType>::TildeR(
                     int* center_atomic_numbers_lst,
                     int num_neigh_atomic_numbers,
                     int* neigh_atomic_numbers,
-                    CoordType rcut_smooth) 
+                    CoordType rcut_smooth)
 {
     this->neighbor_list = neighbor_list;
 
@@ -901,11 +929,12 @@ TildeR<CoordType>::TildeR(
     
     this->num_neigh_atomic_numbers = num_neigh_atomic_numbers;
     this->neigh_atomic_numbers_lst = (int*)malloc(sizeof(int) * num_neigh_atomic_numbers);
-    for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++) 
+    for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++)
         this->neigh_atomic_numbers_lst[ii] = neigh_atomic_numbers[ii];
 
     this->num_neigh_atoms_lst = nullptr;
     
+    this->rcut = this->neighbor_list.get_rcut();
     this->rcut_smooth = rcut_smooth;
 }
 
@@ -950,14 +979,29 @@ TildeR<CoordType>::TildeR(
     for (int ii=0; ii<this->num_center_atomic_numbers; ii++) 
         this->neigh_atomic_numbers_lst = neigh_atomic_numbers_lst[ii];
     
-    this->num_neigh_atoms_lst = (int*)malloc(sizeof(int) * this->num_neigh_atoms_lst);
+    this->num_neigh_atoms_lst = (int*)malloc(sizeof(int) * this->num_neigh_atomic_numbers);
     for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++)
         this->num_neigh_atoms_lst = num_neigh_atoms_lst[ii];
-    
+
+    this->rcut = this->neighbor_list.get_rcut();
     this->rcut_smooth = rcut_smooth;
 }
 
 
+/**
+ * @brief Construct a new Tilde R< Coord Type>:: Tilde R object
+ * 
+ * @tparam CoordType 
+ * @param structure 
+ * @param rcut 
+ * @param pbc_xyz 
+ * @param sort 
+ * @param num_center_atomic_numbers 
+ * @param center_atomic_numbers_lst 
+ * @param num_neigh_atomic_numbers 
+ * @param neigh_atomic_numbers_lst 
+ * @param rcut_smooth 
+ */
 template <typename CoordType>
 TildeR<CoordType>::TildeR(
                     Structure<CoordType>& structure,
@@ -983,7 +1027,35 @@ TildeR<CoordType>::TildeR(
         this->neigh_atomic_numbers_lst[ii] = neigh_atomic_numbers_lst[ii];
     
     this->num_neigh_atoms_lst = nullptr;
+    this->rcut = this->neighbor_list.get_rcut();
     this->rcut_smooth = rcut_smooth;
+}
+
+
+template <typename CoordType>
+void TildeR<CoordType>::show() const {
+    printf("*** TildeR Summary ***\n");
+
+    printf("center_atomic_numbers_lst: ");
+    printf("[");
+    for (int ii=0; ii<this->num_center_atomic_numbers; ii++)
+        printf("%4d, ", this->center_atomic_numbers_lst[ii]);
+    printf("]\n");
+
+    printf("neigh_atomic_numbers_lst: ");
+    printf("[");
+    for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++)
+        printf("%4d, ", this->neigh_atomic_numbers_lst[ii]);
+    printf("]\n");
+
+    printf("rcut = %f\n", this->rcut);
+    printf("rcut_smooth = %f\n", this->rcut_smooth);
+
+    printf("num_neigh_atoms_lst: ");
+    printf("[");
+    for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++)
+        printf("%5d, ", this->num_neigh_atoms_lst[ii]);
+    printf("]\n");
 }
 
 
