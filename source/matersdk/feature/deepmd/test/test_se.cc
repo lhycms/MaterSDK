@@ -562,6 +562,39 @@ TEST_F(TildeRTest, constructor_2) {
 }
 
 
+TEST_F(TildeRTest, constructor_3) {
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    matersdk::deepPotSE::TildeR<double> tilde_r(
+                                structure,
+                                rcut,
+                                pbc_xyz,
+                                true,
+                                num_center_atomic_numbers,
+                                center_atomic_numbers_lst,
+                                num_neigh_atomic_numbers,
+                                neigh_atomic_numbers_lst,
+                                num_neigh_atoms_lst,
+                                rcut_smooth);
+    tilde_r.show();
+}
+
+
+TEST_F(TildeRTest, constructor_4) {
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    matersdk::deepPotSE::TildeR<double> tilde_r(
+                                structure,
+                                rcut,
+                                pbc_xyz,
+                                true,
+                                num_center_atomic_numbers,
+                                center_atomic_numbers_lst,
+                                num_neigh_atomic_numbers,
+                                neigh_atomic_numbers_lst,
+                                rcut_smooth);
+    tilde_r.show();
+}
+
+
 
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);

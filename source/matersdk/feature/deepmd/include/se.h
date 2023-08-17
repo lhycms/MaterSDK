@@ -979,18 +979,18 @@ TildeR<CoordType>::TildeR(
     this->num_center_atomic_numbers = num_center_atomic_numbers;
     this->center_atomic_numbers_lst = (int*)malloc(sizeof(int) * this->num_center_atomic_numbers);
     for (int ii=0; ii<this->num_center_atomic_numbers; ii++)
-        this->center_atomic_numbers_lst = center_atomic_numbers_lst[ii];
+        this->center_atomic_numbers_lst[ii] = center_atomic_numbers_lst[ii];
     
     this->num_neigh_atomic_numbers = num_neigh_atomic_numbers;
     this->neigh_atomic_numbers_lst = (int*)malloc(sizeof(int) * this->num_neigh_atomic_numbers);
     for (int ii=0; ii<this->num_center_atomic_numbers; ii++) 
-        this->neigh_atomic_numbers_lst = neigh_atomic_numbers_lst[ii];
+        this->neigh_atomic_numbers_lst[ii] = neigh_atomic_numbers_lst[ii];
     
     this->calc_num_center_atoms_lst();  // 计算 `this->num_center_atoms_lst`
 
     this->num_neigh_atoms_lst = (int*)malloc(sizeof(int) * this->num_neigh_atomic_numbers);
     for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++)
-        this->num_neigh_atoms_lst = num_neigh_atoms_lst[ii];
+        this->num_neigh_atoms_lst[ii] = num_neigh_atoms_lst[ii];
 
     this->rcut = this->neighbor_list.get_rcut();
     this->rcut_smooth = rcut_smooth;
