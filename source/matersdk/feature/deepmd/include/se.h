@@ -287,6 +287,9 @@ public:
 
     void show() const;
 
+    CoordType*** generate() const;
+
+    CoordType**** deriv() const;
 
 private:
     NeighborList<CoordType> neighbor_list;
@@ -1113,6 +1116,13 @@ void TildeR<CoordType>::show() const {
         printf("%5d, ", this->num_neigh_atoms_lst[ii]);
     printf("]\n");
 }
+
+/*
+template <typename CoordType>
+CoordType TildeR<CoordType>::generate() const {
+    
+}
+*/
 
 
 
