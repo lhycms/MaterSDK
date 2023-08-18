@@ -1,6 +1,10 @@
+#include <chrono>
+#include <iostream>
+
 #include "../../../io/publicLayer/include/structure.h"
 #include "../../../io/publicLayer/include/neighborList.h"
 #include "../include/se.h"
+#include "../../../../core/include/arrayUtils.h"
 
 
 int main() {
@@ -109,15 +113,18 @@ int main() {
                     frac_coords,        // num_atoms * 3 的数组
                     false               // coords 是否为笛卡尔坐标
     );
-    const int scaling_matrix[3] = {100, 100, 1};
+    const int scaling_matrix[3] = {1000, 100, 1};
     structure.make_supercell(scaling_matrix);
 
+
+
+    auto start = std::chrono::high_resolution_clock::now();
     // Step 4. 构建 matersdk::NeighborList 对象
     matersdk::NeighborList<double> neighbor_list(
                     structure,          // Structure 对象
                     rcut,               // 截断半径
                     pbc_xyz,            // [true, true, false]，在各个方向上周期性
-                    true                // 是否按照近邻原子的距离排序
+                    false                // 是否按照近邻原子的距离排序
     );
     
     
@@ -130,7 +137,15 @@ int main() {
                     neigh_atomic_numbers_lst,
                     num_neigh_atoms_lst,        
                     rcut_smooth);
-    
+    double*** tilde_r_value = tilde_r.generate();
+
+    matersdk::arrayUtils::free3dArray(tilde_r_value, tilde_r.get_num_center_atoms(), tilde_r.get_num_neigh_atoms());
+
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start).count();
+    std::cout << "Program took " << duration << " seconds." << std::endl;
+
+    //tilde_r.show();
     //tilde_r.show_in_value();           // 输出特征的值
     //printf("\n\n");
     //tilde_r.show_in_deriv();           // 输出特征的导数
