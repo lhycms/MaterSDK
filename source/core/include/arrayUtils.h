@@ -1,3 +1,7 @@
+#ifndef MATERSDK_ARRAY_UTILS_H
+#define MATERSDK_ARRAY_UTILS_H
+
+
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -221,3 +225,7 @@ void show5dArray(
 
 };  // namespace : matersdk
 };  // namespace : arrayUtils
+
+
+
+#endif
