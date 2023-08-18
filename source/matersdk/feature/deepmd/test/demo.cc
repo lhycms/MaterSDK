@@ -13,9 +13,11 @@ int main() {
     double bin_size_xyz[3];
     bool pbc_xyz[3];  
 
-    int center_atomic_number;
-    int neigh_atomic_number;
-    int num_neigh_atoms;
+    int num_center_atomic_numbers;
+    int center_atomic_numbers_lst[2];
+    int num_neigh_atomic_numbers;
+    int neigh_atomic_numbers_lst[2];
+    int num_neigh_atoms_lst[2];
     double rcut_smooth;
 
 
@@ -90,10 +92,14 @@ int main() {
     pbc_xyz[1] = true;
     pbc_xyz[2] = false; 
 
-    center_atomic_number = 42;
-    neigh_atomic_number = 42;
-    num_neigh_atoms = 7;
-    rcut_smooth = 3.0;
+    num_center_atomic_numbers = 2;
+    center_atomic_numbers_lst[0] = 42;
+    center_atomic_numbers_lst[1] = 16;
+    num_neigh_atomic_numbers = 2;
+    neigh_atomic_numbers_lst[0] = 42;
+    neigh_atomic_numbers_lst[1] = 16;
+    num_neigh_atoms_lst[0] = 10; 
+    num_neigh_atoms_lst[1] = 15;
 
     // Step 3. 构建 matersdk::Structure 对象
     matersdk::Structure<double> structure(
@@ -103,8 +109,8 @@ int main() {
                     frac_coords,        // num_atoms * 3 的数组
                     false               // coords 是否为笛卡尔坐标
     );
-    //const int scaling_matrix[3] = {100, 100, 1};
-    //structure.make_supercell(scaling_matrix);
+    const int scaling_matrix[3] = {100, 100, 1};
+    structure.make_supercell(scaling_matrix);
 
     // Step 4. 构建 matersdk::NeighborList 对象
     matersdk::NeighborList<double> neighbor_list(
@@ -115,16 +121,17 @@ int main() {
     );
     
     
-    // Step 5. 构建 matersdk::deepPotSE::PairTildeR 对象
-    matersdk::deepPotSE::PairTildeR<double> pair_tilde_r(
+    // Step 5. 构建 matersdk::deepPotSE::TildeR 对象
+    matersdk::deepPotSE::TildeR<double> tilde_r(
                     neighbor_list,          // neighbor_list 对象
-                    center_atomic_number,   // 中心原子的原子序数
-                    neigh_atomic_number,    // 近邻原子的原子序数   
-                    num_neigh_atoms,        // 近邻原子数（feature的维度）
-                    rcut_smooth             // rcut_smooth
-    );
-    pair_tilde_r.show_in_value();           // 输出特征的值
-    printf("\n\n");
-    pair_tilde_r.show_in_deriv();           // 输出特征的导数
+                    num_center_atomic_numbers,   
+                    center_atomic_numbers_lst,
+                    num_neigh_atomic_numbers,      
+                    neigh_atomic_numbers_lst,
+                    num_neigh_atoms_lst,        
+                    rcut_smooth);
     
+    //tilde_r.show_in_value();           // 输出特征的值
+    //printf("\n\n");
+    //tilde_r.show_in_deriv();           // 输出特征的导数
 }
