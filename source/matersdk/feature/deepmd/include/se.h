@@ -288,6 +288,12 @@ public:
         int* neigh_atomic_numbers_lst,
         CoordType rcut_smooth);
 
+    TildeR(const TildeR& rhs);
+
+    TildeR& operator=(const TildeR& rhs);
+
+    ~TildeR();
+
     void calc_num_center_atoms_lst();
 
     void calc_num_neigh_atoms_lst();
@@ -906,7 +912,7 @@ CoordType**** PairTildeR<CoordType>::deriv() const {
  */
 template <typename CoordType>
 TildeR<CoordType>::TildeR() {
-    this->neigh_atomic_numbers_lst = NeighborList<CoordType>();
+    this->neighbor_list = NeighborList<CoordType>();
     this->num_center_atomic_numbers = 0;
     this->center_atomic_numbers_lst = nullptr;
     this->num_neigh_atomic_numbers = 0;
@@ -1101,6 +1107,104 @@ TildeR<CoordType>::TildeR(
 }
 
 
+/**
+ * @brief Copy Constructor
+ * 
+ * @tparam CoordType 
+ * @param rhs 
+ */
+template <typename CoordType>
+TildeR<CoordType>::TildeR(const TildeR<CoordType>& rhs) {
+    this->neighbor_list = rhs.neighbor_list;
+    
+    this->num_center_atomic_numbers = rhs.num_center_atomic_numbers;
+    this->center_atomic_numbers_lst = (int*)malloc(sizeof(this->num_center_atomic_numbers));
+    for (int ii=0; ii<this->num_center_atomic_numbers; ii++)
+        this->center_atomic_numbers_lst[ii] = rhs.center_atomic_numbers_lst[ii];
+    
+    this->num_neigh_atomic_numbers = rhs.num_neigh_atomic_numbers;
+    this->neigh_atomic_numbers_lst = (int*)malloc(sizeof(this->num_neigh_atomic_numbers));
+    for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++)
+        this->neigh_atomic_numbers_lst[ii] = rhs.neigh_atomic_numbers_lst[ii];
+
+    this->num_center_atoms_lst = (int*)malloc(sizeof(int) * this->num_center_atomic_numbers);
+    for (int ii=0; ii<this->num_center_atomic_numbers; ii++)
+        this->num_center_atoms_lst[ii] = rhs.num_center_atoms_lst[ii];
+
+    this->num_neigh_atoms_lst = (int*)malloc(sizeof(int) * this->num_neigh_atomic_numbers);
+    for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++)
+        this->num_neigh_atoms_lst[ii] = rhs.num_neigh_atoms_lst[ii];
+
+    this->rcut = rhs.rcut;
+    this->rcut_smooth = rhs.rcut_smooth;
+}
+
+
+/**
+ * @brief Overloading the assignment operator
+ * 
+ * @tparam CoordType 
+ * @param rhs 
+ * @return TildeR<CoordType>& 
+ */
+template <typename CoordType>
+TildeR<CoordType>& TildeR<CoordType>::operator=(const TildeR<CoordType>& rhs) {
+    if (this->num_center_atomic_numbers != 0) {
+        free(this->center_atomic_numbers_lst);
+        free(this->num_center_atoms_lst);
+        free(this->neigh_atomic_numbers_lst);
+        free(this->num_neigh_atoms_lst);
+
+        this->num_center_atomic_numbers = 0;
+        this->num_neigh_atomic_numbers = 0;
+    }
+
+    this->neighbor_list = rhs.neighbor_list;
+    this->num_center_atomic_numbers = rhs.num_center_atomic_numbers;
+    this->num_neigh_atomic_numbers = rhs.num_neigh_atomic_numbers;
+    
+    if (this->num_center_atomic_numbers != 0) {
+        this->center_atomic_numbers_lst = (int*)malloc(sizeof(int) * this->num_center_atomic_numbers);
+        this->num_center_atoms_lst = (int*)malloc(sizeof(int) * this->num_center_atomic_numbers);
+        for (int ii=0; ii<this->num_center_atomic_numbers; ii++) {
+            this->center_atomic_numbers_lst[ii] = rhs.center_atomic_numbers_lst[ii];
+            this->num_center_atoms_lst[ii] = rhs.num_center_atoms_lst[ii];
+        }
+    }
+
+    if (this->num_neigh_atomic_numbers != 0) {
+        this->neigh_atomic_numbers_lst = (int*)malloc(sizeof(int) * this->num_neigh_atomic_numbers);
+        this->num_neigh_atoms_lst = (int*)malloc(sizeof(int) * this->num_neigh_atomic_numbers);
+        for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++) {
+            this->neigh_atomic_numbers_lst[ii] = rhs.neigh_atomic_numbers_lst[ii];
+            this->num_neigh_atoms_lst[ii] = rhs.num_neigh_atoms_lst[ii];
+        }
+    }
+    
+    this->rcut = rhs.rcut;
+    this->rcut_smooth = rhs.rcut_smooth;
+
+    return *this;
+}
+
+
+template <typename CoordType>
+TildeR<CoordType>::~TildeR() {
+    if (this->num_center_atomic_numbers != 0) {
+        free(this->center_atomic_numbers_lst);
+        free(this->num_center_atoms_lst);
+    }
+
+    if (this->num_neigh_atomic_numbers != 0) {
+        free(this->neigh_atomic_numbers_lst);
+        free(this->num_neigh_atoms_lst);
+    }
+
+    this->num_center_atomic_numbers = 0;
+    this->num_neigh_atomic_numbers = 0;
+}
+
+
 template <typename CoordType>
 void TildeR<CoordType>::calc_num_center_atoms_lst() {
     int tmp_num_center_atoms;
@@ -1174,90 +1278,102 @@ template <typename CoordType>
 void TildeR<CoordType>::show() const {
     printf("*** TildeR Summary ***\n");
 
-    printf("center_atomic_numbers_lst: ");
-    printf("[");
-    for (int ii=0; ii<this->num_center_atomic_numbers; ii++)
-        printf("%4d, ", this->center_atomic_numbers_lst[ii]);
-    printf("]\n");
+    if (this->num_center_atomic_numbers == 0) {
+        printf("This is a NULL TildeR object.\n");
+    } else {
+        printf("center_atomic_numbers_lst: ");
+        printf("[");
+        for (int ii=0; ii<this->num_center_atomic_numbers; ii++)
+            printf("%4d, ", this->center_atomic_numbers_lst[ii]);
+        printf("]\n");
 
-    printf("neigh_atomic_numbers_lst: ");
-    printf("[");
-    for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++)
-        printf("%4d, ", this->neigh_atomic_numbers_lst[ii]);
-    printf("]\n");
+        printf("neigh_atomic_numbers_lst: ");
+        printf("[");
+        for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++)
+            printf("%4d, ", this->neigh_atomic_numbers_lst[ii]);
+        printf("]\n");
 
-    printf("rcut = %f\n", this->rcut);
-    printf("rcut_smooth = %f\n", this->rcut_smooth);
+        printf("rcut = %f\n", this->rcut);
+        printf("rcut_smooth = %f\n", this->rcut_smooth);
 
-    printf("num_center_atoms_lst: ");
-    printf("[");
-    for (int ii=0; ii<this->num_center_atomic_numbers; ii++)
-        printf("%5d, ", this->num_center_atoms_lst[ii]);
-    printf("]\n");
+        printf("num_center_atoms_lst: ");
+        printf("[");
+        for (int ii=0; ii<this->num_center_atomic_numbers; ii++)
+            printf("%5d, ", this->num_center_atoms_lst[ii]);
+        printf("]\n");
 
-    printf("num_neigh_atoms_lst: ");
-    printf("[");
-    for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++)
-        printf("%5d, ", this->num_neigh_atoms_lst[ii]);
-    printf("]\n");
+        printf("num_neigh_atoms_lst: ");
+        printf("[");
+        for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++)
+            printf("%5d, ", this->num_neigh_atoms_lst[ii]);
+        printf("]\n");
 
-    printf("Shape of Tilde_R : [%d, %d, 4]\n", this->get_num_center_atoms(), this->get_num_neigh_atoms());
-    printf("Shape of Tilde_R_derivative : [%d, %d, 4, 3]\n", this->get_num_center_atoms(), this->get_num_neigh_atoms());
+        printf("Shape of Tilde_R : [%d, %d, 4]\n", this->get_num_center_atoms(), this->get_num_neigh_atoms());
+        printf("Shape of Tilde_R_derivative : [%d, %d, 4, 3]\n", this->get_num_center_atoms(), this->get_num_neigh_atoms());
+    }
 }
 
 
 template <typename CoordType>
 void TildeR<CoordType>::show_in_value() const {
-    // Step 1.
-    int tot_num_center_atoms = 0;
-    for (int ii=0; ii<this->num_center_atomic_numbers; ii++)
-        tot_num_center_atoms += this->num_center_atoms_lst[ii];
-    
-    int tot_num_neigh_atoms = 0;
-    for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++) 
-        tot_num_neigh_atoms += this->num_neigh_atoms_lst[ii];
+    if (this->num_center_atomic_numbers == 0) {
+        printf("This is a NULL TildeR object. So no value!\n");
+    } else {
+        // Step 1.
+        int tot_num_center_atoms = 0;
+        for (int ii=0; ii<this->num_center_atomic_numbers; ii++)
+            tot_num_center_atoms += this->num_center_atoms_lst[ii];
+        
+        int tot_num_neigh_atoms = 0;
+        for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++) 
+            tot_num_neigh_atoms += this->num_neigh_atoms_lst[ii];
 
-    CoordType*** tilde_r = this->generate();
+        CoordType*** tilde_r = this->generate();
 
-    // Step 2.
-    for (int ii=0; ii<tot_num_center_atoms; ii++) {
-        for (int jj=0; jj<tot_num_neigh_atoms; jj++) {
-            printf("[%4d, %4d] -- [%10f, %10f, %10f, %10f]\n", ii, jj, tilde_r[ii][jj][0], tilde_r[ii][jj][1], tilde_r[ii][jj][2], tilde_r[ii][jj][3]);
+        // Step 2.
+        for (int ii=0; ii<tot_num_center_atoms; ii++) {
+            for (int jj=0; jj<tot_num_neigh_atoms; jj++) {
+                printf("[%4d, %4d] -- [%10f, %10f, %10f, %10f]\n", ii, jj, tilde_r[ii][jj][0], tilde_r[ii][jj][1], tilde_r[ii][jj][2], tilde_r[ii][jj][3]);
+            }
         }
-    }
 
-    // Step . Free memory
-    arrayUtils::free3dArray(tilde_r, tot_num_center_atoms, tot_num_neigh_atoms);
+        // Step . Free memory
+        arrayUtils::free3dArray(tilde_r, tot_num_center_atoms, tot_num_neigh_atoms);
+    }
 }
 
 
 template <typename CoordType>
 void TildeR<CoordType>::show_in_deriv() const {
-    // Step 1.
-    int tot_num_center_atoms = 0;
-    for (int ii=0; ii<this->num_center_atomic_numbers; ii++)
-        tot_num_center_atoms += this->num_center_atoms_lst[ii];
-    
-    int tot_num_neigh_atoms = 0;
-    for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++)
-        tot_num_neigh_atoms += this->num_neigh_atoms_lst[ii];
-    
-    CoordType**** tilde_r_deriv = this->deriv();
+    if (this->num_center_atomic_numbers == 0) {
+        printf("This is a NULL TildeR object. So no derivative!\n");
+    } else {
+        // Step 1.
+        int tot_num_center_atoms = 0;
+        for (int ii=0; ii<this->num_center_atomic_numbers; ii++)
+            tot_num_center_atoms += this->num_center_atoms_lst[ii];
+        
+        int tot_num_neigh_atoms = 0;
+        for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++)
+            tot_num_neigh_atoms += this->num_neigh_atoms_lst[ii];
+        
+        CoordType**** tilde_r_deriv = this->deriv();
 
-    for (int ii=0; ii<tot_num_center_atoms; ii++) {
-        for (int jj=0; jj<tot_num_neigh_atoms; jj++) {
-            printf("[%4d, %4d] -- [%10f, %10f, %10f], [%10f, %10f, %10f], [%10f, %10f, %10f], [%10f, %10f, %10f]\n",
-                ii, jj,
-                tilde_r_deriv[ii][jj][0][0], tilde_r_deriv[ii][jj][0][1], tilde_r_deriv[ii][jj][0][2],
-                tilde_r_deriv[ii][jj][1][0], tilde_r_deriv[ii][jj][1][1], tilde_r_deriv[ii][jj][1][2],
-                tilde_r_deriv[ii][jj][2][0], tilde_r_deriv[ii][jj][2][1], tilde_r_deriv[ii][jj][2][2],
-                tilde_r_deriv[ii][jj][3][0], tilde_r_deriv[ii][jj][3][1], tilde_r_deriv[ii][jj][3][2]
-            );
+        for (int ii=0; ii<tot_num_center_atoms; ii++) {
+            for (int jj=0; jj<tot_num_neigh_atoms; jj++) {
+                printf("[%4d, %4d] -- [%10f, %10f, %10f], [%10f, %10f, %10f], [%10f, %10f, %10f], [%10f, %10f, %10f]\n",
+                    ii, jj,
+                    tilde_r_deriv[ii][jj][0][0], tilde_r_deriv[ii][jj][0][1], tilde_r_deriv[ii][jj][0][2],
+                    tilde_r_deriv[ii][jj][1][0], tilde_r_deriv[ii][jj][1][1], tilde_r_deriv[ii][jj][1][2],
+                    tilde_r_deriv[ii][jj][2][0], tilde_r_deriv[ii][jj][2][1], tilde_r_deriv[ii][jj][2][2],
+                    tilde_r_deriv[ii][jj][3][0], tilde_r_deriv[ii][jj][3][1], tilde_r_deriv[ii][jj][3][2]
+                );
+            }
         }
-    }
 
-    // Step . Free memory
-    arrayUtils::free4dArray(tilde_r_deriv, tot_num_center_atoms, tot_num_neigh_atoms, 4);
+        // Step . Free memory
+        arrayUtils::free4dArray(tilde_r_deriv, tot_num_center_atoms, tot_num_neigh_atoms, 4);
+    }
 }
 
 

@@ -662,6 +662,82 @@ TEST_F(TildeRTest, constructor_4) {
 }
 
 
+TEST_F(TildeRTest, copy_constructor) {
+    num_center_atomic_numbers = 2;
+    center_atomic_numbers_lst[0] = 42;
+    center_atomic_numbers_lst[1] = 16;
+    num_neigh_atomic_numbers = 2;
+    neigh_atomic_numbers_lst[0] = 42;
+    neigh_atomic_numbers_lst[1] = 16;
+    num_neigh_atoms_lst[0] = 10;
+    num_neigh_atoms_lst[1] = 15;
+
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    matersdk::NeighborList<double> neighbor_list(structure, rcut, pbc_xyz, true);
+
+    matersdk::deepPotSE::TildeR<double> tilde_r_1;
+    matersdk::deepPotSE::TildeR<double> tilde_r_2(
+                                        neighbor_list, 
+                                        num_center_atomic_numbers, 
+                                        center_atomic_numbers_lst, 
+                                        num_neigh_atomic_numbers, 
+                                        neigh_atomic_numbers_lst, 
+                                        num_neigh_atoms_lst,
+                                        rcut_smooth);
+    
+    matersdk::deepPotSE::TildeR<double> tilde_r_3(tilde_r_1);
+    matersdk::deepPotSE::TildeR<double> tilde_r_4(tilde_r_2);
+
+    //tilde_r_3.show();
+    //tilde_r_3.show_in_value();
+    //tilde_r_3.show_in_deriv();
+
+    //tilde_r_4.show();
+    //tilde_r_4.show_in_value();
+    //tilde_r_4.show_in_deriv();
+}
+
+
+TEST_F(TildeRTest, assignment_operator) {
+    num_center_atomic_numbers = 2;
+    center_atomic_numbers_lst[0] = 42;
+    center_atomic_numbers_lst[1] = 16;
+    num_neigh_atomic_numbers = 2;
+    neigh_atomic_numbers_lst[0] = 42;
+    neigh_atomic_numbers_lst[1] = 16;
+    num_neigh_atoms_lst[0] = 10;
+    num_neigh_atoms_lst[1] = 15;
+
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    matersdk::NeighborList<double> neighbor_list(structure, rcut, pbc_xyz, true);
+    
+    matersdk::deepPotSE::TildeR<double> tilde_r_1;
+    matersdk::deepPotSE::TildeR<double> tilde_r_2(
+                                        neighbor_list,
+                                        num_center_atomic_numbers,
+                                        center_atomic_numbers_lst,
+                                        num_neigh_atomic_numbers,
+                                        neigh_atomic_numbers_lst,
+                                        num_neigh_atoms_lst,
+                                        rcut_smooth);
+    
+    matersdk::deepPotSE::TildeR<double> tilde_r_3;
+    matersdk::deepPotSE::TildeR<double> tilde_r_4(
+                                        neighbor_list,
+                                        num_center_atomic_numbers,
+                                        center_atomic_numbers_lst,
+                                        num_neigh_atomic_numbers,
+                                        neigh_atomic_numbers_lst,
+                                        num_neigh_atoms_lst,
+                                        rcut_smooth);
+    
+    tilde_r_3 = tilde_r_1;
+    tilde_r_3 = tilde_r_2;
+    tilde_r_4 = tilde_r_1;
+    tilde_r_4 = tilde_r_2;
+}
+
+
 TEST_F(TildeRTest, get_num_center_atoms_and_neigh_atoms) {
     num_center_atomic_numbers = 2;
     center_atomic_numbers_lst[0] = 42;
