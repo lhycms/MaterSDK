@@ -221,9 +221,9 @@ public:
 
     const int get_max_num_neigh_atoms() const;  // 得到最大近邻原子数目 （指定 `center_atomic_number`, `neigh_atomic_number`, 计算最大近邻原子数）
 
-    CoordType*** generate() const;         // 计算 $\tilde{R^i}$ 特征 .shape = (num_center_atoms, num_neigh_atoms, 4)
+    CoordType*** generate() const;              // 计算 $\tilde{R^i}$ 特征 .shape = (num_center_atoms, num_neigh_atoms, 4)
 
-    CoordType**** deriv() const;           // 计算 $\tilde{R^i}$ 特征的导数 .shape = (num_center_atoms, num_neigh_atoms, 4, 3)
+    CoordType**** deriv() const;                // 计算 $\tilde{R^i}$ 特征的导数 .shape = (num_center_atoms, num_neigh_atoms, 4, 3)
 
 
 private:
@@ -291,6 +291,10 @@ public:
     void calc_num_center_atoms_lst();
 
     void calc_num_neigh_atoms_lst();
+
+    const int get_num_center_atoms() const;   // $\tilde{R}$ 的第一维 = sum(this->num_center_atoms_lst)
+
+    const int get_num_neigh_atoms() const;    // $\tilde{R}$ 的第一维 = sum(this->num_neigh_atoms_lst)
 
     void show() const;
 
@@ -380,6 +384,7 @@ PairTildeR<CoordType>::PairTildeR(
     this->rcut = this->neighbor_list.get_rcut();
     this->rcut_smooth = rcut_smooth;
 }
+
 
 /**
  * @brief Construct a new Pair Tilde R< Coord Type>:: Pair Tilde R object
@@ -514,12 +519,24 @@ void PairTildeR<CoordType>::calc_num_center_atoms() {
 }
 
 
+/**
+ * @brief 得到 `PairTildeR` 中心原子的数目 (原子序数==`this->center_atomic_number`)
+ * 
+ * @tparam CoordType 
+ * @return const int 
+ */
 template <typename CoordType>
 const int PairTildeR<CoordType>::get_num_center_atoms() const {
     return this->num_center_atoms;
 }
 
 
+/**
+ * @brief 得到 `PairTildeR` 近邻原子的数目 (原子序数==`this->neigh_atomic_number`)
+ * 
+ * @tparam CoordType 
+ * @return const int 
+ */
 template <typename CoordType>
 const int PairTildeR<CoordType>::get_num_neigh_atoms() const {
     return this->num_neigh_atoms;
@@ -552,7 +569,7 @@ void PairTildeR<CoordType>::show_in_value() const {
 
         for (int ii=0; ii<this->num_center_atoms; ii++) {
             for (int jj=0; jj<this->num_neigh_atoms; jj++) {
-                printf("[%d, %d] -- [%f, %f, %f, %f]\n", 
+                printf("[%4d, %4d] -- [%10f, %10f, %10f, %10f]\n", 
                         ii, jj,
                         pair_tilde_r[ii][jj][0],
                         pair_tilde_r[ii][jj][1],
@@ -584,7 +601,7 @@ void PairTildeR<CoordType>::show_in_deriv() const {
 
         for (int ii=0; ii<this->num_center_atoms; ii++) {
             for (int jj=0; jj<this->num_neigh_atoms; jj++) {
-                printf("[%d, %d] -- [%f, %f, %f], [%f, %f, %f], [%f, %f, %f], [%f, %f, %f]\n", 
+                printf("[%4d, %4d] -- [%10f, %10f, %10f], [%10f, %10f, %10f], [%10f, %10f, %10f], [%10f, %10f, %10f]\n", 
                         ii, jj,
                         pair_tilde_r_deriv[ii][jj][0][0],
                         pair_tilde_r_deriv[ii][jj][0][1],
@@ -1024,7 +1041,7 @@ TildeR<CoordType>::TildeR(
     
     this->num_neigh_atomic_numbers = num_neigh_atomic_numbers;
     this->neigh_atomic_numbers_lst = (int*)malloc(sizeof(int) * this->num_neigh_atomic_numbers);
-    for (int ii=0; ii<this->num_center_atomic_numbers; ii++) 
+    for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++) 
         this->neigh_atomic_numbers_lst[ii] = neigh_atomic_numbers_lst[ii];
     
     this->calc_num_center_atoms_lst();  // 计算 `this->num_center_atoms_lst`
@@ -1109,17 +1126,47 @@ void TildeR<CoordType>::calc_num_neigh_atoms_lst() {
     for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++)
         this->num_neigh_atoms_lst[ii] = 0;
 
-    for (int ii=0; ii<this->num_center_atomic_numbers; ii++) {
+    for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++) {
         for (int jj=0; jj<this->neighbor_list.get_num_center_atoms(); jj++) {
             tmp_num_neigh_atoms = 0;
             for (int kk=0; kk<this->neighbor_list.get_neighbor_lists()[jj].size(); kk++) {
-                if (supercell_atomic_numbers[this->neighbor_list.get_neighbor_lists()[jj][kk]] == this->center_atomic_numbers_lst[ii])
+                if (supercell_atomic_numbers[this->neighbor_list.get_neighbor_lists()[jj][kk]] == this->neigh_atomic_numbers_lst[ii])
                     tmp_num_neigh_atoms++;
             }
             if (tmp_num_neigh_atoms > this->num_neigh_atoms_lst[ii])
                 this->num_neigh_atoms_lst[ii] = tmp_num_neigh_atoms;
         }
     }
+}
+
+
+/**
+ * @brief $\tilde{R}$ 的第一维 = sum(this->num_center_atoms_lst)
+ * 
+ * @tparam CoordType 
+ * @return const int 
+ */
+template <typename CoordType>
+const int TildeR<CoordType>::get_num_center_atoms() const {
+    int tot_num_center_atoms = 0;
+    for (int ii=0; ii<this->num_center_atomic_numbers; ii++)
+        tot_num_center_atoms += this->num_center_atoms_lst[ii];
+    return tot_num_center_atoms;
+}
+
+
+/**
+ * @brief $\tilde{R}$ 的第一维 = sum(this->num_neigh_atoms_lst)
+ * 
+ * @tparam CoordType 
+ * @return const int 
+ */
+template <typename CoordType>
+const int TildeR<CoordType>::get_num_neigh_atoms() const {
+    int tot_num_neigh_atoms = 0;
+    for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++)
+        tot_num_neigh_atoms += this->num_neigh_atoms_lst[ii];
+    return tot_num_neigh_atoms;
 }
 
 
@@ -1153,6 +1200,9 @@ void TildeR<CoordType>::show() const {
     for (int ii=0; ii<this->num_neigh_atomic_numbers; ii++)
         printf("%5d, ", this->num_neigh_atoms_lst[ii]);
     printf("]\n");
+
+    printf("Shape of Tilde_R : [%d, %d, 4]\n", this->get_num_center_atoms(), this->get_num_neigh_atoms());
+    printf("Shape of Tilde_R_derivative : [%d, %d, 4, 3]\n", this->get_num_center_atoms(), this->get_num_neigh_atoms());
 }
 
 
@@ -1172,10 +1222,11 @@ void TildeR<CoordType>::show_in_value() const {
     // Step 2.
     for (int ii=0; ii<tot_num_center_atoms; ii++) {
         for (int jj=0; jj<tot_num_neigh_atoms; jj++) {
-            printf("[%d, %d] -- [%10f, %10f, %10f, %10f]\n", ii, jj, tilde_r[ii][jj][0], tilde_r[ii][jj][1], tilde_r[ii][jj][2], tilde_r[ii][jj][3]);
+            printf("[%4d, %4d] -- [%10f, %10f, %10f, %10f]\n", ii, jj, tilde_r[ii][jj][0], tilde_r[ii][jj][1], tilde_r[ii][jj][2], tilde_r[ii][jj][3]);
         }
     }
 
+    // Step . Free memory
     arrayUtils::free3dArray(tilde_r, tot_num_center_atoms, tot_num_neigh_atoms);
 }
 
@@ -1195,7 +1246,7 @@ void TildeR<CoordType>::show_in_deriv() const {
 
     for (int ii=0; ii<tot_num_center_atoms; ii++) {
         for (int jj=0; jj<tot_num_neigh_atoms; jj++) {
-            printf("[%d, %d] -- [%10f, %10f, %10f], [%10f, %10f, %10f], [%10f, %10f, %10f], [%10f, %10f, %10f]\n",
+            printf("[%4d, %4d] -- [%10f, %10f, %10f], [%10f, %10f, %10f], [%10f, %10f, %10f], [%10f, %10f, %10f]\n",
                 ii, jj,
                 tilde_r_deriv[ii][jj][0][0], tilde_r_deriv[ii][jj][0][1], tilde_r_deriv[ii][jj][0][2],
                 tilde_r_deriv[ii][jj][1][0], tilde_r_deriv[ii][jj][1][1], tilde_r_deriv[ii][jj][1][2],
@@ -1205,6 +1256,7 @@ void TildeR<CoordType>::show_in_deriv() const {
         }
     }
 
+    // Step . Free memory
     arrayUtils::free4dArray(tilde_r_deriv, tot_num_center_atoms, tot_num_neigh_atoms, 4);
 }
 
