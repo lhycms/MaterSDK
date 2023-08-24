@@ -20,10 +20,10 @@ struct_neigh = StructureNeighborsDescriptor.create(
                 structure,
                 rcut,
                 scaling_matrix)
-avg_angle = AvgAngle.get_avg_bond(
+avg_angle, result = AvgAngle.get_avg_bond(
             struct_neigh=struct_neigh,
             atomic_number_1=atomic_number_1,
             atomic_number_2=atomic_number_2,
             atomic_number_3=atomic_number_3)
 
-print("平均键角为: ", avg_angle)
+print("Result = ", result)

@@ -111,5 +111,6 @@ class AvgAngle(object):
         
         ### Step 5. 
         angles_array = np.array(angles_array)
+        result = 1 - 3/8 * np.sum(np.power(1/3 + np.cos(np.deg2rad(angles_array)), 2))
         
-        return np.mean(angles_array)
+        return np.mean(angles_array), result
