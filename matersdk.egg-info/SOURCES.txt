@@ -7,6 +7,11 @@ matersdk.egg-info/SOURCES.txt
 matersdk.egg-info/dependency_links.txt
 matersdk.egg-info/requires.txt
 matersdk.egg-info/top_level.txt
+matersdk/adalearn/__init__.py
+matersdk/adalearn/generator/__init__.py
+matersdk/adalearn/generator/perturbation.py
+matersdk/adalearn/generator/test/__init__.py
+matersdk/adalearn/generator/test/test_perturbation.py
 matersdk/calculation/__init__.py
 matersdk/calculation/kpath/__init__.py
 matersdk/calculation/kpath/kpathSampler.py
@@ -28,9 +33,11 @@ matersdk/data/deepmd/test/__init__.py
 matersdk/data/deepmd/test/test_data_system.py
 matersdk/feature/__init__.py
 matersdk/feature/avg/__init__.py
+matersdk/feature/avg/avgangle.py
 matersdk/feature/avg/avgbond.py
 matersdk/feature/avg/msd.py
 matersdk/feature/avg/test/__init__.py
+matersdk/feature/avg/test/test_avgangle.py
 matersdk/feature/avg/test/test_avgbond.py
 matersdk/feature/avg/test/test_msd.py
 matersdk/feature/deepmd/__init__.py
@@ -107,6 +114,11 @@ matersdk/io/pwmat/utils/test/__init__.py
 matersdk/io/pwmat/utils/test/test_atomConfigStrExtractor.py
 matersdk/io/pwmat/utils/test/test_lineLocator.py
 matersdk/io/vasp/__init__.py
+matersdk/io/vasp/input/__init__.py
+matersdk/io/vasp/output/__init__.py
+matersdk/io/vasp/output/outcar.py
+matersdk/io/vasp/output/test/__init__.py
+matersdk/io/vasp/output/test/test_outcar.py
 matersdk/nn/__init__.py
 matersdk/nn/deepmd/__init__.py
 matersdk/nn/deepmd/embedding_net.py
