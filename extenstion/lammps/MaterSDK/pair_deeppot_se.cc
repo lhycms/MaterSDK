@@ -7,8 +7,13 @@
 #include "atom.h"
 #include "memory.h"
 #include "error.h"
+#include "force.h"
+
+#include "torch/torch.h"
+#include "torch/script.h"
 
 #include "./pair_deeppot_se.h"
+
 
 
 namespace LAMMPS_NS {
@@ -54,10 +59,64 @@ void PairDeepPotSe::allocate() {
             - 6.5: 截断半径
 */
 void PairDeepPotSe::settings(int argc, char** argv) {
-    if (argc != 2)
+    if (argc != 1)
         this->error->all(FLERR, "Illegal pair_style command");
+    
+    this->rcut = utils::numeric(FLERR, argv[0], false, lmp);
+}
 
-    this->rcut = utils::numeric(FLERR, argv[0], false, lmp);   // utils::numeric(FLERR, argv[0], false, lmp);
+
+// Parsing the `coefficients of pair potential`
+/*
+    e.g. pair_coeff * * model.pt
+*/
+void PairDeepPotSe::coeff(int argc, char** argv) {
+    int ilo, ihi, hlo, jhi;
+    utils::bounds(FLERR, argv[0], 1, this->atom->ntypes, ilo, ihi, this->error);
+    utils::bounds(FLERR, argv[1], 1, this->atom->ntypes, jlo, jhi, this->error);
+
+    // Step 1. Load the NN model
+    try {
+        this->model = torch::jit::load(argv[2]);
+    } catch (const c10::Error& e) {
+        this->error->all(FLERR, "Error loading the DeepPot-SE model");
+    }
+
+    // Step 2. Read the rcut for all atom types. 
+    //      Note. `this->setflag[ii][ii]` must be set. -> `this->setflag[ii][ii] = 1;`
+    int num_type_pairs;
+    for (int ii=ilo; ii<=ihi; ii++) {
+        for (int jj= MAX(jlo, ii); jj<=jhi; jj++) {
+            this->setflag[ii][jj] = 1;
+            this->cut[ii][jj] = this->rcut;
+            this->cutsq[ii][jj] = this->rcut * this->rcut;
+            num_type_pairs++;
+        }
+    }
+
+    if (num_type_pairs == 0)
+        this->error->all(FLERR, "Incorrect args for pair coefficients");
+}
+
+
+// Assign pairwise coefficients for all atom types
+// Init for one type pair i,j and corresponding j, i.
+double PairDeepPotSe::init_one(int ii, int jj) {
+    if (this->setflag[ii][jj] == 0)
+        this->error->all(FLERR, "All pair coeffs are not set");
+    
+    this->cut[jj][ii] = this->cut[ii][jj];
+
+    return this->cut[ii][jj];
+}
+
+
+// add_request a NeighList
+void PairDeepPotSe::init_style() {
+    if (this->force->newton_pair == 0)
+        this->error->all(FLERR, "Pair style deeppot/se requires newton_pair on");
+
+    this->neighbor->add_request(this, NeighConst::REQ_FULL);
 }
 
 
