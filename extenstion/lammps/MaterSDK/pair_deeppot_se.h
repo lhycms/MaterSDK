@@ -12,14 +12,24 @@
 namespace matersdk {
 namespace lammps {
 
-class LmpNeighList : public LAMMPS_NS::Pair{
+class PairDeepPotSe : public LAMMPS_NS::Pair{
 public:
+    double** relative_cart_coords;
+    double*** tilde_r;
+    double**** tilde_r_deriv;
+
+    void allocate();
+
+    void settings(int argc, char** argv);
+
+    void deallocate();
+
     // Return.shape = (num_atoms, num_nbrs, 3)
     double*** get_neigh_relative_cart_coords() const;
 
-private:
-    LAMMPS_NS::LAMMPS* lmp;
-};  // class: LmpNeighList
+    // 
+    
+};  // class: LmpDeepPotSe
 
 
 }   // namespace: lammps
