@@ -7,13 +7,17 @@
 #include "atom.h"
 #include "memory.h"
 #include "error.h"
-#include "force.h"
 
-#include "../include/pair_se.h"
+#include "./pair_deeppot_se.h"
 
 
-namespace matersdk {
-namespace lammps {
+namespace LAMMPS_NS {
+
+
+PairDeepPotSe::PairDeepPotSe(LAMMPS* lmp) : Pair(lmp) {
+
+}
+
 
 void PairDeepPotSe::allocate() {
     // Step 1. Populate `this->allocated`
@@ -34,14 +38,27 @@ void PairDeepPotSe::allocate() {
         if (max_num_neigh_atoms < this->list->numneigh[ii])
             max_num_neigh_atoms = this->list->numneigh[ii];
     }
+
     this->memory->create<double>(this->relative_cart_coords, num_atoms, 3, "PairDeepPotSe:relative_cart_coord");
     this->memory->create<double>(this->tilde_r, num_atoms, max_num_neigh_atoms, 4, "PairDeepPotSe:tilde_r");
     this->memory->create<double>(this->tilde_r_deriv, num_atoms, max_num_neigh_atoms, 4, 3, "PairDeepPotSe:tilde_r_deriv");
+    
+    this->relative_cart_coords = this->get_neigh_relative_cart_coords();
 }
 
 
-// 
-void PairDeepPotSe::settings(int argc, char** argv) {}
+// Parsing the parameter after `pair_style` which is `global potential parameters`
+/*
+    e.g. pair_style deeppot/se 6.5
+            - deeppot/se: 势函数类型
+            - 6.5: 截断半径
+*/
+void PairDeepPotSe::settings(int argc, char** argv) {
+    if (argc != 2)
+        this->error->all(FLERR, "Illegal pair_style command");
+
+    this->rcut = utils::numeric(FLERR, argv[0], false, lmp);   // utils::numeric(FLERR, argv[0], false, lmp);
+}
 
 
 double*** PairDeepPotSe::get_neigh_relative_cart_coords() const {
@@ -87,6 +104,4 @@ double*** PairDeepPotSe::get_neigh_relative_cart_coords() const {
 }
 
 
-
-}   // namespace: lammps
-}   // namespace: matersdk 
+}   // namespace: LAMMPS_NS
