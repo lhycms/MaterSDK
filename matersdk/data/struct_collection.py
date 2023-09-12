@@ -4,16 +4,16 @@ import numpy as np
 from typing import List, Dict
 import multiprocessing as mp
 
-from ...io.pwmat.utils.parameters import atomic_number2specie
-from ...io.publicLayer.traj import Trajectory
-from ...io.publicLayer.structure import DStructure
-from ...io.publicLayer.neigh import (
+from ..io.pwmat.utils.parameters import atomic_number2specie
+from ..io.publicLayer.traj import Trajectory
+from ..io.publicLayer.structure import DStructure
+from ..io.publicLayer.neigh import (
                         StructureNeighborsDescriptor,
                         StructureNeighborsUtils
 )
 
 
-class DpLabeledSystem(object):
+class StructCollection(object):
     '''
     Description
     -----------
@@ -59,7 +59,7 @@ class DpLabeledSystem(object):
         # Atom Numbers
         # Including Virials:
         # Element List
-        print("{0:*^60s}".format(" LabeledSystem Summary "))
+        print("{0:*^60s}".format(" StructCollection Summary "))
         
         print("\t * {0:<24s}: {1:<14d}".format("Images Number", self.num_structures))
         print("\t * {0:<24s}: {1:<14d}".format("Atoms Number", self.num_atoms))
@@ -85,7 +85,7 @@ class DpLabeledSystem(object):
         return_kinetic_energys_array = self.kinetic_energys_array[index]
         return_virial_tensors_array = self.virial_tensors_array[index]
                 
-        return_object = DpLabeledSystem(
+        return_object = StructCollection(
                             structures_lst=return_structures_lst,
                             total_energys_array=return_total_energys_array,
                             potential_energys_array=return_potential_energys_array,
@@ -166,7 +166,7 @@ class DpLabeledSystem(object):
         
         
         ### Step 2. 初始化
-        dp_data_system = DpLabeledSystem(
+        dp_data_system = StructCollection(
                         structures_lst=structures_lst,
                         total_energys_array=total_energys_array,
                         potential_energys_array=potential_energys_array,
@@ -177,7 +177,7 @@ class DpLabeledSystem(object):
         return dp_data_system
     
     
-    def save_info_dpdata(
+    def to(
             self,
             dir_path:str,
             set_size:int):
@@ -278,7 +278,7 @@ class DpLabeledSystem(object):
 
     @staticmethod
     def from_indices(
-                dp_labeled_system,
+                struct_collection,
                 indices_lst:List[int]
                 ):
         '''
@@ -293,16 +293,20 @@ class DpLabeledSystem(object):
             2. indices_lst: List[int]
                 - 索引
         '''
-        if max(indices_lst) > len(dp_labeled_system):
+        if max(indices_lst) > len(struct_collection):
             raise IndexError("index in indices_lst is larger than len(DeepmdDataSystem)!!!")
         
-        structures_lst = [dp_labeled_system.structures_lst[tmp_index] for tmp_index in indices_lst]
-        total_energys_array = np.array([dp_labeled_system.total_energys_array[tmp_index] for tmp_index in indices_lst])
-        potential_energys_array = np.array([dp_labeled_system.potential_energys_array[tmp_index] for tmp_index in indices_lst])
-        kinetic_energys_array = np.array([dp_labeled_system.kinetic_energys_array[tmp_index] for tmp_index in indices_lst])
-        virial_tensors_array = np.array([dp_labeled_system.virial_tensors_array[tmp_index] for tmp_index in indices_lst])
+        structures_lst = [struct_collection.structures_lst[tmp_index] for tmp_index in indices_lst]
+        total_energys_array = np.array([struct_collection.total_energys_array[tmp_index] for tmp_index in indices_lst])
+        potential_energys_array = np.array([struct_collection.potential_energys_array[tmp_index] for tmp_index in indices_lst])
+        kinetic_energys_array = np.array([struct_collection.kinetic_energys_array[tmp_index] for tmp_index in indices_lst])
+        try:    # 不包含 Virial 信息
+            virial_tensors_array = np.array([struct_collection.virial_tensors_array[tmp_index] for tmp_index in indices_lst])
+        except IndexError as e:
+            virial_tensors_array = np.zeros(10);
+            
                 
-        return DpLabeledSystem(
+        return StructCollection(
                     structures_lst=structures_lst,
                     total_energys_array=total_energys_array,
                     potential_energys_array=potential_energys_array,
