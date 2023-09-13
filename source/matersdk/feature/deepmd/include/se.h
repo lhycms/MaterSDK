@@ -223,8 +223,32 @@ public:
 
     CoordType*** generate() const;              // 计算 $\tilde{R^i}$ 特征 .shape = (num_center_atoms, num_neigh_atoms, 4)
 
+    // For lammps
+    static CoordType*** generate(
+                int inum,                       // 中心原子数目
+                int* ilist,                     // 存储中心原子的index -- `ilist[ii]`
+                int* numneigh,                  // 每个中心原子的近邻原子数目
+                int** firstneigh,               // firstneigh[ii][jj]: 第 ii 个中心原子的第 jj 个近邻原子
+                CoordType** x,                  // supercell 中所有原子的坐标
+                int* types,                     // supercell 中所有原子的原子序数
+                int center_atomic_number,       // 中心原子的原子序数
+                int neigh_atomic_number,        // 近邻原子的原子序数
+                int num_neigh_atoms,            // 决定了 zero-padding 的尺寸
+                CoordType rcut,
+                CoordType rcut_smooth);
+
     CoordType**** deriv() const;                // 计算 $\tilde{R^i}$ 特征的导数 .shape = (num_center_atoms, num_neigh_atoms, 4, 3)
 
+    // For lammps
+    static CoordType**** deriv(
+                int inum,
+                int* ilist,
+                int* numneigh,
+                int** firstneigh,
+                int center_atomic_number, 
+                int neigh_atomic_numebr,
+                int num_neigh_atoms
+    ) const;
 
 private:
     NeighborList<CoordType> neighbor_list;
@@ -697,7 +721,7 @@ CoordType*** PairTildeR<CoordType>::generate() const {
         }
     }
 
-    // Step 2. ·
+    // Step 2. 
     const CoordType** supercell_cart_coords = this->neighbor_list.get_binLinkedList().get_supercell().get_structure().get_cart_coords();
     const int* supercell_atomic_numbers = this->neighbor_list.get_binLinkedList().get_supercell().get_structure().get_atomic_numbers();
 
@@ -750,6 +774,98 @@ CoordType*** PairTildeR<CoordType>::generate() const {
     assert(tmp_cidx == this->num_center_atoms);
     //printf("%d, %d\n", tmp_nidx, this->num_neigh_atoms);
     //assert(tmp_nidx == this->num_neigh_atoms);
+
+    // Step . Free memory
+    free(diff_cart_coord);
+
+    return pair_tilde_r;
+}
+
+
+// For lammps
+template <typename CoordType>
+CoordType*** PairTildeR<CoordType>::generate(
+                        int inum,
+                        int* ilist,
+                        int* numneigh,
+                        int** firstneigh,
+                        CoordType** x,
+                        int* types,
+                        int center_atomic_number,
+                        int neigh_atomic_number,
+                        int num_neigh_atoms,
+                        CoordType rcut,
+                        CoordType rcut_smooth)
+{
+    // Step 1.
+    // Step 1.1. $\tilde{R}$ = (s(r_{ji}), x_{ji}, y_{ji}, z_{ji})
+    //  = (tilde_s_value, tilde_x_value, tilde_y_value, tilde_z_value)
+    CoordType tilde_s_value;
+    CoordType tilde_x_value;
+    CoordType tilde_y_value;
+    CoordType tilde_z_value;
+
+    int center_atom_idx;    // 中心原子在 supercell 中的索引
+    int neigh_atom_idx;     // 近邻原子在 supercell 中的索引
+    CoordType* center_cart_coord;   // 中心原子的坐标
+    CoordType* neigh_cart_coord;    // 近邻原子的坐标
+    CoordType* diff_cart_coord = (CoordType*)malloc(sizeof(CoordType) * 3);
+    CoordType distance_ji;  // 两原子间的距离
+    CoordType distance_ji_recip;
+
+    // Step 1.2. Allocate memory for $\tilde{R}$ and assign it as 0
+    CoordType*** pair_tilde_r = arrayUtils::allocate3dArray(inum, num_neigh_atoms, 4);
+
+    // Step 2. 获取 supercell 中所有原子的`坐标`和`原子序数
+    // 坐标 : x
+    // 原子序数 : types
+
+    // Step 3. Populate `tilde_s/x/y/z_value`
+    int tmp_cidx;   // 中心原子 for loop
+    int tmp_nidx;   // 近邻原子 for loop
+
+    tmp_cidx = 0;
+    for (int ii=0; ii<inum; ii++) {
+        center_atom_idx = ilist[ii];
+        center_cart_coord = x[center_atom_idx];
+        // 若中心原子 不等于 `center_atomic_number`, 直接跳过
+        if (types[center_atom_idx] != center_atomic_number)
+            continue;
+        
+        tmp_nidx = 0;
+        for (int jj=0; jj<numneigh[ii]; jj++) {
+            neigh_atom_idx = firstneigh[ii][jj];
+
+            // 若近邻原子 不等于 `neigh_atomic_number`，直接跳过
+            if (types[neigh_atom_idx] != neigh_atomic_number)
+                continue;
+
+            // Step 3.1. 计算 1/r (`distance_ji_recip`), s(r_ji) (`tilde_s_value`)
+            neigh_cart_coord = x[neigh_atom_idx];
+            for (int kk=0; kk<3; kk++) 
+                diff_cart_coord[kk] = neigh_cart_coord[kk] - center_cart_coord[kk];
+            distance_ji = vec3Operation::norm(diff_cart_coord);
+            distance_ji_recip = recip(distance_ji);
+            tilde_s_value = smooth_func(distance_ji, rcut, rcut_smooth);
+
+            // Step 3.2. 计算 `x_ji_s`, `y_ji_s`, `z_ji_s` 
+            tilde_x_value = tilde_s_value * distance_ji_recip * diff_cart_coord[0];
+            tilde_y_value = tilde_s_value * distance_ji_recip * diff_cart_coord[1];
+            tilde_z_value = tilde_s_value * distance_ji_recip * diff_cart_coord[2];
+
+            // Step 3.3. Assignment
+            pair_tilde_r[tmp_cidx][tmp_nidx][0] = tilde_s_value;
+            pair_tilde_r[tmp_cidx][tmp_nidx][1] = tilde_x_value;
+            pair_tilde_r[tmp_cidx][tmp_nidx][2] = tilde_y_value;
+            pair_tilde_r[tmp_cidx][tmp_nidx][3] = tilde_z_value;
+
+            tmp_nidx++;
+        }
+        assert(tmp_nidx == numneigh[ii]);
+        tmp_cidx++;
+    }
+
+    assert(tmp_cidx == inum);
 
     // Step . Free memory
     free(diff_cart_coord);
