@@ -248,7 +248,7 @@ public:
                 int center_atomic_number, 
                 int neigh_atomic_numebr,
                 int num_neigh_atoms
-    ) const;
+    );
 
 private:
     NeighborList<CoordType> neighbor_list;
@@ -814,7 +814,8 @@ CoordType*** PairTildeR<CoordType>::generate(
     CoordType distance_ji_recip;
 
     // Step 1.2. Allocate memory for $\tilde{R}$ and assign it as 0
-    CoordType*** pair_tilde_r = arrayUtils::allocate3dArray(inum, num_neigh_atoms, 4);
+    CoordType*** pair_tilde_r;
+    arrayUtils::allocate3dArray(pair_tilde_r, inum, num_neigh_atoms, 4);
 
     // Step 2. 获取 supercell 中所有原子的`坐标`和`原子序数
     // 坐标 : x
