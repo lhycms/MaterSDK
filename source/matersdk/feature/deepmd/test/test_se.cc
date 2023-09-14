@@ -40,6 +40,9 @@ TEST_F(SwitchFuncTest, show) {
 
 
 TEST_F(SwitchFuncTest, get_result) {
+    rcut = 3.5;
+    rcut_smooth = 3.0;
+
     matersdk::deepPotSE::SwitchFunc<double> switch_func(rcut, rcut_smooth);
     // Case 1
     EXPECT_FLOAT_EQ(switch_func.get_result(3.0), 1.0);      // Case 3
@@ -431,12 +434,13 @@ TEST_F(PairTildeRTest, get_num_neigh_atoms) {
 
 TEST_F(PairTildeRTest, generate) {
     center_atomic_number = 42;
-    neigh_atomic_number = 42;
+    neigh_atomic_number = 16;
     rcut = 3.3;
     rcut_smooth = 3.0;
+    num_neigh_atoms = 14;
 
     matersdk::NeighborList<double> neighbor_list(structure, rcut, pbc_xyz, true);
-    matersdk::deepPotSE::PairTildeR<double> pair_tilde_r(neighbor_list, center_atomic_number, neigh_atomic_number, rcut_smooth);
+    matersdk::deepPotSE::PairTildeR<double> pair_tilde_r(neighbor_list, center_atomic_number, neigh_atomic_number, num_neigh_atoms, rcut_smooth);
     double*** pair_tilde_r_matrix = pair_tilde_r.generate();
     
     pair_tilde_r.show_in_value();

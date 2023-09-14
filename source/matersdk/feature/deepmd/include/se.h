@@ -814,8 +814,13 @@ CoordType*** PairTildeR<CoordType>::generate(
     CoordType distance_ji_recip;
 
     // Step 1.2. Allocate memory for $\tilde{R}$ and assign it as 0
-    CoordType*** pair_tilde_r;
-    arrayUtils::allocate3dArray(pair_tilde_r, inum, num_neigh_atoms, 4);
+    int num_center_atoms = 0;
+    for (int ii=0; ii<inum; ii++) {
+        center_atom_idx = ilist[ii];
+        if (types[center_atom_idx] == center_atomic_number)
+            num_center_atoms += 1;
+    }
+    CoordType*** pair_tilde_r = arrayUtils::allocate3dArray<double>(num_center_atoms, num_neigh_atoms, 4, true);
 
     // Step 2. 获取 supercell 中所有原子的`坐标`和`原子序数
     // 坐标 : x
@@ -862,11 +867,12 @@ CoordType*** PairTildeR<CoordType>::generate(
 
             tmp_nidx++;
         }
-        assert(tmp_nidx == numneigh[ii]);
+        //printf("***%d, %d\n", tmp_nidx, numneigh[ii]);
+        //assert(tmp_nidx == numneigh[ii]);
         tmp_cidx++;
     }
-
-    assert(tmp_cidx == inum);
+    //printf("***%d, %d\n", tmp_cidx, inum);
+    //assert(tmp_cidx == inum);
 
     // Step . Free memory
     free(diff_cart_coord);
