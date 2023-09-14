@@ -838,6 +838,8 @@ CoordType*** PairTildeR<CoordType>::generate(
         if (types[center_atom_idx] != center_atomic_number)
             continue;
         
+        assert(num_neigh_atoms >= numneigh[ii]);    // 防止设置的zero-padding尺寸太小
+        
         tmp_nidx = 0;
         for (int jj=0; jj<numneigh[ii]; jj++) {
             neigh_atom_idx = firstneigh[ii][jj];

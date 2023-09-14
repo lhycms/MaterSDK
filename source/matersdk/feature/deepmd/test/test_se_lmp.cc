@@ -179,7 +179,14 @@ TEST_F(PairTildeRTest, generate_for_lmp) {
         }
     }
 
-    
+    // Step. Free memory
+    for (int ii=0; ii<num_center_atoms; ii++) {
+        for (int jj=0; jj<num_neigh_atoms; jj++) {
+            free(pair_tilde_r[ii][jj]);
+        }
+        free(pair_tilde_r[ii]);
+    }
+    free(pair_tilde_r);
 }
 
 
