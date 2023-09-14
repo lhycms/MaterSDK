@@ -190,6 +190,36 @@ TEST_F(PairTildeRTest, generate_for_lmp) {
 }
 
 
+TEST_F(PairTildeRTest, deriv_for_lmp) {
+    double**** pair_tilde_r_deriv = matersdk::deepPotSE::PairTildeR<double>::deriv(
+                                        inum, ilist, numneigh, firstneigh,
+                                        x, types,
+                                        center_atomic_number, neigh_atomic_number, num_neigh_atoms,
+                                        rcut, rcut_smooth);
+    
+    int num_center_atoms = 0;
+    int center_atom_idx = 0;
+    for (int ii=0; ii<inum; ii++) {
+        center_atom_idx = ilist[ii];
+        if (types[center_atom_idx] == center_atomic_number)
+            num_center_atoms++;
+    }
+
+
+    for (int ii=0; ii<num_center_atoms; ii++) {
+        for (int jj=0; jj<num_neigh_atoms; jj++) {
+            printf("[%4d, %4d] -- [%10f, %10f, %10f], [%10f, %10f, %10f], [%10f, %10f, %10f], [%10f, %10f, %10f]\n",
+                ii, jj,
+                pair_tilde_r_deriv[ii][jj][0][0], pair_tilde_r_deriv[ii][jj][0][1], pair_tilde_r_deriv[ii][jj][0][2], 
+                pair_tilde_r_deriv[ii][jj][1][0], pair_tilde_r_deriv[ii][jj][1][1], pair_tilde_r_deriv[ii][jj][1][2],
+                pair_tilde_r_deriv[ii][jj][2][0], pair_tilde_r_deriv[ii][jj][2][1], pair_tilde_r_deriv[ii][jj][2][2],
+                pair_tilde_r_deriv[ii][jj][3][0], pair_tilde_r_deriv[ii][jj][3][1], pair_tilde_r_deriv[ii][jj][3][2]
+            );
+        }
+    }
+}
+
+
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
