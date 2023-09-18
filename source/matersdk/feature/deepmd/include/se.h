@@ -1121,6 +1121,25 @@ CoordType**** PairTildeR<CoordType>::deriv(
     // x
     // types
 
+    // Step 2.2. 计算得到最大的近邻原子数
+    int max_num_neigh_atoms = 0;
+    int tmp_max_num_neigh_atoms = 0;
+    for (int ii=0; ii<inum; ii++) {
+        center_atom_idx = ilist[ii];
+        tmp_max_num_neigh_atoms = 0;
+        if (types[center_atom_idx] == center_atomic_number) {
+            tmp_max_num_neigh_atoms = 0;
+            for (int jj=0; jj<numneigh[ii]; jj++) {
+                neigh_atom_idx = firstneigh[ii][jj];
+                if (types[neigh_atom_idx] == neigh_atomic_number)
+                    tmp_max_num_neigh_atoms++;
+            }
+
+            if (tmp_max_num_neigh_atoms > max_num_neigh_atoms)
+                max_num_neigh_atoms = tmp_max_num_neigh_atoms;
+        }
+    }
+
     // Step 3. Populate `pair_tilde_r_deriv`
     int tmp_cidx = 0;
     int tmp_nidx = 0;
@@ -1130,7 +1149,7 @@ CoordType**** PairTildeR<CoordType>::deriv(
             continue;
         center_cart_coord = x[center_atom_idx];
 
-        assert(numneigh[ii] <= num_neigh_atoms);
+        assert(num_neigh_atoms >= max_num_neigh_atoms);
 
         tmp_nidx = 0;
         for (int jj=0; jj<numneigh[ii]; jj++) {
@@ -1952,7 +1971,7 @@ CoordType**** TildeR<CoordType>::deriv() const {
                                                 tot_num_neigh_atoms,
                                                 4, 
                                                 3,
-                                                false);
+                                                true);
     
     // Step 2. Populate `tilde_r_deriv`
     // Step 2.1. 
@@ -2038,6 +2057,7 @@ CoordType**** TildeR<CoordType>::deriv() const {
     return tilde_r_deriv;
 }
 
+
 template <typename CoordType>
 CoordType**** TildeR<CoordType>::deriv(
             int inum,
@@ -2054,7 +2074,123 @@ CoordType**** TildeR<CoordType>::deriv(
             CoordType rcut,
             CoordType rcut_smooth)
 {
+    // Step 1. 计算中心原子的数目 -- `num_center_atoms_lst`
+    int center_atom_idx;
+    int* num_center_atoms_lst = (int*)malloc(sizeof(int) * num_center_atomic_numbers);
+    for (int ii=0; ii<num_center_atomic_numbers; ii++) 
+        num_center_atoms_lst[ii] = 0;
+    for (int ii=0; ii<num_center_atomic_numbers; ii++) {
+        for (int jj=0; jj<inum; jj++) {
+            center_atom_idx = ilist[jj];
+            if (types[center_atom_idx] == center_atomic_numbers_lst[ii])
+                num_center_atoms_lst[ii]++;
+        }
+    }
 
+    // Step 2. Allocate memory for `tilde_r_deriv` -- `tilde_r_deriv.shape = (原子总数，近邻原子数，4, 3)`
+    int tot_num_center_atoms = 0;
+    for (int ii=0; ii<num_center_atomic_numbers; ii++) 
+        tot_num_center_atoms += num_center_atoms_lst[ii];
+
+    int tot_num_neigh_atoms = 0;
+    for (int ii=0; ii<num_neigh_atomic_numbers; ii++)
+        tot_num_neigh_atoms += num_neigh_atoms_lst[ii];
+
+    CoordType**** tilde_r_deriv = arrayUtils::allocate4dArray<CoordType>(
+                                        tot_num_center_atoms,
+                                        tot_num_neigh_atoms,
+                                        4,
+                                        3,
+                                        true);
+    
+
+    // Step 3. Populate the `tilde_r_deriv`
+    // Step 3.1. 
+    int tmp_center_atomic_number;
+    int tmp_neigh_atomic_number;
+    CoordType**** tmp_pair_tilde_r_deriv;
+    int tmp_cidx;
+    int tmp_nidx;
+    
+    // Step 3.2. 计算中心原子对应tilde_r[m, n, q] 的 m 索引起始；计算近邻原子对应的 tilde_r[m, n, q] 的 n 索引起始
+    /*
+    e.g.
+    ----
+        1. 12 原子的 MoS2:
+            1. (4, 80, 4, 3)       -- Mo-Mo
+            2. (4, 100, 4, 3)      -- Mo-S
+            3. (8, 80, 4, )       -- S-Mo
+            4. (8, 1000, 4, 3)     -- S-S
+     */
+    int* cstart_idxs = (int*)malloc(sizeof(int) * num_center_atomic_numbers);
+    for (int ii=0; ii<num_center_atomic_numbers; ii++)
+        cstart_idxs[ii] = 0;
+    for (int ii=0; ii<num_center_atomic_numbers; ii++) {
+        for (int jj=0; jj<ii; jj++)
+            cstart_idxs[ii] += num_center_atoms_lst[jj];
+    }
+
+    int* nstart_idxs = (int*)malloc(sizeof(int) * num_neigh_atomic_numbers);
+    for (int ii=0; ii<num_neigh_atomic_numbers; ii++)
+        nstart_idxs[ii] = 0;
+    for (int ii=0; ii<num_neigh_atomic_numbers; ii++) {
+        for (int jj=0; jj<ii; jj++)
+            nstart_idxs[ii] += num_neigh_atoms_lst[jj];
+    }
+
+
+    // Step 3.3. 
+    for (int ii=0; ii<num_center_atomic_numbers; ii++) {
+        tmp_center_atomic_number = center_atomic_numbers_lst[ii];
+        for (int jj=0; jj<num_neigh_atomic_numbers; jj++) {
+            tmp_neigh_atomic_number = neigh_atomic_numbers_lst[jj];
+            
+            tmp_pair_tilde_r_deriv = PairTildeR<CoordType>::deriv(
+                                        inum,
+                                        ilist,
+                                        numneigh,
+                                        firstneigh,
+                                        x,
+                                        types,
+                                        tmp_center_atomic_number,
+                                        tmp_neigh_atomic_number,
+                                        num_neigh_atoms_lst[jj],
+                                        rcut,
+                                        rcut_smooth);
+            
+            tmp_cidx = cstart_idxs[ii];
+            for (int kk=0; kk<num_center_atoms_lst[ii]; kk++) {
+                tmp_nidx = nstart_idxs[jj];
+                for (int ll=0; ll<num_center_atoms_lst[jj]; ll++) {
+                    tilde_r_deriv[tmp_cidx][tmp_nidx][0][0] = tmp_pair_tilde_r_deriv[kk][ll][0][0];
+                    tilde_r_deriv[tmp_cidx][tmp_nidx][0][1] = tmp_pair_tilde_r_deriv[kk][ll][0][1];
+                    tilde_r_deriv[tmp_cidx][tmp_nidx][0][2] = tmp_pair_tilde_r_deriv[kk][ll][0][2];
+                    tilde_r_deriv[tmp_cidx][tmp_nidx][1][0] = tmp_pair_tilde_r_deriv[kk][ll][1][0];
+                    tilde_r_deriv[tmp_cidx][tmp_nidx][1][1] = tmp_pair_tilde_r_deriv[kk][ll][1][1];
+                    tilde_r_deriv[tmp_cidx][tmp_nidx][1][2] = tmp_pair_tilde_r_deriv[kk][ll][1][2];
+                    tilde_r_deriv[tmp_cidx][tmp_nidx][2][0] = tmp_pair_tilde_r_deriv[kk][ll][2][0];
+                    tilde_r_deriv[tmp_cidx][tmp_nidx][2][1] = tmp_pair_tilde_r_deriv[kk][ll][2][1];
+                    tilde_r_deriv[tmp_cidx][tmp_nidx][2][2] = tmp_pair_tilde_r_deriv[kk][ll][2][2];
+                    tilde_r_deriv[tmp_cidx][tmp_nidx][3][0] = tmp_pair_tilde_r_deriv[kk][ll][3][0];
+                    tilde_r_deriv[tmp_cidx][tmp_nidx][3][1] = tmp_pair_tilde_r_deriv[kk][ll][3][1];
+                    tilde_r_deriv[tmp_cidx][tmp_nidx][3][2] = tmp_pair_tilde_r_deriv[kk][ll][3][2];
+
+                    tmp_nidx++;
+                }
+                tmp_cidx++;
+            }
+
+            // Step . Free memory
+            arrayUtils::free4dArray<CoordType>(tmp_pair_tilde_r_deriv, num_center_atoms_lst[ii], num_neigh_atoms_lst[jj], 4);
+        }
+    }
+
+    // Step . Free memory
+    free(num_center_atoms_lst);
+    free(cstart_idxs);
+    free(nstart_idxs);
+
+    return tilde_r_deriv;
 }
 
 
