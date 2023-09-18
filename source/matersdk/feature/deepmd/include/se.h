@@ -337,7 +337,39 @@ public:
 
     CoordType*** generate() const;
 
+    static CoordType*** generate(
+                int inum,           // 中心原子数目
+                int* ilist,         // 中心原子在 supercell 中的 index
+                int* numneigh,      // 每个中心原子的近邻原子数目
+                int** firstneigh,   // 近邻原子在 supercell 中的 index -- `firstneigh[ii][jj]`
+                CoordType** x,      // supercell 中所有原子的笛卡尔坐标
+                int* types,         // supercell 中所有原子的原子序数
+                int num_center_atomic_numbers,  // 中心原子的种类数 e.g. MoS2 -- 2
+                int* center_atomic_numbers_lst, // 中心原子的原子序数 e.g. MoS2 -- [42, 16]
+                int num_neigh_atomic_numbers,   // 近邻原子的种类数 e.g. MoS2 -- 2
+                int* neigh_atomic_numbers_lst,  // 近邻原子的原子序数 e.g. MoS2 -- [42, 16]
+                int* num_neigh_atoms_lst,   // 近邻原子的数目 : 决定了 zero-padding 的数目 e.g. MoS2 -- [100, 80]
+                CoordType rcut,
+                CoordType rcut_smooth);
+
     CoordType**** deriv() const;
+
+    static CoordType**** deriv(
+                int inum,           // 中心原子数目
+                int* ilist,         // 中心原子在 supercell 中的 index
+                int* numneigh,      // 每个中心原子的近邻原子数目
+                int** firstneigh,   // 近邻原子在 supercell 中的 index -- `firstneigh[ii][jj]`
+                CoordType** x,      // supercell 中所有原子的笛卡尔坐标
+                int* types,         // supercell 中所有原子的原子序数
+                int num_center_atomic_numbers,  // 中心原子的种类数 e.g. MoS2 -- 2
+                int* center_atomic_number_lst,  // 中心原子的原子序数 e.g. MoS2 -- [42, 16]
+                int num_neigh_atomic_numbers,   // 近邻原子的种类数 e.g. MoS2 -- 2
+                int* neigh_atomic_numbers_lst,  // 近邻原子的原子序数 e.g. MoS2 -- [42, 16]
+                int* num_neigh_atoms_lst,   // 近邻原子的数目：决定了 zero-padding 的数目
+                CoordType rcut,
+                CoordType rcut_smooth);
+    
+
 
 private:
     NeighborList<CoordType> neighbor_list;
@@ -823,7 +855,7 @@ CoordType*** PairTildeR<CoordType>::generate(
         if (types[center_atom_idx] == center_atomic_number)
             num_center_atoms += 1;
     }
-    CoordType*** pair_tilde_r = arrayUtils::allocate3dArray<double>(num_center_atoms, num_neigh_atoms, 4, true);
+    CoordType*** pair_tilde_r = arrayUtils::allocate3dArray<CoordType>(num_center_atoms, num_neigh_atoms, 4, true);
 
     // Step 2. 获取 supercell 中所有原子的`坐标`和`原子序数
     // 坐标 : x
@@ -1062,7 +1094,7 @@ CoordType**** PairTildeR<CoordType>::deriv(
         if (types[center_atom_idx] == center_atomic_number)
             num_center_atoms++;
     }
-    CoordType**** pair_tilde_r_deriv = arrayUtils::allocate4dArray<double>(num_center_atoms, num_neigh_atoms, 4, 3, true);
+    CoordType**** pair_tilde_r_deriv = arrayUtils::allocate4dArray<CoordType>(num_center_atoms, num_neigh_atoms, 4, 3, true);
 
     // Step 1.3. 
     SwitchFunc<CoordType> switch_func(rcut, rcut_smooth);
@@ -1757,6 +1789,129 @@ CoordType*** TildeR<CoordType>::generate() const {
 
 
 
+template <typename CoordType>
+CoordType*** TildeR<CoordType>::generate(
+                    int inum,
+                    int* ilist,
+                    int* numneigh,
+                    int** firstneigh,
+                    CoordType** x,
+                    int* types,
+                    int num_center_atomic_numbers,
+                    int* center_atomic_numbers_lst,
+                    int num_neigh_atomic_numbers,
+                    int* neigh_atomic_numbers_lst,
+                    int* num_neigh_atoms_lst,
+                    CoordType rcut,
+                    CoordType rcut_smooth)
+{
+    // Step 1. Allocate memory for `tilde_r`
+    // Step 1.1. 计算 `num_center_atoms_lst`
+    int* num_center_atoms_lst = (int*)malloc(sizeof(int) * num_center_atomic_numbers);
+    for (int ii=0; ii<num_center_atomic_numbers; ii++)
+        num_center_atoms_lst[ii] = 0;
+    int center_atom_idx;
+    for (int ii=0; ii<num_center_atomic_numbers; ii++) {    // 中心元素种类
+        for (int jj=0; jj<inum; jj++) { // 中心原子
+            center_atom_idx = ilist[jj];    // 中心原子在 supercell 中的索引
+            if (types[center_atom_idx] == center_atomic_numbers_lst[ii])
+                num_center_atoms_lst[ii]++;
+        }
+    }
+
+    // Step 1.2. Allocate memory for `tilde_r` `tilde_r.shape = (num_center_atoms, num_neigh_atoms, 3)`
+    int tot_num_center_atoms = 0;
+    for (int ii=0; ii<num_center_atomic_numbers; ii++)
+        tot_num_center_atoms += num_center_atoms_lst[ii];
+    int tot_num_neigh_atoms = 0;
+    for (int ii=0; ii<num_neigh_atomic_numbers; ii++) 
+        tot_num_neigh_atoms += num_neigh_atoms_lst[ii];
+    CoordType*** tilde_r = arrayUtils::allocate3dArray<CoordType>(tot_num_center_atoms, tot_num_neigh_atoms, 4);
+
+
+    // Step 2. Populate `tilde_r`
+    // Step 2.1. 
+    int tmp_center_atomic_number;               // 
+    int tmp_neigh_atomic_number;                // 
+    CoordType*** tmp_pair_tilde_r;        // 存储 `PairTildeR.generate()`
+    int tmp_cidx;
+    int tmp_nidx;
+
+    // Step 2.2. 计算中心原子对应tilde_r[m, n, q] 的 m 索引起始；计算近邻原子对应的 tilde_r[m, n, q] 的 n 索引起始
+    /*
+    e.g.
+    ----
+        1. 12 原子的 MoS2:
+            1. (4, 80, 4)       -- Mo-Mo
+            2. (4, 100, 4)      -- Mo-S
+            3. (8, 80, 4)       -- S-Mo
+            4. (8, 1000, 4)     -- S-S
+     */
+    int* cstart_idxs = (int*)malloc(sizeof(int) * num_center_atomic_numbers);
+    for (int ii=0; ii<num_center_atomic_numbers; ii++)
+        cstart_idxs[ii] = 0;
+    for (int ii=0; ii<num_center_atomic_numbers; ii++) {
+        for (int jj=0; jj<ii; jj++) 
+            cstart_idxs[ii] += num_center_atoms_lst[jj];
+    }
+    
+    int* nstart_idxs = (int*)malloc(sizeof(int) * num_neigh_atomic_numbers);
+    for (int ii=0; ii<num_neigh_atomic_numbers; ii++)
+        nstart_idxs[ii] = 0;
+    for (int ii=0; ii<num_neigh_atomic_numbers; ii++) {
+        for (int jj=0; jj<ii; jj++) 
+            nstart_idxs[ii] += num_neigh_atoms_lst[jj];
+    }
+
+
+    // Step 2.3. 
+    for (int ii=0; ii<num_center_atomic_numbers; ii++) {
+        tmp_center_atomic_number = center_atomic_numbers_lst[ii];
+        for (int jj=0; jj<num_neigh_atomic_numbers; jj++) {
+            tmp_neigh_atomic_number = neigh_atomic_numbers_lst[jj];
+            tmp_pair_tilde_r = PairTildeR<CoordType>::generate(
+                                    inum,
+                                    ilist,
+                                    numneigh,
+                                    firstneigh,
+                                    x,
+                                    types,
+                                    tmp_center_atomic_number,
+                                    tmp_neigh_atomic_number,
+                                    num_neigh_atoms_lst[jj],
+                                    rcut, 
+                                    rcut_smooth);
+            
+            tmp_cidx = cstart_idxs[ii];         // 0, 4
+            for (int kk=0; kk<num_center_atoms_lst[ii]; kk++) {
+                tmp_nidx = nstart_idxs[jj];     // 0, 80
+                for (int ll=0; ll<num_neigh_atoms_lst[jj]; ll++) {
+                    tilde_r[tmp_cidx][tmp_nidx][0] = tmp_pair_tilde_r[kk][ll][0];
+                    tilde_r[tmp_cidx][tmp_nidx][1] = tmp_pair_tilde_r[kk][ll][1];
+                    tilde_r[tmp_cidx][tmp_nidx][2] = tmp_pair_tilde_r[kk][ll][2];
+                    tilde_r[tmp_cidx][tmp_nidx][3] = tmp_pair_tilde_r[kk][ll][3];
+                    tmp_nidx++;
+                }
+                tmp_cidx++;
+            }
+
+            // Step . Free memory
+            arrayUtils::free3dArray<CoordType>(
+                        tmp_pair_tilde_r,
+                        num_center_atoms_lst[ii],
+                        num_neigh_atoms_lst[jj]);
+        }
+    }
+
+    // Step . Free memory
+    free(num_center_atoms_lst);
+    free(cstart_idxs);
+    free(nstart_idxs);
+
+    return tilde_r;
+}
+
+
 /**
  * @brief Combination of `PairTildeR`
  * 
@@ -1864,6 +2019,26 @@ CoordType**** TildeR<CoordType>::deriv() const {
 
     return tilde_r_deriv;
 }
+
+template <typename CoordType>
+CoordType**** TildeR<CoordType>::deriv(
+            int inum,
+            int* ilist,
+            int* numneigh,
+            int** firstneigh,
+            CoordType** x,
+            int* types,
+            int num_center_atomic_numbers,
+            int* center_atomic_numbers_lst,
+            int num_neigh_atomic_numbers,
+            int* neigh_atomic_numbers_lst,
+            int* num_neigh_atoms_lst,
+            CoordType rcut,
+            CoordType rcut_smooth)
+{
+
+}
+
 
 
 }   // namespace : deepPotSE
