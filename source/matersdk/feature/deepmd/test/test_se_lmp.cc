@@ -339,8 +339,8 @@ protected:
         neigh_atomic_numbers_lst[1] = 42;
         // 决定了 zero-padding 的尺寸
         num_neigh_atoms_lst = (int*)malloc(sizeof(int) * num_neigh_atomic_numbers);
-        num_neigh_atoms_lst[0] = 100;    
-        num_neigh_atoms_lst[1] = 80;
+        num_neigh_atoms_lst[0] = 8;    
+        num_neigh_atoms_lst[1] = 7;
 
         structure = matersdk::Structure<double>(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
         neighbor_list = matersdk::NeighborList<double>(structure, rcut, pbc_xyz, true);
@@ -385,6 +385,7 @@ protected:
 
 
 TEST_F(TildeRTest, generate_for_lmp) {
+    // Step 1. generate()
     double*** tilde_r = matersdk::deepPotSE::TildeR<double>::generate(
                                         inum,
                                         ilist,
@@ -400,7 +401,24 @@ TEST_F(TildeRTest, generate_for_lmp) {
                                         rcut,
                                         rcut_smooth);
     
-    
+    int tot_num_neigh_atoms = 0;
+    for (int ii=0; ii<num_neigh_atomic_numbers; ii++)
+        tot_num_neigh_atoms += num_neigh_atoms_lst[ii];
+
+    // Step 2. print out
+    for (int ii=0; ii<inum; ii++) {
+        for (int jj=0; jj<tot_num_neigh_atoms; jj++) {
+            printf("[%4d, %4d] -- [%10f, %10f, %10f, %10f]\n",
+                        ii, jj,
+                        tilde_r[ii][jj][0],
+                        tilde_r[ii][jj][1],
+                        tilde_r[ii][jj][2],
+                        tilde_r[ii][jj][3]);
+        }
+    }
+
+    // Step . Free memory
+    matersdk::arrayUtils::free3dArray<double>(tilde_r, inum, tot_num_neigh_atoms);
 }
 
 

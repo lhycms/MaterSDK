@@ -857,6 +857,24 @@ CoordType*** PairTildeR<CoordType>::generate(
     }
     CoordType*** pair_tilde_r = arrayUtils::allocate3dArray<CoordType>(num_center_atoms, num_neigh_atoms, 4, true);
 
+    // Step 1.3. 计算最大近邻原子数 (可以注释掉提高速度)
+    int max_num_neigh_atoms = 0;
+    int tmp_max_num_neigh_atoms = 0;
+    for (int ii=0; ii<inum; ii++) {
+        center_atom_idx = ilist[ii];
+        if (types[center_atom_idx] == center_atomic_number) {
+            tmp_max_num_neigh_atoms = 0;
+            for (int jj=0; jj<numneigh[ii]; jj++) {
+                neigh_atom_idx = firstneigh[ii][jj];
+                if (types[neigh_atom_idx] == neigh_atomic_number) 
+                    tmp_max_num_neigh_atoms++;
+            }
+            if (tmp_max_num_neigh_atoms > max_num_neigh_atoms)
+                max_num_neigh_atoms = tmp_max_num_neigh_atoms;
+        }
+    }
+
+
     // Step 2. 获取 supercell 中所有原子的`坐标`和`原子序数
     // 坐标 : x
     // 原子序数 : types
@@ -872,8 +890,8 @@ CoordType*** PairTildeR<CoordType>::generate(
         // 若中心原子 不等于 `center_atomic_number`, 直接跳过
         if (types[center_atom_idx] != center_atomic_number)
             continue;
-        
-        assert(num_neigh_atoms >= numneigh[ii]);    // 防止设置的zero-padding尺寸太小
+
+        assert(num_neigh_atoms >= max_num_neigh_atoms);    // 防止设置的zero-padding尺寸太小
         
         tmp_nidx = 0;
         for (int jj=0; jj<numneigh[ii]; jj++) {
