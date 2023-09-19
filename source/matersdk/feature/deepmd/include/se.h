@@ -2161,7 +2161,7 @@ CoordType**** TildeR<CoordType>::deriv(
             tmp_cidx = cstart_idxs[ii];
             for (int kk=0; kk<num_center_atoms_lst[ii]; kk++) {
                 tmp_nidx = nstart_idxs[jj];
-                for (int ll=0; ll<num_center_atoms_lst[jj]; ll++) {
+                for (int ll=0; ll<num_neigh_atoms_lst[jj]; ll++) {
                     tilde_r_deriv[tmp_cidx][tmp_nidx][0][0] = tmp_pair_tilde_r_deriv[kk][ll][0][0];
                     tilde_r_deriv[tmp_cidx][tmp_nidx][0][1] = tmp_pair_tilde_r_deriv[kk][ll][0][1];
                     tilde_r_deriv[tmp_cidx][tmp_nidx][0][2] = tmp_pair_tilde_r_deriv[kk][ll][0][2];
