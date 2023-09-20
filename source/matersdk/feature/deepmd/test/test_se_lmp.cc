@@ -405,6 +405,7 @@ TEST_F(TildeRTest, generate_for_lmp_1) {
     for (int ii=0; ii<num_neigh_atomic_numbers; ii++)
         tot_num_neigh_atoms += num_neigh_atoms_lst[ii];
 
+    /*
     // Step 2. print out
     for (int ii=0; ii<inum; ii++) {
         for (int jj=0; jj<tot_num_neigh_atoms; jj++) {
@@ -416,6 +417,7 @@ TEST_F(TildeRTest, generate_for_lmp_1) {
                         tilde_r[ii][jj][3]);
         }
     }
+     */
 
     // Step . Free memory
     matersdk::arrayUtils::free3dArray<double>(tilde_r, inum, tot_num_neigh_atoms);
@@ -447,6 +449,7 @@ TEST_F(TildeRTest, generate_for_lmp_2) {
                                 rcut,
                                 rcut_smooth);
 
+    /*
     // Step 2. print out
     for (int ii=0; ii<inum; ii++) {
         for (int jj=0; jj<tot_num_neigh_atoms; jj++) {
@@ -458,6 +461,7 @@ TEST_F(TildeRTest, generate_for_lmp_2) {
                         tilde_r[ii][jj][3]);
         }
     }
+     */
 
     // Step . Free memory
     matersdk::arrayUtils::free3dArray<double>(tilde_r, inum, tot_num_neigh_atoms);
@@ -485,6 +489,7 @@ TEST_F(TildeRTest, deriv_for_lmp_1) {
     for (int ii=0; ii<num_neigh_atomic_numbers; ii++)
         tot_num_neigh_atoms += num_neigh_atoms_lst[ii];
     
+    /*
     // Step 2. Print out
     for (int ii=0; ii<inum; ii++) {
         for (int jj=0; jj<tot_num_neigh_atoms; jj++) {
@@ -504,6 +509,7 @@ TEST_F(TildeRTest, deriv_for_lmp_1) {
                         tilde_r_deriv[ii][jj][3][2]);
         }
     }
+     */
 
     // Step . Free memory
     matersdk::arrayUtils::free4dArray(tilde_r_deriv, inum, tot_num_neigh_atoms, 4);
@@ -555,7 +561,6 @@ TEST_F(TildeRTest, deriv_for_lmp_2) {
                         tilde_r_deriv[ii][jj][3][2]);
         }
     }
-    
 
     // Step . Free memory
     matersdk::arrayUtils::free4dArray(tilde_r_deriv, inum, tot_num_neigh_atoms, 4);
