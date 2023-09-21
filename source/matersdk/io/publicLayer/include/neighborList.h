@@ -94,9 +94,9 @@ public:
 
     const int get_max_num_neigh_atoms() const;
 
-    const int get_max_num_neigh_atoms_ss(int neigh_atomic_number) const; // `ss`: specified specie
+    const int get_max_num_neigh_atoms_ss(int neigh_atomic_number) const; // `ss`: specified neigh specie
 
-    const int get_max_num_neigh_atoms_ssss(int center_atomic_number, int neigh_atomic_number) const;
+    const int get_max_num_neigh_atoms_ssss(int center_atomic_number, int neigh_atomic_number) const; // `ssss`: specified center/neigh specie
 
     const int get_num_neigh_atoms(int prim_atom_idx) const;         // 由 `this->neighbor_lists[ii]` 得到 prim_atom_idx 的近邻原子的数目
 
@@ -105,6 +105,31 @@ public:
     CoordType* get_neigh_distances(int prim_atom_idx) const;        // 由 `this->neighbor_lists[ii]` 得到 prim_atom_idx 的近邻原子的距中心原子的距离
 
     CoordType** get_neigh_relative_cart_coords(int prim_atom_idx) const;     // 由 `this->neighbor_lists[ii]` 得到 prim_atom_idx 的近邻原子的距中心原子的坐标 (r_j - r_i)
+
+    static void assign_dR_neigh(
+                int*** dR_neigh,
+                int inum, 
+                int* ilist,
+                int* numneigh,
+                int** firstneigh,
+                int* type,
+                CoordType** x,
+                int num_neigh_atomic_numbers,
+                int* neigh_atomic_numbers_lst,
+                int* num_neigh_atoms_lst);
+
+    // Note: 
+    static void assign_list_neigh4fortran(
+                int** list_neigh,
+                int inum,
+                int* ilist,
+                int* numneigh,
+                int** firstneigh,
+                int* type,
+                CoordType** x,
+                int num_neigh_atomic_numbers,
+                int* neigh_atomic_numbers_lst,
+                int* num_neigh_atoms_lst);
 
 private:
     BinLinkedList<CoordType> bin_linked_list;
@@ -653,6 +678,54 @@ CoordType** NeighborList<CoordType>::get_neigh_relative_cart_coords(int prim_ato
     // Step . Free memory
 
     return relative_cart_coords;
+}
+
+
+template <typename CoordType>
+void NeighborList<CoordType>::assign_list_neigh4fortran(
+            int** list_neigh,
+            int inum, 
+            int* ilist,
+            int* numneigh,
+            int** firstneigh,
+            int* types,
+            CoordType** x,
+            int num_neigh_atomic_numbers,
+            int* neigh_atomic_numbers_lst,
+            int* num_neigh_atoms_lst)
+{
+    // Step 1. 定义一些 temp 变量
+    int tmp_center_idx;     // 中心原子在 supercell 中的 index
+    int tmp_neigh_idx;      // 近邻原子在 supercell 中的 index
+    int tmp_cidx;           // 中心原子index for loop
+    int tmp_nidx;           // 中心原子index for loop
+
+    // Step 2. Init and assign `nstart_idxs`
+    int* nstart_idxs = (int*)malloc(sizeof(int) * num_neigh_atomic_numbers);
+    for (int ii=0; ii<num_neigh_atomic_numbers; ii++)
+        nstart_idxs[ii] = 0;
+    for (int ii=0; ii<num_neigh_atomic_numbers; ii++) {
+        for (int jj=0; jj<ii; jj++)
+            nstart_idxs[ii] += num_neigh_atoms_lst[jj];
+    }
+
+    // Step 3. Populate `list_neigh`
+    for (int ii=0; ii<num_neigh_atomic_numbers; ii++) { // 遍历 近邻原子种类
+        for (int jj=0; jj<inum; jj++) { // 遍历 中心原子
+            tmp_center_idx = ilist[jj];
+            tmp_nidx = nstart_idxs[ii];
+            for (int kk=0; kk<numneigh[jj]; kk++) { // 遍历 近邻原子
+                tmp_neigh_idx = firstneigh[jj][kk];
+                if (types[tmp_neigh_idx] == neigh_atomic_numbers_lst[ii]) {
+                    list_neigh[ii][tmp_nidx] = tmp_neigh_idx % inum + 1;
+                    tmp_nidx++;
+                }
+            }
+        }
+    }
+
+    // Step . Free memory
+    free(nstart_idxs);
 }
 
 
