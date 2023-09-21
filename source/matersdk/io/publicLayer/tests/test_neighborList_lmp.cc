@@ -30,9 +30,12 @@ protected:
     double** x;
 
     // 
+    int num_center_atomic_numbers;
+    int* center_atomic_numbers_lst;
     int num_neigh_atomic_numbers;
     int* neigh_atomic_numbers_lst;
     int* num_neigh_atoms_lst;
+    int tot_num_neigh_atoms;
 
 
     static void SetUpTestSuite() {
@@ -140,8 +143,6 @@ protected:
             numneigh[ii] = 0;
         for (int ii=0; ii<inum; ii++)
             numneigh[ii] = neighbor_list.get_neighbor_lists()[ii].size();
-        for (int ii=0; ii<inum; ii++)
-            printf("%d : %d\n", ii, numneigh[ii]);
 
         firstneigh = (int**)malloc(sizeof(int*) * inum);
         for (int ii=0; ii<inum; ii++)
@@ -161,6 +162,10 @@ protected:
         x = (double**)neighbor_list.get_binLinkedList().get_supercell().get_structure().get_cart_coords();
 
         //
+        num_center_atomic_numbers = 2;
+        center_atomic_numbers_lst = (int*)malloc(sizeof(int) * num_neigh_atomic_numbers);
+        center_atomic_numbers_lst[0] = 16;
+        center_atomic_numbers_lst[1] = 42;
         num_neigh_atomic_numbers = 2;
         neigh_atomic_numbers_lst = (int*)malloc(sizeof(int) * num_neigh_atomic_numbers);
         neigh_atomic_numbers_lst[0] = 16;
@@ -168,6 +173,10 @@ protected:
         num_neigh_atoms_lst = (int*)malloc(sizeof(int) * num_neigh_atomic_numbers);
         num_neigh_atoms_lst[0] = 8;
         num_neigh_atoms_lst[1] = 7;
+        tot_num_neigh_atoms = 0;
+        for (int ii=0; ii<num_neigh_atomic_numbers; ii++) {
+            tot_num_neigh_atoms += num_neigh_atoms_lst[ii];
+        }
     }
 
 
@@ -177,6 +186,7 @@ protected:
         for (int ii=0; ii<inum; ii++)
             free(firstneigh[ii]);
         free(firstneigh);
+        free(center_atomic_numbers_lst);
         free(neigh_atomic_numbers_lst);
         free(num_neigh_atoms_lst);
     }
@@ -185,11 +195,17 @@ protected:
 
 
 TEST_F(NeighborListTest, assign_list_neigh4fortran) {
+    // Step 1. Allocate memory for `list_neigh`
     int** list_neigh = (int**)malloc(sizeof(int*) * inum);
     for (int ii=0; ii<inum; ii++) {
-        list_neigh[ii] = (int*)malloc(sizeof(int) * 15);
+        list_neigh[ii] = (int*)malloc(sizeof(int) * tot_num_neigh_atoms);
+    }
+    for (int ii=0; ii<inum; ii++) {
+        for (int jj=0; jj<tot_num_neigh_atoms; jj++)
+            list_neigh[ii][jj] = 0;
     }
 
+    // Step 2. Populate `list_neigh`
     matersdk::NeighborList<double>::assign_list_neigh4fortran(
                 list_neigh,
                 inum,
@@ -198,14 +214,43 @@ TEST_F(NeighborListTest, assign_list_neigh4fortran) {
                 firstneigh,
                 types,
                 x,
+                num_center_atomic_numbers,
+                center_atomic_numbers_lst,
                 num_neigh_atomic_numbers,
                 neigh_atomic_numbers_lst,
                 num_neigh_atoms_lst);
+
+    // Step 3. Print out `type` catched by `list_neigh`
+    int* sorted_center_an = (int*)malloc(sizeof(int) * inum);   // 16, 16, 16, 16, 16, 16, 16, 16, 42, 42, 42, 42
+    int tmp_center_an;
+    int tmp_cidx = 0;
+    for (int ii=0; ii<num_center_atomic_numbers; ii++) {
+        for (int jj=0; jj<inum; jj++) {
+            tmp_center_an = ilist[jj];
+            if (types[tmp_center_an] != center_atomic_numbers_lst[ii])
+                continue;
+            sorted_center_an[tmp_cidx] = types[tmp_center_an];
+            tmp_cidx++;
+        }
+    }
+
+    // Step 3.1. 
+    for (int ii=0; ii<inum; ii++) {
+        printf("%4d : ", sorted_center_an[ii]);
+        for (int jj=0; jj<tot_num_neigh_atoms; jj++) {
+            if (list_neigh[ii][jj] != 0)
+                printf("%3d, ", types[list_neigh[ii][jj]-1]);
+            else
+                printf("%3d, ", 0);
+        }
+        printf("\n");
+    }
     
     // Step . Free memory
     for (int ii=0; ii<inum; ii++)
         free(list_neigh[ii]);
     free(list_neigh);
+    free(sorted_center_an);
 }
 
 

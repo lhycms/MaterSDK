@@ -107,7 +107,7 @@ public:
     CoordType** get_neigh_relative_cart_coords(int prim_atom_idx) const;     // 由 `this->neighbor_lists[ii]` 得到 prim_atom_idx 的近邻原子的距中心原子的坐标 (r_j - r_i)
 
     static void assign_dR_neigh(
-                int*** dR_neigh,
+                CoordType*** dR_neigh,
                 int inum, 
                 int* ilist,
                 int* numneigh,
@@ -118,7 +118,7 @@ public:
                 int* neigh_atomic_numbers_lst,
                 int* num_neigh_atoms_lst);
 
-    // Note: 
+    // Note: Fortran starts from 1.
     static void assign_list_neigh4fortran(
                 int** list_neigh,
                 int inum,
@@ -127,6 +127,8 @@ public:
                 int** firstneigh,
                 int* type,
                 CoordType** x,
+                int num_center_atomic_numbers,
+                int* center_atomic_numbers_lst,
                 int num_neigh_atomic_numbers,
                 int* neigh_atomic_numbers_lst,
                 int* num_neigh_atoms_lst);
@@ -682,6 +684,23 @@ CoordType** NeighborList<CoordType>::get_neigh_relative_cart_coords(int prim_ato
 
 
 template <typename CoordType>
+void NeighborList<CoordType>::assign_dR_neigh(
+            CoordType*** dR_neigh,
+            int inum,
+            int* ilist,
+            int* numneigh,
+            int** firstneigh,
+            int* type,
+            CoordType** x,
+            int num_neigh_atomic_numbers,
+            int* neigh_atomic_numbers_lst,
+            int* num_neigh_atoms_lst)
+{
+
+}
+
+
+template <typename CoordType>
 void NeighborList<CoordType>::assign_list_neigh4fortran(
             int** list_neigh,
             int inum, 
@@ -690,6 +709,8 @@ void NeighborList<CoordType>::assign_list_neigh4fortran(
             int** firstneigh,
             int* types,
             CoordType** x,
+            int num_center_atomic_numbers,
+            int* center_atomic_numbers_lst,
             int num_neigh_atomic_numbers,
             int* neigh_atomic_numbers_lst,
             int* num_neigh_atoms_lst)
@@ -700,7 +721,28 @@ void NeighborList<CoordType>::assign_list_neigh4fortran(
     int tmp_cidx;           // 中心原子index for loop
     int tmp_nidx;           // 中心原子index for loop
 
-    // Step 2. Init and assign `nstart_idxs`
+    // Step 1.1. 计算 `num_center_atoms_lst` -- 各种元素中心原子的数目
+    int* num_center_atoms_lst = (int*)malloc(sizeof(int) * num_center_atomic_numbers);
+    for (int ii=0; ii<num_center_atomic_numbers; ii++)
+        num_center_atoms_lst[ii] = 0;
+    for (int ii=0; ii<num_center_atomic_numbers; ii++) {
+        for (int jj=0; jj<inum; jj++) {
+            tmp_center_idx = ilist[jj];
+            if (types[tmp_center_idx] == center_atomic_numbers_lst[ii])
+                num_center_atoms_lst[ii]++;
+        }
+    }
+
+    // Step 2. Init and assign `cstart_idxs`, `nstart_idxs`
+    int* cstart_idxs = (int*)malloc(sizeof(int) * num_center_atomic_numbers);
+    for (int ii=0; ii<num_center_atomic_numbers; ii++)
+        cstart_idxs[ii] = 0;
+    for (int ii=0; ii<num_center_atomic_numbers; ii++){
+        for (int jj=0; jj<ii; jj++)
+            cstart_idxs[ii] += num_center_atoms_lst[jj];
+    }
+    
+
     int* nstart_idxs = (int*)malloc(sizeof(int) * num_neigh_atomic_numbers);
     for (int ii=0; ii<num_neigh_atomic_numbers; ii++)
         nstart_idxs[ii] = 0;
@@ -709,23 +751,37 @@ void NeighborList<CoordType>::assign_list_neigh4fortran(
             nstart_idxs[ii] += num_neigh_atoms_lst[jj];
     }
 
+
     // Step 3. Populate `list_neigh`
-    for (int ii=0; ii<num_neigh_atomic_numbers; ii++) { // 遍历 近邻原子种类
-        for (int jj=0; jj<inum; jj++) { // 遍历 中心原子
-            tmp_center_idx = ilist[jj];
-            tmp_nidx = nstart_idxs[ii];
-            for (int kk=0; kk<numneigh[jj]; kk++) { // 遍历 近邻原子
-                tmp_neigh_idx = firstneigh[jj][kk];
-                if (types[tmp_neigh_idx] == neigh_atomic_numbers_lst[ii]) {
-                    list_neigh[ii][tmp_nidx] = tmp_neigh_idx % inum + 1;
+    for (int ii=0; ii<num_center_atomic_numbers; ii++) {        
+        for (int jj=0; jj<num_neigh_atomic_numbers; jj++) {       
+            
+            tmp_cidx = cstart_idxs[ii];
+            for (int kk=0; kk<inum; kk++) {     // 循环：中心原子
+                tmp_center_idx = ilist[kk];
+                if (types[tmp_center_idx] != center_atomic_numbers_lst[ii])
+                    continue;
+
+                tmp_nidx = nstart_idxs[jj];
+                for (int ll=0; ll<numneigh[kk]; ll++) { // 循环：近邻原子
+                    tmp_neigh_idx = firstneigh[kk][ll];
+                    if (types[tmp_neigh_idx] != neigh_atomic_numbers_lst[jj])
+                        continue;
+                    list_neigh[tmp_cidx][tmp_nidx] = tmp_neigh_idx % inum + 1;  // Fortran starts from 1.
+
                     tmp_nidx++;
                 }
+                tmp_cidx++;
             }
+
         }
     }
+    
 
     // Step . Free memory
+    free(cstart_idxs);
     free(nstart_idxs);
+    free(num_center_atoms_lst);
 }
 
 
