@@ -132,11 +132,14 @@ protected:
         // Supercell properties simulating lammps
         inum = neighbor_list.get_binLinkedList().get_supercell().get_prim_num_atoms();
         
+
+        int prim_cell_idx = neighbor_list.get_binLinkedList().get_supercell().get_prim_cell_idx();
+        int prim_num_atoms = neighbor_list.get_binLinkedList().get_supercell().get_prim_num_atoms();
         ilist = (int*)malloc(sizeof(int) * inum);
         for (int ii=0; ii<inum; ii++)
             ilist[ii] = 0;
         for (int ii=0; ii<inum; ii++) 
-            ilist[ii] = ii;
+            ilist[ii] = ii + prim_cell_idx * prim_num_atoms;
 
         numneigh = (int*)malloc(sizeof(int) * inum);
         for (int ii=0; ii<inum; ii++) 
@@ -192,6 +195,41 @@ protected:
     }
 
 }; // class: NeighborListTest
+
+
+TEST_F(NeighborListTest, assign_dR_neigh) {
+    // Step 1. Allocate memory for `dR_neigh`
+    double*** dR_neigh = matersdk::arrayUtils::allocate3dArray<double>(inum, tot_num_neigh_atoms, 3, true);
+
+    // Step 2. Populate `dR_neigh`
+    matersdk::NeighborList<double>::assign_dR_neigh(
+            dR_neigh,
+            inum,
+            ilist,
+            numneigh,
+            firstneigh,
+            types,
+            x,
+            num_center_atomic_numbers,
+            center_atomic_numbers_lst,
+            num_neigh_atomic_numbers,
+            neigh_atomic_numbers_lst,
+            num_neigh_atoms_lst);
+    
+    // Step 3. Print out `dR_neigh`
+    for (int ii=0; ii<inum; ii++) {
+        for (int jj=0; jj<tot_num_neigh_atoms; jj++) {
+            printf("[%3d, %3d] -- [%10f, %10f, %10f]\n", 
+                    ii, jj,
+                    dR_neigh[ii][jj][0],
+                    dR_neigh[ii][jj][1],
+                    dR_neigh[ii][jj][2]);
+        }
+    }
+
+    // Step . Free memory
+    matersdk::arrayUtils::free3dArray(dR_neigh, inum, tot_num_neigh_atoms);
+}
 
 
 TEST_F(NeighborListTest, assign_list_neigh4fortran) {

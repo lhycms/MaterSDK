@@ -114,6 +114,8 @@ public:
                 int** firstneigh,
                 int* type,
                 CoordType** x,
+                int num_center_atomic_numbers,
+                int* center_atomic_numbers_lst,
                 int num_neigh_atomic_numbers,
                 int* neigh_atomic_numbers_lst,
                 int* num_neigh_atoms_lst);
@@ -690,13 +692,89 @@ void NeighborList<CoordType>::assign_dR_neigh(
             int* ilist,
             int* numneigh,
             int** firstneigh,
-            int* type,
+            int* types,
             CoordType** x,
+            int num_center_atomic_numbers,
+            int* center_atomic_numbers_lst,
             int num_neigh_atomic_numbers,
             int* neigh_atomic_numbers_lst,
             int* num_neigh_atoms_lst)
 {
+    // Step 1. 定义一些 temp 变量
+    int tmp_center_idx;                 // 中心原子在 supercell 中的 index
+    int tmp_neigh_idx;                  // 近邻原子在 supercell 中的 index
+    CoordType* tmp_center_cart_coord;    // 中心原子的笛卡尔坐标
+    CoordType* tmp_neigh_cart_coord;     // 近邻原子的笛卡尔坐标
+    int tmp_cidx;                       // 中心原子index for loop
+    int tmp_nidx;                       // 近邻原子index for loop
 
+    // Step 1.1. 计算 `num_center_atoms_lst` -- 各种元素中心原子的数目
+    int* num_center_atoms_lst = (int*)malloc(sizeof(int) * num_center_atomic_numbers);
+    for (int ii=0; ii<num_center_atomic_numbers; ii++)
+        num_center_atoms_lst[ii] = 0;
+    for (int ii=0; ii<num_center_atomic_numbers; ii++) {
+        for (int jj=0; jj<inum; jj++) {
+            tmp_center_idx = ilist[jj];
+            if (types[tmp_center_idx] == center_atomic_numbers_lst[ii])
+                num_center_atoms_lst[ii]++;
+        }
+    }
+
+    // Step 2. Init and assign `cstart_idxs`, `nstart_idxs`
+    int* cstart_idxs = (int*)malloc(sizeof(int) * num_center_atomic_numbers);
+    for (int ii=0; ii<num_center_atomic_numbers; ii++)
+        cstart_idxs[ii] = 0;
+    for (int ii=0; ii<num_center_atomic_numbers; ii++) {
+        for (int jj=0; jj<ii; jj++)
+            cstart_idxs[ii] += num_center_atoms_lst[jj];
+    }
+
+    int* nstart_idxs = (int*)malloc(sizeof(int) * num_neigh_atomic_numbers);
+    for (int ii=0; ii<num_neigh_atomic_numbers; ii++)
+        nstart_idxs[ii] = 0;
+    for (int ii=0; ii<num_neigh_atomic_numbers; ii++) {
+        for (int jj=0; jj<ii; jj++)
+            nstart_idxs[ii] += num_neigh_atoms_lst[jj];
+    }
+
+
+    // Step 3. Populate `list_neigh`
+    for (int ii=0; ii<num_center_atomic_numbers; ii++) {        
+        for (int jj=0; jj<num_neigh_atomic_numbers; jj++) {       
+
+            tmp_cidx = cstart_idxs[ii];
+            for (int kk=0; kk<inum; kk++) {     // 循环：中心原子
+                tmp_center_idx = ilist[kk];
+                tmp_center_cart_coord = x[tmp_center_idx];
+                if (types[tmp_center_idx] != center_atomic_numbers_lst[ii])
+                    continue;
+
+                tmp_nidx = nstart_idxs[jj];
+                for (int ll=0; ll<numneigh[kk]; ll++) { // 循环：近邻原子
+                    tmp_neigh_idx = firstneigh[kk][ll];
+                    tmp_neigh_cart_coord = x[tmp_neigh_idx];
+
+                    if (types[tmp_neigh_idx] != neigh_atomic_numbers_lst[jj])
+                        continue;
+                    dR_neigh[tmp_cidx][tmp_nidx][0] = tmp_neigh_cart_coord[0] - tmp_center_cart_coord[0];
+                    dR_neigh[tmp_cidx][tmp_nidx][1] = tmp_neigh_cart_coord[1] - tmp_center_cart_coord[1];
+                    dR_neigh[tmp_cidx][tmp_nidx][2] = tmp_neigh_cart_coord[2] - tmp_center_cart_coord[2];
+
+                    tmp_nidx++;
+                }
+                tmp_cidx++;
+            }
+
+        }
+    }
+
+
+    // Step . Free memory
+    //free(tmp_center_cart_coord);
+    //free(tmp_neigh_cart_coord);
+    free(num_center_atoms_lst);
+    free(cstart_idxs);
+    free(nstart_idxs);
 }
 
 
@@ -737,11 +815,10 @@ void NeighborList<CoordType>::assign_list_neigh4fortran(
     int* cstart_idxs = (int*)malloc(sizeof(int) * num_center_atomic_numbers);
     for (int ii=0; ii<num_center_atomic_numbers; ii++)
         cstart_idxs[ii] = 0;
-    for (int ii=0; ii<num_center_atomic_numbers; ii++){
+    for (int ii=0; ii<num_center_atomic_numbers; ii++) {
         for (int jj=0; jj<ii; jj++)
             cstart_idxs[ii] += num_center_atoms_lst[jj];
     }
-    
 
     int* nstart_idxs = (int*)malloc(sizeof(int) * num_neigh_atomic_numbers);
     for (int ii=0; ii<num_neigh_atomic_numbers; ii++)
@@ -755,7 +832,7 @@ void NeighborList<CoordType>::assign_list_neigh4fortran(
     // Step 3. Populate `list_neigh`
     for (int ii=0; ii<num_center_atomic_numbers; ii++) {        
         for (int jj=0; jj<num_neigh_atomic_numbers; jj++) {       
-            
+
             tmp_cidx = cstart_idxs[ii];
             for (int kk=0; kk<inum; kk++) {     // 循环：中心原子
                 tmp_center_idx = ilist[kk];
