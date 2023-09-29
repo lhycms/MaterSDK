@@ -140,6 +140,22 @@ public:
 
     void show_in_deriv() const;
 
+    const CoordType get_rcut() const;
+
+    const CoordType get_rcut_smooth() const;
+
+    const CoordType get_rji() const;
+
+    const int get_hmju() const;
+
+    const CoordType* get_chebyshev_vals() const;
+
+    const CoordType* get_chebyshev_ders() const;
+
+    const CoordType* get_rb_vals() const;
+
+    const CoordType* get_rb_ders() const;
+
 
 private:
     CoordType rcut = 0;
@@ -326,7 +342,7 @@ void RadialBasisChebyshev<CoordType>::show_in_value() const {
     printf("**************** MTP RadialBasisChebyshev ****************\n");
     printf("\t1. rcut = %5f\n", this->rcut);
     printf("\t2. rcut_smooth = %5f\n", this->rcut_smooth);
-    printf("\t3. highest mju = %3d\n", this->hmju);
+    printf("\t3. highest mju (starts from 0) = %3d\n", this->hmju);
     printf("\t4. rji = %5f\n", this->rji);
     printf("\t5. ksi = %5f\n", (2*this->rji - this->rcut - this->rcut_smooth) / (this->rcut - this->rcut_smooth));
     
@@ -350,7 +366,7 @@ void RadialBasisChebyshev<CoordType>::show_in_deriv() const {
     printf("**************** MTP RadialBasisChebyshev ****************\n");
     printf("\t1. rcut = %5f\n", this->rcut);
     printf("\t2. rcut_smooth = %5f\n", this->rcut_smooth);
-    printf("\t3. highest mju = %3d\n", this->hmju);
+    printf("\t3. highest mju (starts from 0) = %3d\n", this->hmju);
     printf("\t4. rji = %5f\n", this->rji);
     printf("\t5. ksi = %5f\n", (2*this->rji - this->rcut - this->rcut_smooth) / (this->rcut - this->rcut_smooth));
     
@@ -367,6 +383,55 @@ void RadialBasisChebyshev<CoordType>::show_in_deriv() const {
     }
     printf("**********************************************************\n");
 }
+
+
+template <typename CoordType>
+const CoordType RadialBasisChebyshev<CoordType>::get_rcut() const {
+    return (const CoordType)this->rcut;
+}
+
+
+template <typename CoordType>
+const CoordType RadialBasisChebyshev<CoordType>::get_rcut_smooth() const {
+    return (const CoordType)this->rcut_smooth;
+}
+
+
+template <typename CoordType>
+const CoordType RadialBasisChebyshev<CoordType>::get_rji() const {
+    return (const CoordType)this->rji;
+}
+
+
+template <typename CoordType>
+const int RadialBasisChebyshev<CoordType>::get_hmju() const {
+    return (const CoordType)this->hmju;
+}
+
+
+template <typename CoordType>
+const CoordType* RadialBasisChebyshev<CoordType>::get_chebyshev_vals() const {
+    return (const CoordType*)this->chebyshev_vals;
+}
+
+
+template <typename CoordType>
+const CoordType* RadialBasisChebyshev<CoordType>::get_chebyshev_ders() const {
+    return (const CoordType*)this->chebyshev_ders;
+}
+
+
+template <typename CoordType>
+const CoordType* RadialBasisChebyshev<CoordType>::get_rb_vals() const {
+    return (const CoordType*)this->rb_vals;
+}
+
+
+template <typename CoordType>
+const CoordType* RadialBasisChebyshev<CoordType>::get_rb_ders() const {
+    return (const CoordType*)this->rb_ders;
+}
+
 
 }   // namespace : mtp
 }   // namespace : matersdk

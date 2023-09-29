@@ -104,6 +104,7 @@ TEST_F(RadialBasisChebyshevTest, constructor_default) {
     matersdk::mtp::RadialBasisChebyshev<double> rb;
 
     rb.show_in_value();
+    rb.show_in_deriv();
 }
 
 
@@ -116,6 +117,132 @@ TEST_F(RadialBasisChebyshevTest, constructor_1) {
 
     rb.show_in_value();
     rb.show_in_deriv();
+}
+
+
+TEST_F(RadialBasisChebyshevTest, get_info) {
+    rcut = 6.0;
+    rcut_smooth = 2.0;
+    hmju = 3;
+    rji = 3.0;
+    matersdk::mtp::RadialBasisChebyshev<double> rb(rcut, rcut_smooth, hmju, rji);
+
+    EXPECT_FLOAT_EQ(rcut, rb.get_rcut());
+    EXPECT_FLOAT_EQ(rcut_smooth, rb.get_rcut_smooth());
+    EXPECT_EQ(hmju, rb.get_hmju());
+    EXPECT_FLOAT_EQ(rji, rb.get_rji());
+}
+
+
+TEST_F(RadialBasisChebyshevTest, get_chebyshev_vals) {
+    rcut = 6.0;
+    rcut_smooth = 2.0;
+    hmju = 3;
+    rji = 3.0;
+    matersdk::mtp::RadialBasisChebyshev<double> rb(rcut, rcut_smooth, hmju, rji);
+
+    const double* chebyshev_vals = rb.get_chebyshev_vals();
+    printf("chebyshev_vals = [");
+    for (int ii=0; ii<(rb.get_hmju()+1); ii++) {
+        printf("%8f, ", chebyshev_vals[ii]);
+    }
+    printf("]\n");
+}
+
+
+TEST_F(RadialBasisChebyshevTest, get_chebyshev_ders) {
+    rcut = 6.0;
+    rcut_smooth = 2.0;
+    hmju = 3;
+    rji = 3.0;
+    matersdk::mtp::RadialBasisChebyshev<double> rb(rcut, rcut_smooth, hmju, rji);
+
+    const double* chebyshev_ders = rb.get_chebyshev_ders();
+    printf("chebyshev_ders = [");
+    for (int ii=0; ii<(rb.get_hmju()+1); ii++) {
+        printf("%8f, ", chebyshev_ders[ii]);
+    }
+    printf("]\n");
+}
+
+
+TEST_F(RadialBasisChebyshevTest, get_rb_vals) {
+    rcut = 6.0;
+    rcut_smooth = 2.0;
+    hmju = 3;
+    rji = 3.0;
+    matersdk::mtp::RadialBasisChebyshev<double> rb(rcut, rcut_smooth, hmju, rji);
+
+    const double* rb_vals = rb.get_rb_vals();
+    printf("rb_vals = [");
+    for (int ii=0; ii<(rb.get_hmju()+1); ii++) {
+        printf("%8f, ", rb_vals[ii]);
+    }
+    printf("]\n");
+}
+
+
+TEST_F(RadialBasisChebyshevTest, get_rb_ders) {
+    rcut = 6.0;
+    rcut_smooth = 2.0;
+    hmju = 3;
+    rji = 3.0;
+    matersdk::mtp::RadialBasisChebyshev<double> rb(rcut, rcut_smooth, hmju, rji);
+
+    const double* rb_ders = rb.get_rb_ders();
+    printf("rb_ders = [");
+    for (int ii=0; ii<(rb.get_hmju()+1); ii++) {
+        printf("%8f, ", rb_ders[ii]);
+    }
+    printf("]\n");
+}
+
+
+TEST_F(RadialBasisChebyshevTest, check_deriv_from_definition_way1) {
+    // Step 1. Declare parameters
+    rcut = 6.0;
+    rcut_smooth = 2.0;
+    hmju = 3;
+    rji = 3.0;
+    double rji_end = 3.001;
+    double delta = rji_end - rji;
+
+    matersdk::mtp::RadialBasisChebyshev<double> rb(rcut, rcut_smooth, hmju, rji);
+    matersdk::mtp::RadialBasisChebyshev<double> rb_end(rcut, rcut_smooth, hmju, rji_end);   
+    
+    double* chebyshev_ders_definition = (double*)malloc(sizeof(double) * (rb.get_hmju()+1));
+    double* rb_ders_definition = (double*)malloc(sizeof(double) * (rb.get_hmju()+1));
+    for (int ii=0; ii<(rb.get_hmju()+1); ii++) {
+        chebyshev_ders_definition[ii] = 0;
+        rb_ders_definition[ii] = 0;
+    }
+
+    // Step 2. Calculate ders according to definition
+    for (int ii=0; ii<(rb.get_hmju()+1); ii++) {
+        chebyshev_ders_definition[ii] = (rb_end.get_chebyshev_vals()[ii] - rb.get_chebyshev_vals()[ii]) / delta;
+        rb_ders_definition[ii] = (rb_end.get_rb_vals()[ii] - rb.get_rb_vals()[ii]) / delta;
+    }
+
+    // Step 3. Compare derivs
+    printf("1. Compare chebyshev_deriv:\n");
+    for (int ii=0; ii<(rb.get_hmju()+1); ii++) {
+        printf("%6f, ", rb.get_chebyshev_ders()[ii]);
+    }
+    printf("\n");
+    for (int ii=0; ii<(rb.get_hmju()+1); ii++) {
+        printf("%6f, ", chebyshev_ders_definition[ii]);
+    }
+    printf("\n");
+
+    printf("2. Compare rb_deriv:\n");
+    for (int ii=0; ii<(rb.get_hmju()+1); ii++) {
+        printf("%6f, ", rb.get_rb_ders()[ii]);
+    }
+    printf("\n");
+    for (int ii=0; ii<(rb.get_hmju()+1); ii++) {
+        printf("%6f, ", rb_ders_definition[ii]);
+    }
+    printf("\n");
 }
 
 
