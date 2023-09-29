@@ -8,11 +8,13 @@
 #include "../../../../core/include/vec3Operation.h"
 
 
+
 class RadialBasisChebyshevTest : public ::testing::Test {
 protected:
     double rcut;
     double rcut_smooth;
-    double r;
+    int hmju;
+    double rji;
 
     static void SetUpTestSuite() {
         std::cout << "RadialBasisChebyshevTest (TestSuite) is setting up...\n";
@@ -25,7 +27,8 @@ protected:
     void SetUp() override {
         rcut = 6.0;
         rcut_smooth = 2.0;
-        r = 3.0;
+        hmju = 0;
+        rji = 3.0;
     }
 
     void TearDown() override {
@@ -38,11 +41,12 @@ protected:
 TEST_F(RadialBasisChebyshevTest, constructor_default) {
     rcut = 6.0;
     rcut_smooth = 2.0;
-    r = 3.0;
-    matersdk::mtp::RadialBasisChebyshev<double> rb(rcut, rcut_smooth);
+    hmju = 3;
+    rji = 3.0;
+    matersdk::mtp::RadialBasisChebyshev<double> rb(rcut, rcut_smooth, hmju, rji);
 
-    rb.show_in_value(r);
-    rb.show_in_deriv(r);
+    rb.show_in_value();
+    rb.show_in_deriv();
 }
 
 
