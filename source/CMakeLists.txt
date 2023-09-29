@@ -33,3 +33,4 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/core)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/matersdk/io/publicLayer)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/matersdk/feature/deepmd)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/matersdk/feature/mtp)
