@@ -132,6 +132,10 @@ public:
 
     void calc_chebyshev_ders();    // Calculate the deriv (derivative with r_ji) of radial basis without multiplying SwitchFunc
 
+    void calc_rb_vals();    // rb_vals = chebyshev_vals * SwitchFunc
+
+    void calc_rb_ders();    // rb_vals = chebyshev_vals * SwitchFunc
+
     void show_in_value() const;
 
     void show_in_deriv() const;
@@ -144,6 +148,8 @@ private:
     CoordType rji = 0;
     CoordType* chebyshev_vals = nullptr;   // Store the chebyshev_vals[0], chebyshev_vals[1], ..., speed up the calculation
     CoordType* chebyshev_ders = nullptr;   // Store the chebyshev_ders[0], chebyshev_ders[1], ..., speed up the calculation
+    CoordType* rb_vals = nullptr;
+    CoordType* rb_ders = nullptr;
 };  // RadialBasisChebyshev
 
 
@@ -157,6 +163,8 @@ RadialBasisChebyshev<CoordType>::RadialBasisChebyshev() {
     this->rji = 0;
     this->chebyshev_vals = nullptr;
     this->chebyshev_ders = nullptr;
+    this->rb_vals = nullptr;
+    this->rb_ders = nullptr;
 }
 
 
@@ -174,14 +182,21 @@ RadialBasisChebyshev<CoordType>::RadialBasisChebyshev(
     this->rji = rji;
 
     this->chebyshev_vals = (CoordType*)malloc( sizeof(CoordType) * (this->hmju+1) );
-    for (int ii=0; ii<(this->hmju+1); ii++)
-        this->chebyshev_vals[ii] = 0;
-    this->calc_chebyshev_vals();
-
     this->chebyshev_ders = (CoordType*)malloc( sizeof(CoordType) * (this->hmju+1) );
-    for (int ii=0; ii<(this->hmju+1); ii++)
+    this->rb_vals = (CoordType*)malloc( sizeof(CoordType) * (this->hmju+1) );
+    this->rb_ders = (CoordType*)malloc( sizeof(CoordType) * (this->hmju+1) );
+    
+    for (int ii=0; ii<(this->hmju+1); ii++) {
+        this->chebyshev_vals[ii] = 0;
         this->chebyshev_ders[ii] = 0;
+        this->rb_vals[ii] = 0;
+        this->rb_ders[ii] = 0;
+    }
+
+    this->calc_chebyshev_vals();
     this->calc_chebyshev_ders();
+    this->calc_rb_vals();
+    this->calc_rb_ders();
 }
 
 
@@ -239,6 +254,74 @@ void RadialBasisChebyshev<CoordType>::calc_chebyshev_ders()
 
 
 template <typename CoordType>
+void RadialBasisChebyshev<CoordType>::calc_rb_vals() {
+    SwitchFunc<CoordType> switch_func(this->rcut, this->rcut_smooth);
+    CoordType switch_func_value = switch_func.get_result(this->rji);
+
+    if (this->hmju == 0) {
+        this->rb_vals[0] = switch_func_value * this->chebyshev_vals[0];
+        return ;
+    }
+    else if (this->hmju == 1) {
+        this->rb_vals[0] = switch_func_value * this->chebyshev_vals[0];
+        this->rb_vals[1] = switch_func_value * this->chebyshev_vals[1];
+        return ;
+    }
+    else {
+        this->rb_vals[0] = switch_func_value * this->chebyshev_vals[0];
+        this->rb_vals[1] = switch_func_value * this->chebyshev_vals[1];
+        for (int ii=2; ii<(this->hmju+1); ii++)
+            this->rb_vals[ii] = switch_func_value * this->chebyshev_vals[ii];
+        return ;
+    }
+}
+
+
+template <typename CoordType>
+void RadialBasisChebyshev<CoordType>::calc_rb_ders() {
+    SwitchFunc<CoordType> switch_func(this->rcut, this->rcut_smooth);
+    CoordType switch_func_value = switch_func.get_result(this->rji);
+    CoordType switch_func_deriv2rji = switch_func.get_deriv2rji(this->rji);
+
+    if (this->hmju == 0) {
+        this->rb_ders[0] = (
+                switch_func_value * this->chebyshev_ders[0] +
+                switch_func_deriv2rji * this->chebyshev_vals[0]
+        );
+        return ;
+    }
+    else if (this->hmju == 1) {
+        this->rb_ders[0] = (
+                switch_func_value * this->chebyshev_ders[0] + 
+                switch_func_deriv2rji * this->chebyshev_vals[0]
+        );
+        this->rb_ders[1] = (
+                switch_func_value * this->chebyshev_ders[1] + 
+                switch_func_deriv2rji * this->chebyshev_vals[1]
+        );
+        return ;
+    }
+    else {
+        this->rb_ders[0] = (
+                switch_func_value * this->chebyshev_ders[0] + 
+                switch_func_deriv2rji * this->chebyshev_vals[0]
+        );
+        this->rb_ders[1] = (
+                switch_func_value * this->chebyshev_ders[1] + 
+                switch_func_deriv2rji * this->chebyshev_vals[1]
+        );
+        for (int ii=2; ii<(this->hmju+1); ii++) {
+            this->rb_ders[ii] = (
+                switch_func_value * this->chebyshev_ders[ii] + 
+                switch_func_deriv2rji * this->chebyshev_vals[ii]
+            );
+        }
+        return ;
+    }
+}
+
+
+template <typename CoordType>
 void RadialBasisChebyshev<CoordType>::show_in_value() const {
     printf("**************** MTP RadialBasisChebyshev ****************\n");
     printf("\t1. rcut = %5f\n", this->rcut);
@@ -249,8 +332,13 @@ void RadialBasisChebyshev<CoordType>::show_in_value() const {
     
     if (this->chebyshev_vals != nullptr) {
         printf("\t6. chebyshev_vals = [");
-        for (int ii=0; ii<(this->hmju+1); ii++)
+        for (int ii=0; ii<(this->hmju+1); ii++) 
             printf("%8f, ", this->chebyshev_vals[ii]);
+        printf("]\n");
+    
+        printf("\t6. rb_vals = [");
+        for (int ii=0; ii<(this->hmju+1); ii++) 
+            printf("%8f, ", this->rb_vals[ii]);
         printf("]\n");
     }
     printf("**********************************************************\n");
@@ -270,6 +358,11 @@ void RadialBasisChebyshev<CoordType>::show_in_deriv() const {
         printf("\t6. chebyshev_ders = [");
         for (int ii=0; ii<(this->hmju+1); ii++)
             printf("%8f, ", this->chebyshev_ders[ii]);
+        printf("]\n");
+
+        printf("\t6. rb_ders = [");
+        for (int ii=0; ii<(this->hmju+1); ii++)
+            printf("%8f, ", this->rb_ders[ii]);
         printf("]\n");
     }
     printf("**********************************************************\n");
