@@ -46,8 +46,44 @@ TEST_F(Vec3OperationPointerTest, dot) {
 }
 
 
-TEST_F(Vec3OperationPointerTest, RecursionOuterProduct) {
-    int nju = 3;
+TEST_F(Vec3OperationPointerTest, RecursionOuterProduct_1) {
+    int nju = 1;
+    double* vec = (double*)malloc(sizeof(double) * 3);
+    vec[0] = 1;
+    vec[1] = 2;
+    vec[2] = 3;
+
+    double** result = matersdk::vec3Operation::RecursionOuterProduct<double>(nju, vec);
+
+    for (int ii=0; ii<std::pow(3, nju-1); ii++) {
+        for (int jj=0; jj<3; jj++) {
+            printf("%10f, ", result[ii][jj]);
+        }
+        printf("\n");
+    }
+}
+
+
+TEST_F(Vec3OperationPointerTest, RecursionOuterProduct_2) {
+    int nju = 2;
+    double* vec = (double*)malloc(sizeof(double) * 3);
+    vec[0] = 1;
+    vec[1] = 2;
+    vec[2] = 3;
+
+    double** result = matersdk::vec3Operation::RecursionOuterProduct<double>(nju, vec);
+
+    for (int ii=0; ii<std::pow(3, nju-1); ii++) {
+        for (int jj=0; jj<3; jj++) {
+            printf("%10f, ", result[ii][jj]);
+        }
+        printf("\n");
+    }
+}
+
+
+TEST_F(Vec3OperationPointerTest, RecursionOuterProduct_3) {
+    int nju = 4;
     double* vec = (double*)malloc(sizeof(double) * 3);
     vec[0] = 1;
     vec[1] = 2;
