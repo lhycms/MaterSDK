@@ -21,6 +21,10 @@ if (BUILD_TEST)
     add_executable(test_angular_part ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_angular_part.cc)
     target_link_libraries(test_angular_part gtest gtest_main)
 
+    add_executable(test_level ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_level.cc)
+    target_link_libraries(test_level gtest gtest_main)
+
+
     gtest_discover_tests(test_radial_basis)
     gtest_discover_tests(test_angular_part)
 endif()

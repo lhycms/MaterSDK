@@ -2,13 +2,14 @@
 #define MATERSDK_ANGULAR_PART_H
 
 
-namespace matersdk {
-namespace mtp {
-
-
 #include <utility>
 #include <vector>
+#include <algorithm>
 
+
+
+namespace matersdk {
+namespace mtp {
 
 template <typename CoordType>
 class AngularPart {
@@ -24,7 +25,6 @@ private:
     CoordType* vec;
     std::vector<std::vector<std::pair<int, int>>> mjus_njus_lst;
 };
-
 
 
 
