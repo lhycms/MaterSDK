@@ -119,8 +119,28 @@ protected:
 
 
 TEST_F(CombinationsTest, constructor_1) {
-    Combinations combinations(mjus_njus_lst, true);
+    matersdk::mtp::Combinations combinations(mjus_njus_lst, false);
     combinations.show();
+}
+
+
+TEST_F(CombinationsTest, get_combinations) {
+    matersdk::mtp::Combinations combinations(mjus_njus_lst, false);
+    const std::vector<std::vector<std::pair<int, int>>> mjus_njus_lst = combinations.get_combinations();
+
+    for (int ii=0; ii<mjus_njus_lst.size(); ii++) {
+        printf("[mju, nju]: \t");
+        int level = 0;
+        for (int jj=0; jj<mjus_njus_lst[ii].size(); jj++) {
+            printf(
+                "[%4d, %4d],  ",
+                this->mjus_njus_lst[ii][jj].first,
+                this->mjus_njus_lst[ii][jj].second
+            );
+            level += matersdk::mtp::Combinations::get_level(this->mjus_njus_lst[ii][jj].first, this->mjus_njus_lst[ii][jj].second);
+        }
+        printf("level = %4d,\tno.%3d\n", level, ii);
+    }
 }
 
 

@@ -7,17 +7,43 @@
 #include <algorithm>
 
 
+namespace matersdk {
+namespace mtp {
+
+
 class Combinations {
 public:
     Combinations(std::vector<std::vector<std::pair<int, int>>> mjus_njus_lst, bool sort_unique_mark);
 
     void show() const;
 
-    static int get_level(int mju, int nju);
+    const std::vector<std::vector<std::pair<int, int>>> get_combinations() const;
+
+    static int get_level(const int mju, const int nju);
 
 private:
     std::vector<std::vector<std::pair<int, int>>> mjus_njus_lst;
 };  // class: Combinations
+
+
+
+
+class CombinationsSortBasis {
+public:
+    CombinationsSortBasis(const Combinations rhs) : combinations(rhs)
+    {}
+
+
+    bool operator()(int index_i, int index_j) const {
+        // Step 1. 计算 index_i 的 mtp level
+        int level_index_i = 0;
+
+        return true;        
+    }
+
+private:
+    Combinations combinations;
+};  // class : CombinationsSortBasis
 
 
 
@@ -32,6 +58,11 @@ private:
     int mju;
     int nju;
 };  // class: MTPLevel
+
+
+
+
+
 
 
 Combinations::Combinations(std::vector<std::vector<std::pair<int, int>>> mjus_njus_lst, bool sort_unique_mark) {
@@ -60,7 +91,6 @@ void Combinations::show() const {
         printf("[mju, nju] :\t");
         int level = 0;
         for (int jj=0; jj<this->mjus_njus_lst[ii].size(); jj++) {
-            
             printf(
                 "[%4d, %4d],  ", 
                 this->mjus_njus_lst[ii][jj].first, 
@@ -73,10 +103,16 @@ void Combinations::show() const {
 }
 
 
+const std::vector<std::vector<std::pair<int, int>>> Combinations::get_combinations() const {
+    return (const std::vector<std::vector<std::pair<int, int>>>)this->mjus_njus_lst;
+}
 
-int Combinations::get_level(int mju, int nju) {
+
+int Combinations::get_level(const int mju, const int nju) {
     return (2 + 4*mju + nju);
 }
+
+
 
 
 
@@ -91,4 +127,6 @@ void MTPLevel::calc_combinations(int num_M, int max_level) {
 }
 
 
+}; // namespace : mtp
+}; // namespace : matersdk
 #endif 
