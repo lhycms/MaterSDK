@@ -144,6 +144,53 @@ TEST_F(CombinationsTest, get_combinations) {
 }
 
 
+TEST_F(CombinationsTest, combinationsSortBasis_w1) {
+    matersdk::mtp::Combinations combinations(mjus_njus_lst, false);
+    matersdk::mtp::CombinationsSortBasis combination_sort_basis(combinations);
+
+    printf("+++ %d\n", combination_sort_basis(15, 16));
+}
+
+
+TEST_F(CombinationsTest, combinationsSortBasis_w2) {
+    matersdk::mtp::Combinations combinations(mjus_njus_lst, false);
+
+    int* indices = (int*)malloc(sizeof(int) * combinations.get_num_combinations());
+    for (int ii=0; ii<combinations.get_num_combinations(); ii++) {
+        indices[ii] = ii;
+    }
+    std::sort(
+            indices, 
+            indices + combinations.get_num_combinations(), 
+            matersdk::mtp::CombinationsSortBasis(combinations));
+    for (int ii=0; ii<combinations.get_num_combinations(); ii++)
+        printf("%4d, ", indices[ii]);
+    printf("\n");
+}
+
+
+TEST_F(CombinationsTest, combinationsArrangement) {
+    matersdk::mtp::Combinations combinations(mjus_njus_lst, false);
+
+    // Step 1. get `int* new_indices`
+    int* indices = (int*)malloc(sizeof(int) * combinations.get_num_combinations());
+    for (int ii=0; ii<combinations.get_num_combinations(); ii++) {
+        indices[ii] = ii;
+    }
+    std::sort(
+            indices,
+            indices + combinations.get_num_combinations(),
+            matersdk::mtp::CombinationsSortBasis(combinations));
+    
+    // Step 2. Arrange `Combinations` according to `new_indices`
+    matersdk::mtp::CombinationsArrangement combination_arrangement(combinations, indices);
+    matersdk::mtp::Combinations sorted_combinations = combination_arrangement.arrange();
+
+    // Step 3.
+    sorted_combinations.show();
+}
+
+
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
