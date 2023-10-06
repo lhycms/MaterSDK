@@ -15,6 +15,8 @@ class Combinations {
 public:
     Combinations(std::vector<std::vector<std::pair<int, int>>> mjus_njus_lst, bool sort_unique_mark=false);
 
+    void remove_duplicates();
+
     void show() const;
 
     const std::vector<std::vector<std::pair<int, int>>> get_combinations() const;
@@ -121,6 +123,30 @@ Combinations::Combinations(std::vector<std::vector<std::pair<int, int>>> mjus_nj
     }
 
     // Step 3. 
+}
+
+
+void Combinations::remove_duplicates() {
+    std::vector<std::vector<std::pair<int, int>>> new_mjus_njus_lst;
+    new_mjus_njus_lst.clear();
+
+    for (int ii=0; ii<this->get_num_combinations(); ii++) {
+        for (int jj=0; jj<this->mjus_njus_lst[ii].size()-1; jj++) {
+            int level_front = Combinations::get_level(
+                                    this->mjus_njus_lst[ii][jj].first, 
+                                    this->mjus_njus_lst[ii][jj].second);
+            int level_behind = Combinations::get_level(
+                                    this->mjus_njus_lst[ii][jj+1].first,
+                                    this->mjus_njus_lst[ii][jj+1].second);
+                
+                if (level_front <= level_behind) {
+                    new_mjus_njus_lst.push_back(this->mjus_njus_lst[ii]);
+                }
+        }
+    }
+
+    // 重新为 `this->mjus_njus_lst` 赋值
+    this->mjus_njus_lst = new_mjus_njus_lst;
 }
 
 

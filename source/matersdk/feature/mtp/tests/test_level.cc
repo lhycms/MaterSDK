@@ -187,6 +187,7 @@ TEST_F(CombinationsTest, combinationsArrangement) {
     matersdk::mtp::Combinations sorted_combinations = combination_arrangement.arrange();
 
     // Step 3.
+    sorted_combinations.remove_duplicates();
     sorted_combinations.show();
 }
 
