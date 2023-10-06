@@ -13,7 +13,7 @@ namespace mtp {
 
 class Combinations {
 public:
-    Combinations(std::vector<std::vector<std::pair<int, int>>> mjus_njus_lst);
+    Combinations(std::vector<std::vector<std::pair<int, int>>> mjus_njus_lst, bool mark_tiny=true);
 
     // Remove duplicated combinations
     void remove_duplicates();
@@ -123,7 +123,7 @@ private:
  * @param mjus_njus_lst : std::vector<std::vector<std::pair<int, int>>>
  * @param sort_unique_mark : 
  */
-Combinations::Combinations(std::vector<std::vector<std::pair<int, int>>> mjus_njus_lst) {
+Combinations::Combinations(std::vector<std::vector<std::pair<int, int>>> mjus_njus_lst, bool mark_tiny) {
     // Step 1. Init the Combinations with `std::vector<std::vector<std::pair<int, int>>>`
     this->mjus_njus_lst.resize(mjus_njus_lst.size());
     for (int ii=0; ii<mjus_njus_lst.size(); ii++) 
@@ -135,8 +135,14 @@ Combinations::Combinations(std::vector<std::vector<std::pair<int, int>>> mjus_nj
         }
     }
 
+    // Step 2. 
+    if (mark_tiny) {
+        // Step 2.1. remove duplicates combinations.
+        this->remove_duplicates();
 
-    // Step 3. 
+        // Step 2.2. remove combinations which cannot be contracted.
+        this->remove_cannot_contract();
+    }
 }
 
 
