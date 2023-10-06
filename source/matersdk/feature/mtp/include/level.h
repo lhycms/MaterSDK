@@ -5,7 +5,7 @@
 #include <vector>
 #include <utility>
 #include <algorithm>
-
+#include <unordered_map>
 
 namespace matersdk {
 namespace mtp {
@@ -16,6 +16,8 @@ public:
     Combinations(std::vector<std::vector<std::pair<int, int>>> mjus_njus_lst, bool sort_unique_mark=false);
 
     void remove_duplicates();
+
+    void remove_cannot_contract();
 
     void show() const;
 
@@ -146,6 +148,84 @@ void Combinations::remove_duplicates() {
     }
 
     // 重新为 `this->mjus_njus_lst` 赋值
+    this->mjus_njus_lst = new_mjus_njus_lst;
+}
+
+
+void Combinations::remove_cannot_contract() {
+    // Step 1. 初始化一个新的 `new_mjus_njus_lst`
+    std::vector<std::vector<std::pair<int, int>>> new_mjus_njus_lst;
+    new_mjus_njus_lst.clear();
+
+    // Step 2. Populate `new_mjus_njus_lst`
+    for (int ii=0; ii<this->mjus_njus_lst.size(); ii++) {   // 循环每一组 [(mju0, nju0), (mju1, nju1), ...]
+        std::vector<int> njus_not_zero_lst;                 // 每一组 [(mju0, nju0), (mju1, nju1), ...] 中的 nju0, nju1, ... (nju值非零)
+        njus_not_zero_lst.clear();
+
+        // Step 2.1. Populate `njus_not_zero_lst`
+        for (int jj=0; jj<this->mjus_njus_lst[ii].size(); jj++)    // 循环 [(mju0, nju0), (mju1, nju1), ...] 中的 (mjux, njux)
+            njus_not_zero_lst.push_back(this->mjus_njus_lst[ii][jj].second);
+
+/*        
+        for (auto value: njus_not_zero_lst)
+            printf("%3d,\t", value);
+        printf("\n");
+
+        Output
+        ------
+                0,      0,
+                0,      1,
+                0,      2,
+                0,      3,
+                0,      4,
+                0,      0,
+                1,      1,
+                1,      2,
+                1,      3,
+                2,      2,
+         */
+
+
+        // Step 2.2. Count the occurrences of each nju
+        /*
+                0: 2,
+                1: 1,   0: 1,
+                2: 1,   0: 1,
+                3: 1,   0: 1,
+                4: 1,   0: 1,
+                0: 2,
+                1: 2,
+                2: 1,   1: 1,
+                3: 1,   1: 1,
+                2: 2,
+         */
+        std::unordered_map<int, int> nju2num;   // 针对每个 combination (mju, nju)
+        for (const int& tmp_nju: njus_not_zero_lst)
+            nju2num[tmp_nju]++;
+
+        // Step 2.3. Populate `mark_contraction`
+        bool mark_contraction = false;
+        for (const std::pair<int, int>& tmp_nju2num: nju2num) {
+            // Step 2.3.2. case 1:
+            if (tmp_nju2num.second % 2 != 0)
+                break;
+            mark_contraction = true;
+        }
+
+        // Step 2.3.2. case 2: 
+        for (const std::pair<int, int>& tmp_nju2num: nju2num) {
+            if (tmp_nju2num.first != 0)
+                break;
+            mark_contraction = true;
+        }
+
+
+        // Step 2.4. 根据 `mark_contraction` 判断是否需要将 `this->mjus_njus_lst[ii]` 放入 `new_mjus_njus_lst`
+        if (mark_contraction)
+            new_mjus_njus_lst.push_back(this->mjus_njus_lst[ii]);
+    }
+
+
     this->mjus_njus_lst = new_mjus_njus_lst;
 }
 

@@ -148,7 +148,7 @@ TEST_F(CombinationsTest, combinationsSortBasis_w1) {
     matersdk::mtp::Combinations combinations(mjus_njus_lst, false);
     matersdk::mtp::CombinationsSortBasis combination_sort_basis(combinations);
 
-    printf("+++ %d\n", combination_sort_basis(15, 16));
+    printf("Inner combinationsSortBasis_w1: %d\n", combination_sort_basis(15, 16));
 }
 
 
@@ -171,6 +171,9 @@ TEST_F(CombinationsTest, combinationsSortBasis_w2) {
 
 TEST_F(CombinationsTest, combinationsArrangement) {
     matersdk::mtp::Combinations combinations(mjus_njus_lst, false);
+    combinations.remove_duplicates();
+    combinations.remove_cannot_contract();
+
 
     // Step 1. get `int* new_indices`
     int* indices = (int*)malloc(sizeof(int) * combinations.get_num_combinations());
@@ -187,7 +190,6 @@ TEST_F(CombinationsTest, combinationsArrangement) {
     matersdk::mtp::Combinations sorted_combinations = combination_arrangement.arrange();
 
     // Step 3.
-    sorted_combinations.remove_duplicates();
     sorted_combinations.show();
 }
 
