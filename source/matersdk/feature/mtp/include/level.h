@@ -6,6 +6,7 @@
 #include <utility>
 #include <algorithm>
 #include <unordered_map>
+#include <cmath>
 
 namespace matersdk {
 namespace mtp {
@@ -98,17 +99,21 @@ private:
 };
 
 
-
+/**
+ * @brief MTPLevel
+ * 
+ */
 class MTPLevel {
 public:
-    MTPLevel(int mju, int nju);
+    MTPLevel(int max_level);
 
-    // Combinations: mju, nju
+    int get_max_num_M();
+
+    // find all Combinations: mju, nju (which is 冗余)
     void calc_combinations(int num_M, int max_level);
 
 private:
-    int mju;
-    int nju;
+    int max_level;
 };  // class: MTPLevel
 
 
@@ -289,16 +294,24 @@ int Combinations::get_level(const int mju, const int nju) {
 
 
 
+MTPLevel::MTPLevel(int max_level) {
+    this->max_level = max_level;
+}
 
 
-MTPLevel::MTPLevel(int mju, int nju) {
-    this->mju = mju;
-    this->nju = nju;
+int MTPLevel::get_max_num_M() {
+    int ii;
+    int current_level = 0;
+    for (ii=0; current_level < this->max_level; ii++) {
+        current_level += 2;
+    }
+
+    return ii;
 }
 
 
 void MTPLevel::calc_combinations(int num_M, int max_level) {
-
+    
 }
 
 

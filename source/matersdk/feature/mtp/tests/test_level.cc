@@ -200,6 +200,45 @@ TEST_F(CombinationsTest, combinationsArrangement) {
 }
 
 
+
+
+
+class MTPLevelTest : public ::testing::Test {
+protected:
+    int max_level;
+
+    static void SetUpTestSuite() {
+        std::cout << "MTPLevelTest (TestSuite) is setting up...\n";
+    }
+
+    static void TearDownTestSuite() {
+        std::cout << "MTPLevelTest (TestSuite) is tearing down...\n";
+    }
+
+    void SetUp() override {
+        max_level = 8;
+    }
+
+    void TearDown() override {
+
+    }
+};  // class : MTPLevelTest
+
+
+TEST_F(MTPLevelTest, construct_1) {
+    matersdk::mtp::MTPLevel mtp_level(max_level);
+}
+
+
+TEST_F(MTPLevelTest, get_max_num_M) {
+    max_level = 8;
+    matersdk::mtp::MTPLevel mtp_level(max_level);
+    int max_num_M = mtp_level.get_max_num_M();
+    
+    EXPECT_EQ(max_num_M, 4);
+}
+
+
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
