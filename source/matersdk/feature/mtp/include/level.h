@@ -13,16 +13,19 @@ namespace mtp {
 
 class Combinations {
 public:
-    Combinations(std::vector<std::vector<std::pair<int, int>>> mjus_njus_lst, bool sort_unique_mark=false);
+    Combinations(std::vector<std::vector<std::pair<int, int>>> mjus_njus_lst);
 
+    // Remove duplicated combinations
     void remove_duplicates();
 
+    // Remove the combinations which cannot be tensor contracted
     void remove_cannot_contract();
 
     void show() const;
 
     const std::vector<std::vector<std::pair<int, int>>> get_combinations() const;
 
+    // Get the number of combinations
     const int get_num_combinations() const;
 
     static int get_level(const int mju, const int nju);
@@ -33,7 +36,10 @@ private:
 
 
 
-
+/**
+ * @brief The Sort Basis for Combinations
+ * 
+ */
 class CombinationsSortBasis {
 public:
     CombinationsSortBasis(const Combinations rhs) : combinations(rhs)
@@ -66,6 +72,10 @@ private:
 
 
 
+/**
+ * @brief The Arrangement for Combinations
+ * 
+ */
 class CombinationsArrangement {
 public:
     CombinationsArrangement(const Combinations combinations, int* new_indices) : combinations(combinations), new_indices(new_indices)
@@ -107,7 +117,13 @@ private:
 
 
 
-Combinations::Combinations(std::vector<std::vector<std::pair<int, int>>> mjus_njus_lst, bool sort_unique_mark) {
+/**
+ * @brief Construct a new Combinations:: Combinations object
+ * 
+ * @param mjus_njus_lst : std::vector<std::vector<std::pair<int, int>>>
+ * @param sort_unique_mark : 
+ */
+Combinations::Combinations(std::vector<std::vector<std::pair<int, int>>> mjus_njus_lst) {
     // Step 1. Init the Combinations with `std::vector<std::vector<std::pair<int, int>>>`
     this->mjus_njus_lst.resize(mjus_njus_lst.size());
     for (int ii=0; ii<mjus_njus_lst.size(); ii++) 
@@ -119,15 +135,15 @@ Combinations::Combinations(std::vector<std::vector<std::pair<int, int>>> mjus_nj
         }
     }
 
-    // Step 2. 
-    if (sort_unique_mark == true) {
-
-    }
 
     // Step 3. 
 }
 
 
+/**
+ * @brief Remove the duplicated combination, e.g. [(mju0, nju0), (mju1, nju1), (mju2, nju2), ...]
+ * 
+ */
 void Combinations::remove_duplicates() {
     std::vector<std::vector<std::pair<int, int>>> new_mjus_njus_lst;
     new_mjus_njus_lst.clear();
@@ -152,6 +168,10 @@ void Combinations::remove_duplicates() {
 }
 
 
+/**
+ * @brief Remove the combination which cannot be tensor contracted, e.g. [(mju0, nju0), (mju1, nju1), (mju2, nju2), ...]
+ * 
+ */
 void Combinations::remove_cannot_contract() {
     // Step 1. 初始化一个新的 `new_mjus_njus_lst`
     std::vector<std::vector<std::pair<int, int>>> new_mjus_njus_lst;

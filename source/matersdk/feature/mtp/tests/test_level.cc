@@ -119,13 +119,13 @@ protected:
 
 
 TEST_F(CombinationsTest, constructor_1) {
-    matersdk::mtp::Combinations combinations(mjus_njus_lst, false);
+    matersdk::mtp::Combinations combinations(mjus_njus_lst);
     combinations.show();
 }
 
 
 TEST_F(CombinationsTest, get_combinations) {
-    matersdk::mtp::Combinations combinations(mjus_njus_lst, false);
+    matersdk::mtp::Combinations combinations(mjus_njus_lst);
     const std::vector<std::vector<std::pair<int, int>>> mjus_njus_lst = combinations.get_combinations();
 
     for (int ii=0; ii<mjus_njus_lst.size(); ii++) {
@@ -145,7 +145,7 @@ TEST_F(CombinationsTest, get_combinations) {
 
 
 TEST_F(CombinationsTest, combinationsSortBasis_w1) {
-    matersdk::mtp::Combinations combinations(mjus_njus_lst, false);
+    matersdk::mtp::Combinations combinations(mjus_njus_lst);
     matersdk::mtp::CombinationsSortBasis combination_sort_basis(combinations);
 
     printf("Inner combinationsSortBasis_w1: %d\n", combination_sort_basis(15, 16));
@@ -153,7 +153,7 @@ TEST_F(CombinationsTest, combinationsSortBasis_w1) {
 
 
 TEST_F(CombinationsTest, combinationsSortBasis_w2) {
-    matersdk::mtp::Combinations combinations(mjus_njus_lst, false);
+    matersdk::mtp::Combinations combinations(mjus_njus_lst);
 
     int* indices = (int*)malloc(sizeof(int) * combinations.get_num_combinations());
     for (int ii=0; ii<combinations.get_num_combinations(); ii++) {
@@ -170,7 +170,7 @@ TEST_F(CombinationsTest, combinationsSortBasis_w2) {
 
 
 TEST_F(CombinationsTest, combinationsArrangement) {
-    matersdk::mtp::Combinations combinations(mjus_njus_lst, false);
+    matersdk::mtp::Combinations combinations(mjus_njus_lst);
     combinations.remove_duplicates();
     combinations.remove_cannot_contract();
 
