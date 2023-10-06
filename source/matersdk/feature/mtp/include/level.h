@@ -110,7 +110,13 @@ public:
     int get_max_num_M();
 
     // find all Combinations: mju, nju (which is 冗余)
-    void calc_combinations(int num_M, int max_level);
+    void find_combinations(
+        std::vector<std::vector<std::pair<int, int>>> combinations, 
+        int num_M, 
+        int max_level,
+        int current_level=0,
+        int mju=0,
+        int nju=0);
 
 private:
     int max_level;
@@ -234,22 +240,15 @@ void Combinations::remove_cannot_contract() {
         for (const int& tmp_nju: njus_not_zero_lst)
             nju2num[tmp_nju]++;
 
-        // Step 2.3. Populate `mark_contraction`
-        bool mark_contraction = false;
+        // Step 2.3. Populate `mark_contraction` #Note!!!
+        bool mark_contraction = true;
         for (const std::pair<int, int>& tmp_nju2num: nju2num) {
-            // Step 2.3.2. case 1:
-            if (tmp_nju2num.second % 2 != 0)
-                break;
-            mark_contraction = true;
+            // Step 2.3.1. case 1: 各种 nju 均有偶数个
+            //printf("%d: %d,\t", tmp_nju2num.first, tmp_nju2num.second);   // Note!!!
+            if ((tmp_nju2num.first != 0) && (tmp_nju2num.second % 2 != 0))
+                mark_contraction = false;
         }
-
-        // Step 2.3.2. case 2: 
-        for (const std::pair<int, int>& tmp_nju2num: nju2num) {
-            if (tmp_nju2num.first != 0)
-                break;
-            mark_contraction = true;
-        }
-
+        //printf("\n");  // Note!!!
 
         // Step 2.4. 根据 `mark_contraction` 判断是否需要将 `this->mjus_njus_lst[ii]` 放入 `new_mjus_njus_lst`
         if (mark_contraction)
@@ -310,8 +309,27 @@ int MTPLevel::get_max_num_M() {
 }
 
 
-void MTPLevel::calc_combinations(int num_M, int max_level) {
+void MTPLevel::find_combinations(
+    std::vector<std::vector<std::pair<int, int>>> combinations, 
+    int num_M, 
+    int max_level,
+    int current_level,
+    int mju,
+    int nju) {
+    combinations.clear();
+
+    if (num_M == 0)
+        return ;
     
+    for (int ii=0; ii<this->max_level+1; ii++) {
+        for (int jj=0; jj<this->max_level+1; jj++) {
+            current_level += Combinations::get_level(ii, jj);
+            if (current_level < max_level) {
+                
+                this->find_combinations(combinations, num_M-1, max_level, current_level, ii, jj);
+            }
+        }
+    }
 }
 
 
