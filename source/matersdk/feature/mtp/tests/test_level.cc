@@ -206,6 +206,9 @@ TEST_F(CombinationsTest, combinationsArrangement) {
 class MTPLevelTest : public ::testing::Test {
 protected:
     int max_level;
+    int num_M;
+    int level;
+    std::vector<std::pair<int, int>> combination;
 
     static void SetUpTestSuite() {
         std::cout << "MTPLevelTest (TestSuite) is setting up...\n";
@@ -217,6 +220,9 @@ protected:
 
     void SetUp() override {
         max_level = 8;
+        num_M = 2;
+        combination.clear();
+        level = 0;
     }
 
     void TearDown() override {
@@ -236,6 +242,32 @@ TEST_F(MTPLevelTest, get_max_num_M) {
     int max_num_M = mtp_level.get_max_num_M();
     
     EXPECT_EQ(max_num_M, 4);
+}
+
+
+TEST_F(MTPLevelTest, calc_redundant_combination) {
+    num_M = 3;
+    max_level = 8;
+
+    level = 0;
+    combination.clear();
+    matersdk::mtp::MTPLevel mtp_level(max_level);
+    mtp_level.calc_redundant_combination(num_M, max_level, level, combination);
+    
+    std::vector<std::vector<std::pair<int, int>>> redundant_combinations = mtp_level.get_redundant_combinaions();
+    printf("+++ %d\n", redundant_combinations.size());
+}
+
+
+TEST_F(MTPLevelTest, calc_redundant_combinations) {
+    max_level = 8;
+    combination.clear();
+    matersdk::mtp::MTPLevel mtp_level(max_level);
+
+    mtp_level.calc_redundant_combinations(max_level, combination);
+    
+    std::vector<std::vector<std::pair<int, int>>> redundant_combinations = mtp_level.get_redundant_combinaions();
+    printf("+++ %d\n", redundant_combinations.size());
 }
 
 

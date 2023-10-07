@@ -109,22 +109,26 @@ public:
 
     int get_max_num_M();
 
-    // find all Combinations: mju, nju (which is 冗余)
-    void find_combinations(
-        std::vector<std::vector<std::pair<int, int>>> combinations, 
+    std::vector<std::vector<std::pair<int, int>>> get_redundant_combinaions();
+
+    // find all Combination: mju, nju (which is 冗余)
+    void calc_redundant_combination(
         int num_M, 
         int max_level,
-        int current_level=0,
-        int mju=0,
-        int nju=0);
+        int level,  // 0
+        std::vector<std::pair<int, int>>& combinations // None
+    );
+
+    void calc_redundant_combinations(
+        int max_level,
+        std::vector<std::pair<int, int>>& combinations // None
+    );
 
 private:
-    int max_level;
+    int max_level = 0;
+    int max_num_M = 0;
+    std::vector<std::vector<std::pair<int, int>>> redundant_combinations;
 };  // class: MTPLevel
-
-
-
-
 
 
 
@@ -295,6 +299,8 @@ int Combinations::get_level(const int mju, const int nju) {
 
 MTPLevel::MTPLevel(int max_level) {
     this->max_level = max_level;
+    this->max_num_M = this->get_max_num_M();
+    this->redundant_combinations.clear();
 }
 
 
@@ -309,26 +315,46 @@ int MTPLevel::get_max_num_M() {
 }
 
 
-void MTPLevel::find_combinations(
-    std::vector<std::vector<std::pair<int, int>>> combinations, 
-    int num_M, 
-    int max_level,
-    int current_level,
-    int mju,
-    int nju) {
-    combinations.clear();
+std::vector<std::vector<std::pair<int, int>>> MTPLevel::get_redundant_combinaions() {
+    return this->redundant_combinations;
+}
 
-    if (num_M == 0)
+
+void MTPLevel::calc_redundant_combination(
+    int num_M,
+    int max_level,
+    int level,
+    std::vector<std::pair<int, int>>& combination)
+{
+    if (num_M == 0) {
+        if (level <= max_level)
+            this->redundant_combinations.push_back(combination);
         return ;
-    
-    for (int ii=0; ii<this->max_level+1; ii++) {
-        for (int jj=0; jj<this->max_level+1; jj++) {
-            current_level += Combinations::get_level(ii, jj);
-            if (current_level < max_level) {
-                
-                this->find_combinations(combinations, num_M-1, max_level, current_level, ii, jj);
+    }
+
+    for (int tmp_mju=0; tmp_mju<=max_level+1; tmp_mju++) {
+        for (int tmp_nju=0; tmp_nju<=max_level+1; tmp_nju++) {
+            int new_level = level + Combinations::get_level(tmp_mju, tmp_nju);
+            if (new_level <= max_level) {
+                std::vector<std::pair<int, int>> new_combination = combination;
+                new_combination.push_back(std::pair<int, int>(tmp_mju, tmp_nju));
+                MTPLevel::calc_redundant_combination(num_M-1, max_level, new_level, new_combination);
             }
         }
+    }
+}
+
+
+void MTPLevel::calc_redundant_combinations(
+    int max_level,
+    std::vector<std::pair<int, int>>& combination)
+{
+    for (int ii=0; ii<this->max_num_M; ii++) {
+        int level = 0;
+        std::vector<std::pair<int, int>> combination;
+        combination.clear();
+        
+        this->calc_redundant_combination(ii, max_level, level, combination);
     }
 }
 
