@@ -353,7 +353,7 @@ void MTPLevel::calc_redundant_combinations(
         int level = 0;
         std::vector<std::pair<int, int>> combination;
         combination.clear();
-        
+
         this->calc_redundant_combination(ii, max_level, level, combination);
     }
 }
@@ -361,4 +361,4 @@ void MTPLevel::calc_redundant_combinations(
 
 }; // namespace : mtp
 }; // namespace : matersdk
-#endif 
+#endif
