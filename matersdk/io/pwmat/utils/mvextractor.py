@@ -78,6 +78,7 @@ class MVExtractor(object):
         
     
     def get_frame_info(self, fidx:int):
+        infos = []
         frame_str = self.get_frame_str(fidx=fidx)
         ace_str_extractor = ACstrExtractor(atom_config_str=frame_str)
         box = ace_str_extractor.get_basis_vectors()
@@ -85,11 +86,30 @@ class MVExtractor(object):
         coords = ace_str_extractor.get_coords()
         etot = ace_str_extractor.get_etot()
         fatoms = ace_str_extractor.get_fatoms()
-        return box, types, coords, etot, fatoms
+        
+        infos.append(box)
+        infos.append(types)
+        infos.append(coords)
+        infos.append(etot)
+        infos.append(fatoms)
+        
+        if self.virial_mark:
+            virial = ace_str_extractor.get_virial()
+            infos.append(virial)
+        if self.magmoms_mark:
+            magmoms = ace_str_extractor.get_magmoms()
+            infos.append(magmoms)
+        if self.eatoms_mark:
+            eatoms = ace_str_extractor.get_eatoms()
+            infos.append(eatoms)
+        
+        return infos
         
     
-        
     def get_frames_info(self):
         pass
-    
 
+
+    def get_info_labels(self):
+        pass
+    
