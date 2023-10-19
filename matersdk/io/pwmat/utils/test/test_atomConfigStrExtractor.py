@@ -8,7 +8,7 @@ from ..atomConfigExtractor import AtomConfigStrExtractor
 class AtomConfigStrExtractorTest(unittest.TestCase):
     def test_all(self):
         #movement_path = "/data/home/liuhanyu/hyliu/code/mlff/test/demo1/PWdata/data1/MOVEMENT"
-        movement_path = "/data/home/liuhanyu/hyliu/code/mlff/test/demo2/PWdata/data1/MOVEMENT"
+        movement_path = "/data/home/liuhanyu/hyliu/code/mlff/PWmatMLFF_dev/test/SiC/MD/MOVEMENT"
         movement = Movement(movement_path=movement_path)
         idx_frame = 2 # 帧数从 0 开始计数
         
@@ -26,7 +26,7 @@ class AtomConfigStrExtractorTest(unittest.TestCase):
         ### Step 2. 得到体系的 basis vectors
         print()
         print("Step 2. The basis vectors of system:") 
-        print(atom_config_str_extractor.get_basis_vectors_lst())
+        print(atom_config_str_extractor.get_basis_vectors())
         
         
         ### Step 3. 得到体系的维里张量

@@ -2,6 +2,7 @@ import re
 import linecache
 import numpy as np
 from abc import ABC, abstractmethod
+from typing import List, Union, Optional
 
 from .lineLocator import LineLocator, ListLocator
 from ...publicLayer.atom import Atom
@@ -15,39 +16,40 @@ class AtomConfigExtractorBase(ABC):
         pass
     
     @abstractmethod
-    def get_basis_vectors_lst(self):
-        pass
-    
-    @abstractmethod
-    def get_virial_tensor(self):
-        pass
-    
-    @abstractmethod
-    def get_atomic_numbers_lst(self):
-        pass
-    
-    @abstractmethod
-    def get_coords_lst(self):
-        pass
-    
-    @abstractmethod
-    def get_atomic_forces_lst(self):
-        pass
-    
-    @abstractmethod
-    def get_atomic_velocitys_lst(self):
-        pass
-    
-    @abstractmethod
-    def get_atomic_energys_lst(self):
-        pass
-    
-    @abstractmethod
-    def get_magnetic_moments(self):
+    def get_basis_vectors(self):
         pass
     
     #@abstractmethod
-    def get_atoms_lst(self):
+    #def get_virial_tensor(self):
+    #    pass
+    
+    @abstractmethod
+    def get_types(self):
+        pass
+    
+    @abstractmethod
+    def get_coords(self):
+        '''
+        Description
+        -----------
+            1. 提取体系的分数坐标
+        '''
+        pass
+    
+    #@abstractmethod
+    #def get_atomic_forces_lst(self):
+    #    pass
+    
+    #@abstractmethod
+    #def get_atomic_velocitys_lst(self):
+    #    pass
+    
+    #@abstractmethod
+    #def get_atomic_energys_lst(self):
+    #    pass
+    
+    @abstractmethod
+    def get_magmoms(self):
         pass
     
     
@@ -73,19 +75,19 @@ class AtomConfigExtractor(AtomConfigExtractorBase):
             4. ...
     '''
     def __init__(self,
-                atom_config_path: str):
+                file_path: str):
         '''
         Parameters
         ----------
             1. atom_config_path: str
                 The absolute path of `atom.config` file
         '''
-        self.atom_config_path = atom_config_path
+        self.atom_config_path = file_path
         self.num_atoms = self.get_num_atoms()
-        self.basis_vectors_array = self.get_basis_vectors_lst()
-        self.species_array = [atomic_number2specie[atomic_number] for atomic_number in self.get_atomic_numbers_lst() ]
-        self.coords_array = self.get_coords_lst()
-        self.magnetic_moments = self.get_magnetic_moments()
+        self.basis_vectors = self.get_basis_vectors()
+        self.types = self.get_types()
+        self.coords = self.get_coords()
+        #self.magnetic_moments = self.get_magnetic_moments()
 
 
     def get_num_atoms(self):
@@ -100,7 +102,7 @@ class AtomConfigExtractor(AtomConfigExtractorBase):
         return num_atoms
 
 
-    def get_basis_vectors_lst(self):
+    def get_basis_vectors(self):
         '''
         Description
         -----------
@@ -108,68 +110,38 @@ class AtomConfigExtractor(AtomConfigExtractorBase):
 
         Return
         ------
-            1. basis_vectors_lst: list, 是一个二维列表
-            e.g. [ [14.376087, 0.0, 0.0],
-                    [0.0, 12.357182, 0.0], 
-                    [0.0, 0.0, 10.594184]
-                ]
+            1. basis_vectors: np.ndarray (shape = (9,))
+            e.g. [13.13868  0.       0.       0.      13.13868  0.       0.       0.    
+                  13.13868]
             
         '''
-        basis_vectors_lst = []
+        basis_vectors:List[float] = []
 
         ### Step 1. 得到所有原子的原子序数、坐标
         content = "LATTICE"    # 此处需要大写
         idx_row = LineLocator.locate_all_lines(
-                                    file_path=self.atom_config_path,
-                                    content=content)[0]
-        with open(self.atom_config_path, 'r') as f:
-            atom_config_content = f.readlines()
+                            file_path=self.atom_config_path,
+                            content=content)[0]
 
         ### Step 2. 获取基矢向量
         for row_idx in [idx_row+1, idx_row+2, idx_row+3]:
-            row_content = linecache.getline(self.atom_config_path, row_idx).split()[:3]
+            row_content:List[str] = linecache.getline(self.atom_config_path, row_idx).split()[:3]
             
-            single_direction_vector = [float(value) for value in row_content]
-            basis_vectors_lst.append(single_direction_vector)
+            for value in row_content:
+                basis_vectors.append(float(value))
                 
-        return np.array(basis_vectors_lst)
-    
-    
-    def get_virial_tensor(self):
-        '''
-        Description
-        -----------
-            1. 得到材料的维里张量 (virial tensor)
-
-        Return
-        ------
-            1. virial_tensor: np.array, 是一个二维 np.ndarray            
-        '''
-        virial_tensor = []
-
-        ### Step 1. 得到所有原子的原子序数、坐标
-        content = "LATTICE"    # 此处需要大写
-        idx_row = LineLocator.locate_all_lines(
-                                    file_path=self.atom_config_path,
-                                    content=content)[0]
-        with open(self.atom_config_path, 'r') as f:
-            atom_config_content = f.readlines()
-
-        ### Step 2. 获取基矢向量
-        for row_idx in [idx_row+1, idx_row+2, idx_row+3]:
-            row_content = linecache.getline(self.atom_config_path, row_idx).split()[5:]
-            single_direction_vector = [float(value) for value in row_content]
-            virial_tensor.append(single_direction_vector)
-                
-        return np.array(virial_tensor)
+        return np.array(basis_vectors)
         
-
     
-    def get_atomic_numbers_lst(self):
+    def get_types(self):
         '''
         Description
         -----------
             1. 得到体系内所有的原子序数 (各个原子的 atomic_numbers)
+            
+        Return
+        ------
+            1. atomic_numbers : np.ndarray
 
         Note
         ----
@@ -192,11 +164,16 @@ class AtomConfigExtractor(AtomConfigExtractorBase):
         return np.array(atomic_numbers_lst)
 
 
-    def get_coords_lst(self):
+    def get_coords(self):
         '''
         Description
         -----------
-            1. 得到体系内所有的坐标
+            1. 得到体系内所有的分数坐标
+            
+        Return
+        ------
+            1. coords : np.ndarray
+                - shape = (num_atoms * 3,)
         '''
         coords_lst = []
         content = "POSITION"    # 此处需要大写
@@ -217,91 +194,10 @@ class AtomConfigExtractor(AtomConfigExtractorBase):
             coord_tmp = [float(value) for value in row_content_lst[1:4]]
             coords_lst.append(np.array(coord_tmp))
         
-        return np.array(coords_lst)
-    
-    
-    def get_atomic_forces_lst(self):
-        '''
-        Description
-        -----------
-            1. 得到体系内所有原子的受力
-        '''
-        try:    # atom.config 中有关于原子受力的信息
-            ### Step 1. 得到 atom.config 文件中所有信息，以列表的形式组合
-            forces_lst = []
-            content = "Force".upper()
-            idx_row = LineLocator.locate_all_lines(
-                                    file_path=self.atom_config_path,
-                                    content=content)[0]
-            with open(self.atom_config_path, 'r') as f:
-                atom_config_content = f.readlines()
-            
-            ### Step 2. 将力的信息，组织成
-            for row_content in atom_config_content[idx_row:idx_row + self.num_atoms]:
-                row_content_lst = row_content.split()
-                force_tmp = [float(value) for value in row_content_lst[1:4]]
-                forces_lst.append(np.array(force_tmp))
+        return np.array(coords_lst).reshape(-1)
         
-            return np.array(forces_lst)
-        except: # atom.config 中没有关于原子受力的信息
-            return np.zeros((self.num_atoms, 3))
 
-
-    def get_atomic_velocitys_lst(self):
-        '''
-        Description
-        -----------
-            1. 得到体系内所有原子的速度
-        '''
-        try:    # atom.config 中有关于原子速度的信息
-            ### Step 1. 得到 atom.config 文件中所有信息，以列表的形式组合
-            velocitys_lst = []
-            content = "Velocity (bohr/fs)".upper()
-            idx_row = LineLocator.locate_all_lines(
-                                    file_path=self.atom_config_path,
-                                    content=content)[0]
-            with open(self.atom_config_path, 'r') as f:
-                atom_config_content = f.readlines()
-            
-            ### Step 2. 将速度的信息，组织成 np.ndarray 形式
-            for row_content in atom_config_content[idx_row:idx_row + self.num_atoms]:
-                row_content_lst = row_content.split()
-                force_tmp = [float(value) for value in row_content_lst[1:4]]
-                velocitys_lst.append(np.array(force_tmp))
-        
-            return np.array(velocitys_lst)
-        except: # atom.config 中没有关于原子速度的信息
-            return np.zeros((self.num_atoms, 3))
-
-
-    def get_atomic_energys_lst(self):
-        '''
-        Description
-        -----------
-            1. 得到体系内所有原子的能量
-        '''
-        try:    # atom.config 中有关于原子能量的信息
-            ### Step 1. 得到 atom.config 文件中所有信息，以列表的形式组合
-            energys_lst = []
-            content = "Atomic-Energy, ".upper()
-            idx_row = LineLocator.locate_all_lines(
-                                    file_path=self.atom_config_path,
-                                    content=content)[0]
-            with open(self.atom_config_path, 'r') as f:
-                atom_config_content = f.readlines()
-            
-            ### Step 2. 将能量的信息，组织成 np.ndarray 形式
-            for row_content in atom_config_content[idx_row:idx_row + self.num_atoms]:
-                row_content_lst = row_content.split()
-                energy_tmp = [float(value) for value in row_content_lst[1:4]]
-                energys_lst.append(np.array(energy_tmp))
-        
-            return np.array(energys_lst)
-        except: # atom.config 中没有关于原子能量的信息
-            return np.zeros((self.num_atoms, 3))
-    
-
-    def get_magnetic_moments(self):
+    def get_magmoms(self):
         '''
         Description
         -----------
@@ -329,65 +225,6 @@ class AtomConfigExtractor(AtomConfigExtractorBase):
             magnetic_moments_lst = [0 for _ in range(self.num_atoms)]
         
         return magnetic_moments_lst
-
-
-    
-    def get_atoms_lst(self):
-        '''
-        Description
-        -----------
-            1. 得到材料体系内所有 `ht_battery.cores.Atom` 对象
-        '''
-        atoms_lst = []
-        
-        ### Part I. 得到所有原子的原子序数、坐标
-        ###         所有原子的原子序数：atomic_numbers_lst
-        ###         所有原子的坐标：coordinations_lst
-        content = "POSITION"
-        idx_row = LineLocator.locate_all_lines(
-                                    file_path=self.atom_config_path,
-                                    content=content)[-1]
-        with open(self.atom_config_path, 'r') as f:
-            atom_config_content = f.readlines()
-        
-        # 1. 得到所有原子的原子序数（注意将读取的 str 转换为 int）
-        atomic_numbers_content = atom_config_content[idx_row:idx_row + self.num_atoms]
-        atomic_numbers_lst = [int(row.split()[0]) for row in atomic_numbers_content]
-
-        # 2. 得到所有原子坐标的信息 (注意将读取的 str 转换为 int)
-        coordinations_content = atom_config_content[idx_row:idx_row + self.num_atoms]
-        coordinations_lst = [row.split()[1:4] for row in coordinations_content]
-        for i in range(len(coordinations_lst)): # 转换
-            for j in range(3):
-                coordinations_lst[i][j] = float(coordinations_lst[i][j])
-
-        ### Part II. 得到所有原子的磁矩 (注意将读取的 str 转换为 int)
-        ###         所有原子的磁矩：magnetic_moments_lst
-        try:
-            content = "MAGNETIC"
-            idx_row = LineLocator.locate_all_lines(
-                                        file_path=self.atom_config_path,
-                                        content=content)[-1]
-            with open(self.atom_config_path, 'r') as f:
-                atom_config_content = f.readlines()
-            magnetic_moments_content = atom_config_content[idx_row: idx_row+self.num_atoms]
-            magnetic_moments_lst = [float( row.split()[1] ) for row in magnetic_moments_content]
-            #print("Information of magnetic moment exist.")
-        except:
-            #print("The program will extract magnetic moment from template atom.config...")
-            magnetic_moments_lst = [0 for _ in range(self.num_atoms)]
-        
-
-        ### Part III
-        for idx_atom in range(self.num_atoms):
-            tmp_atom = Atom(
-                        atomic_number=atomic_numbers_lst[idx_atom],
-                        coordination=coordinations_lst[idx_atom],
-                        magnetic_moment=magnetic_moments_lst[idx_atom]
-                        )
-            atoms_lst.append(tmp_atom)
-
-        return atoms_lst
     
     
 class AtomConfigStrExtractor(AtomConfigExtractorBase):
@@ -595,3 +432,4 @@ class AtomConfigStrExtractor(AtomConfigExtractorBase):
             magnetic_moments_lst = [0 for _ in range(self.num_atoms)]
         
         return np.array(magnetic_moments_lst)
+    
