@@ -8,19 +8,17 @@ from .lineLocator import LineLocator
 
     
 class MVExtractor(object):
-    def __init__(
-            self, 
-            movement_path:str,
-            virial:bool=False, 
-            magmoms:bool=False, 
-            eatoms:bool=False):
+    def __init__(self, movement_path:str):
         self.mv_path = movement_path
-        self.virial_mark = virial
-        self.magmoms_mark = magmoms
-        self.eatoms_mark = eatoms
         
-        self.chunksizes:List[int] = self.get_chunksizes()
+        self.chunksizes:List[int] = self.get_chunksizes()   # set `self.num_frames`
         self.chunkslices:List[int] = self.get_chunkslices()
+        self.virial_mark, self.eatoms_mark, self.magmoms_mark = \
+                            self._find_extra_properties()            
+    
+    
+    def get_num_frames(self):
+        return self.num_frames
     
     
     def get_chunksizes(self):
@@ -46,6 +44,8 @@ class MVExtractor(object):
                         file_path=self.mv_path, 
                         content=content)
 
+        self.num_frames = len(aim_row_idxs)
+        
         chunksizes_lst.append(aim_row_idxs[0])
         for idx in range(1, len(aim_row_idxs)):
             chunksizes_lst.append(aim_row_idxs[idx] - aim_row_idxs[idx-1])
@@ -81,35 +81,120 @@ class MVExtractor(object):
         infos = []
         frame_str = self.get_frame_str(fidx=fidx)
         ace_str_extractor = ACstrExtractor(atom_config_str=frame_str)
+        
         box = ace_str_extractor.get_basis_vectors()
         types = ace_str_extractor.get_types()
         coords = ace_str_extractor.get_coords()
         etot = ace_str_extractor.get_etot()
         fatoms = ace_str_extractor.get_fatoms()
         
-        infos.append(box)
-        infos.append(types)
-        infos.append(coords)
-        infos.append(etot)
-        infos.append(fatoms)
+        infos.append( box )
+        infos.append( types )
+        infos.append( coords )
+        infos.append( etot )
+        infos.append( fatoms )
         
         if self.virial_mark:
             virial = ace_str_extractor.get_virial()
-            infos.append(virial)
+            infos.append( virial )
         if self.magmoms_mark:
             magmoms = ace_str_extractor.get_magmoms()
-            infos.append(magmoms)
+            infos.append( magmoms )
         if self.eatoms_mark:
             eatoms = ace_str_extractor.get_eatoms()
-            infos.append(eatoms)
+            infos.append( eatoms )
         
         return infos
         
     
     def get_frames_info(self):
-        pass
+        box:List[np.ndarray] = []
+        coord:List[np.ndarray] = []
+        types:List[np.ndarray] = []
+        energy:List[np.ndarray] = []
+        force:List[np.ndarray] = []
+        if self.virial_mark:
+            virial:List[np.ndarray] = []
+        if self.eatoms_mark:
+            eatoms:List[np.ndarray] = []
+        if self.magmoms_mark:
+            magmoms:List[np.ndarray] = []
+        with open(self.mv_path, "r") as mvt:
+            for idx_chunk in range(len(self.chunksizes)):
+                tmp_chunk = ""
+                for idx_chunk_line in range(self.chunksizes[idx_chunk]):
+                    tmp_chunk += mvt.readline()
+                ac_str_extractor = ACstrExtractor(atom_config_str=tmp_chunk)
+                box.append( ac_str_extractor.get_basis_vectors() )
+                coord.append( ac_str_extractor.get_coords() )
+                types.append( ac_str_extractor.get_types() )
+                energy.append( ac_str_extractor.get_etot() )
+                force.append( ac_str_extractor.get_fatoms() )
+                if self.virial_mark:
+                    virial.append( ac_str_extractor.get_virial() )
+                if self.eatoms_mark:
+                    eatoms.append( ac_str_extractor.get_eatoms() )
+                if self.magmoms_mark:
+                    magmoms.append( ac_str_extractor.get_magmoms() )
+        
+        info:List[List[np.ndarray]] = []
+        info.append( np.array(box) )
+        info.append( np.array(types) )
+        info.append( np.array(coord) )
+        info.append( np.array(energy) )
+        info.append( np.array(force) )
+        if self.virial_mark:
+            info.append( np.array(virial) )
+        if self.eatoms_mark:
+            info.append( np.array(eatoms) )
+        if self.magmoms_mark:
+            info.append( np.array(magmoms) )
+        
+        return info
+            
+        
 
 
     def get_info_labels(self):
-        pass
+        info_labels = []
+        info_labels.append("box")
+        info_labels.append("types")
+        info_labels.append("coords")
+        info_labels.append("etot")
+        info_labels.append("fatoms")
+        
+        if self.virial_mark:
+            info_labels.append("virial")
+        if self.eatoms_mark:
+            info_labels.append("etaoms")
+        if self.magmoms_mark:
+            info_labels.append("magmoms")
+        
+        return info_labels
+    
+    
+    def _find_extra_properties(self):
+        virial_mark:bool = True
+        eatoms_mark:bool = True
+        magmoms_mark:bool = True
+        
+        frame_0_str:str = self.get_frame_str(fidx=0)
+        ac_str_extractor = ACstrExtractor(atom_config_str=frame_0_str)
+        try:
+            _ = ac_str_extractor.get_virial()
+        except AttributeError as e:
+            virial_mark = False
+        
+        try:
+            _ = ac_str_extractor.get_eatoms()
+        except AttributeError as e:
+            eatoms_mark = False
+        
+        try:
+            _ = ac_str_extractor.get_magmoms()
+        except AttributeError as e:
+            magmoms_mark = False
+        
+        
+        return [virial_mark, eatoms_mark, magmoms_mark]
     
