@@ -9,7 +9,8 @@ class InfoSetTest(unittest.TestCase):
         #movement_path = "/data/home/liuhanyu/hyliu/code/mlff/PWmatMLFF_dev/test/SiC/MD/MOVEMENT"
         movement_path = "/data/home/liuhanyu/hyliu/code/mlff/test/demo2/PWdata/data1/MOVEMENT"
         
-        #info_set = InfoSet(file_path=movement_path, file_format="pwmat/movement")
+        infosets_atomic_numbers = [3, 14, 7]
+        #info_set = InfoSet(file_path=movement_path, file_format="pwmat/movement", infosets_atomic_numbers=infosets_atomic_numbers)
         info_set = InfoSet.from_file(file_path=movement_path, file_format="pwmat/movement")
         
         ### Step 1.
