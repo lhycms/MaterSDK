@@ -57,8 +57,12 @@ class InfoSet(object):
         return info_set
 
     
-    def to_dir(self, dir_path:str, part_size:int):
-        num_parts = int(self.num_frames / part_size) + 1
+    def to_dir(self, dir_path:str, part_size:Union[int, bool]=False):
+        if part_size is not False:
+            num_parts = int(self.num_frames / part_size) + 1
+        else:
+            num_parts = 1
+            part_size = self.num_frames
         
         if os.path.exists( os.path.join(dir_path, self.formula) ):
             warnings.warn("This dir exists: ".format(os.path.join(dir_path, self.formula)))

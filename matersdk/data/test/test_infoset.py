@@ -18,7 +18,7 @@ class InfoSetTest(unittest.TestCase):
         
         ### Step 2.
         print("2. ")
-        info_set.to_dir(dir_path="../test", part_size=14)
+        info_set.to_dir(dir_path="../test")
         
 
 
