@@ -1,7 +1,7 @@
 '''
 1. ACExtractor: Extract info from atom.config
 
-2. ACEstrExtractor: Extract info from string of MOVMENT
+2. ACEstrExtractor: Extract info from string of MOVEMENT
 '''
 import re
 import linecache
@@ -59,18 +59,18 @@ class ACExtractor(ACExtractorBase):
         1. 提取 atom.config 文件中的信息：
             1. num_atoms: int
                 体系内的原子总数
-            2. basis_vectors_array: list
+            2. basis_vectors: list
                 体系的基矢 (二维list)
-            3. species_array: list of str
+            3. types: list of str
                 各个 site 的原子种类
-            4. coords_array: np.array
+            4. coords: np.array
                 各个 site 的分数坐标
+            5. 
     
         2. 当提取的是 MOVEMENT 中某一帧信息时，还可以提取到：
             1. `Force (eV/Angstrom)`
-            2. `Velocity (bohr/fs)`
-            3. `Atomic-Energy`
-            4. ...
+            2. `Atomic-Energy`
+            3. ...
     '''
     def __init__(self,
                 file_path: str):
@@ -150,8 +150,8 @@ class ACExtractor(ACExtractorBase):
         ###         所有原子的坐标：coordinations_lst
         content = "POSITION"    # 此处需要大写
         idx_row = LineLocator.locate_all_lines(
-                                    file_path=self.atom_config_path,
-                                    content=content)[0]
+                                file_path=self.atom_config_path,
+                                content=content)[0]
         with open(self.atom_config_path, 'r') as f:
             atom_config_content = f.readlines()
         

@@ -6,7 +6,7 @@ import numpy as np
 from .acextractor import ACstrExtractor
 from .lineLocator import LineLocator
 
-    
+
 class MVExtractor(object):
     def __init__(self, movement_path:str):
         self.mv_path = movement_path
@@ -105,7 +105,7 @@ class MVExtractor(object):
             infos.append( eatoms )
         
         return infos
-        
+    
     
     def get_frames_info(self):
         box:List[np.ndarray] = []
@@ -152,8 +152,6 @@ class MVExtractor(object):
         
         return info
             
-        
-
 
     def get_info_labels(self):
         info_labels = []

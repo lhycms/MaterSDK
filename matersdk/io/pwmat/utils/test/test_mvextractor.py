@@ -33,18 +33,17 @@ class MVExtractorTest(unittest.TestCase):
         print("3. get_frame_str:")
         #print(mvextractor.get_frame_str(fidx=0))
         
-        ### Step 4.
+        ### Step 4. 
         print()
         print("4. get_frame_info:")
         box, types, coords, etot, fatoms, virial, eatoms = mvextractor.get_frame_info(fidx=0)
         #print(eatoms)
         
-        ### Step 5.
+        ### Step 5. 
         info = mvextractor.get_frames_info()
-        print(info[2].shape)
+        print(info[1])
         
         
-    
     def test_get_frames_info(self):
         pass
         
