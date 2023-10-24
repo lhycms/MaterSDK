@@ -21,7 +21,12 @@ if (BUILD_TEST)
     add_executable(test_se_lmp ${CMAKE_CURRENT_SOURCE_DIR}/test/test_se_lmp.cc)
     target_link_libraries(test_se_lmp gtest gtest_main)
 
+    add_executable(test_se4pw ${CMAKE_CURRENT_SOURCE_DIR}/test/test_se4pw.cc)
+    target_link_libraries(test_se4pw gtest gtest_main)
+
     add_executable(demo ${CMAKE_CURRENT_SOURCE_DIR}/test/demo.cc)
 
     gtest_discover_tests(test_se)
+    gtest_discover_tests(test_se_lmp)
+    gtest_discover_tests(test_se4pw)
 endif()

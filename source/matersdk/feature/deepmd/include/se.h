@@ -126,7 +126,7 @@ CoordType smooth_func(const CoordType& distance_ji, const CoordType& rcut, const
         smooth_value = r_recip * ( std::pow(uu, 3) * (-6*std::pow(uu, 2) + 15*uu - 10) + 1);
     else
         smooth_value = 0;
-    
+
     return smooth_value;
 }
 

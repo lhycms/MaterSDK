@@ -136,10 +136,14 @@ protected:
         firstneigh = (int**)malloc(sizeof(int*) * inum);
         for (int ii=0; ii<inum; ii++)
             firstneigh[ii] = (int*)malloc(sizeof(int) * numneigh[ii]);
-        for (int ii=0; ii<inum; ii++) 
-            for (int jj=0; jj<numneigh[ii]; jj++)
+        for (int ii=0; ii<inum; ii++) {
+            for (int jj=0; jj<numneigh[ii]; jj++) {
                 firstneigh[ii][jj] = neighbor_list.get_neighbor_lists()[ii][jj];    
-        
+                printf("%d, ", firstneigh[ii][jj]);
+            }
+            printf("\n");
+        }
+
         int supercell_num_atoms = neighbor_list.get_binLinkedList().get_supercell().get_num_atoms();
         x = (double**)neighbor_list.get_binLinkedList().get_supercell().get_structure().get_cart_coords();
         types = (int*)neighbor_list.get_binLinkedList().get_supercell().get_structure().get_atomic_numbers();
