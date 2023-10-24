@@ -3,9 +3,9 @@ from pymatgen.core import Structure
 from collections import Counter
 from typing import List, Union
 
-from ..pwmat.utils.atomConfigExtractor import (
-                                            AtomConfigExtractor,
-                                            AtomConfigStrExtractor)
+from ..pwmat.utils.acextractor import (
+                                ACExtractor,
+                                ACstrExtractor)
 from ..pwmat.utils.parameters import specie2atomic_number
 
 
@@ -28,8 +28,7 @@ class DStructure(Structure):
     def from_file(cls,
                 file_path:str,
                 file_format:str,
-                coords_are_cartesian:bool=False,
-                ):
+                sort:bool=False):
         '''
         Parameters
         ----------
@@ -40,8 +39,8 @@ class DStructure(Structure):
                 2. "pwmat"
                 3. "cif"
                 4. ...
-            3. coords_are_cartesian: bool
-                1. 坐标是否是笛卡尔形式，默认是分数形式
+            3. sort: bool
+                1. 是否按元素从小到大排序 sites
         
         Note
         ----
@@ -53,29 +52,15 @@ class DStructure(Structure):
             structure = Structure.from_file(filename=file_path)
 
         if (file_format == "pwmat"):
-            atom_config_extractor = AtomConfigExtractor(
-                                            atom_config_path=file_path,
-                                            )
-
+            atom_config_extractor = ACExtractor(file_path=file_path)
+            print(atom_config_extractor.basis_vectors.shape)
+            print(atom_config_extractor.types.shape)
+            print(atom_config_extractor.coords.shape)
             structure = Structure(
-                        lattice=atom_config_extractor.basis_vectors_array,
-                        species=atom_config_extractor.species_array,
-                        coords=atom_config_extractor.coords_array,
-                        coords_are_cartesian=coords_are_cartesian,
-                        site_properties={
-                            "magmom": atom_config_extractor.magnetic_moments,
-                            "atomic_force": list(atom_config_extractor.get_atomic_forces_lst()),
-                            "atomic_velocity": list(atom_config_extractor.get_atomic_velocitys_lst()),
-                            "atomic_energy": list(atom_config_extractor.get_atomic_energys_lst())
-                            }
-                        )
-            
-            ### 以下性质，只有在运行AIMD时才会输出
-            structure.virial_tensor = atom_config_extractor.get_virial_tensor()
-        
-        if (file_format == "pdb"):
-            pass
-        
+                lattice=atom_config_extractor.basis_vectors.reshape(3, 3),
+                species=atom_config_extractor.types.flatten(),
+                coords=atom_config_extractor.coords.reshape(-1, 3),
+                coords_are_cartesian=False) # atom.config 默认均为分数坐标
 
         structure.__class__ = cls
         return structure
@@ -98,29 +83,19 @@ class DStructure(Structure):
                 4. ...
             3. coords_are_cartesian: bool
                 1. 坐标是否是笛卡尔形式，默认是分数形式
-                2. Note: `AtomConfigStrExtractor` 提取的是分数坐标
+                2. Note: `ACstrExtractor` 提取的是分数坐标
         
         Note
         ----
             1. 
         '''
         if (str_format == "pwmat"):
-            atom_config_str_extractor = AtomConfigStrExtractor(atom_config_str=str_content)
+            atom_config_str_extractor = ACstrExtractor(atom_config_str=str_content)
             structure = Structure(
                             lattice=atom_config_str_extractor.basis_vectors_array,
                             species=atom_config_str_extractor.species_array,
                             coords=atom_config_str_extractor.coords_array,
-                            coords_are_cartesian=coords_are_cartesian,
-                            site_properties={
-                                "magmom": atom_config_str_extractor.magnetic_moments,
-                                "atomic_force": list(atom_config_str_extractor.get_atomic_forces_lst()),
-                                "atomic_velocity": list(atom_config_str_extractor.get_atomic_velocitys_lst()),
-                                "atomic_energy": list(atom_config_str_extractor.get_atomic_energys_lst())
-                            }
-                        )
-            
-            ### 以下性质，只有在运行AIMD时才会输出
-            structure.virial_tensor = atom_config_str_extractor.get_virial_tensor()
+                            coords_are_cartesian=coords_are_cartesian)
         else:
             raise ValueError("Note: Other format besides pwmat can't read now!!!")
         
@@ -129,8 +104,8 @@ class DStructure(Structure):
     
 
     def to(self,
-            output_file_path:str,
-            output_file_format:str,
+            file_path:str,
+            file_format:str,
             include_magnetic_moments:bool=False,
             ):
         '''
@@ -140,9 +115,9 @@ class DStructure(Structure):
         
         Parameters
         ----------
-            1. output_file_path: str
+            1. file_path: str
                 文件输出的路径
-            2. 输出文件的格式
+            2. file_format: str
                 1. "pwmat"
                 2. "poscar" / "vasp"
                 3. "cssr"
@@ -153,13 +128,13 @@ class DStructure(Structure):
                 8. "yaml"
                 9. "fleur-inpgen"
         '''
-        if (output_file_format != "pwmat"):
+        if (file_format != "pwmat"):
             super(DStructure, self).to(
-                                    fmt=output_file_format,
-                                    filename=output_file_path)
+                                    fmt=file_format,
+                                    filename=file_path)
         
-        if (output_file_format == "pwmat"):
-            with open(output_file_path, "w") as f:
+        if (file_format == "pwmat"):
+            with open(file_path, "w") as f:
                 # 1. 
                 f.write("  {0} atoms\n".format(self.num_sites))
 
