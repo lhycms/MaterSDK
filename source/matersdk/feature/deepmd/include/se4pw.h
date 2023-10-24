@@ -23,6 +23,21 @@ public:
         int* num_neigh_atoms_lst,
         CoordType rcut,
         CoordType rcut_smooth);
+    
+    // Compatible with Fortran. 0 stands for none atom. indices starts from 1
+    static void get_prim_indices_from_matersdk(
+        CoordType* prim_indices,
+        int inum,
+        int* ilist,
+        int* numneigh,
+        int** firstneigh,
+        CoordType** x,
+        int* types,     // starts from 0.
+        int ntypes,    // starts from 0. e.g. 2
+        int* num_neigh_atoms_lst);
+
+    // Compatible with Fortran. 0 stands for none atom. indices starts from 1
+    static void get_prim_indices_from_lmp();
 };
 
 
@@ -74,7 +89,7 @@ void Se4pw<CoordType>::generate(
     for (int ii=0; ii<inum; ii++) {
         center_atom_idx = ilist[ii];
         center_cart_coords = x[center_atom_idx];
-        for (int ii=0; ii<ntypes; ii++)
+        for (int jj=0; jj<ntypes; jj++)
             nloop_idxs[ii] = 0;
             
         for (int jj=0; jj<numneigh[ii]; jj++) {
@@ -98,7 +113,7 @@ void Se4pw<CoordType>::generate(
             for (kk=0; kk<ntypes; kk++) 
                 if (types[neigh_atom_idx] == kk)
                     break;
-            printf("[%d: %d, %d]\n", kk, nstart_idxs[kk], nloop_idxs[kk]);
+
             tilde_r[0 + (nstart_idxs[kk]+nloop_idxs[kk])*4 + ii*tot_num_neigh_atoms*4] = tilde_s_value;
             tilde_r[1 + (nstart_idxs[kk]+nloop_idxs[kk])*4 + ii*tot_num_neigh_atoms*4] = tilde_x_value;
             tilde_r[2 + (nstart_idxs[kk]+nloop_idxs[kk])*4 + ii*tot_num_neigh_atoms*4] = tilde_y_value;
@@ -179,7 +194,64 @@ void Se4pw<CoordType>::generate(
 
     // Step. Free Memory
     free(center_cart_coords);
+    free(neigh_cart_coords);
+    free(diff_cart_coords);
+    free(nstart_idxs);
+    free(nloop_idxs);
 }
+
+
+
+template <typename CoordType>
+void Se4pw<CoordType>::get_prim_indices_from_matersdk(
+        CoordType* prim_indices,
+        int inum,
+        int* ilist,
+        int* numneigh,
+        int** firstneigh,
+        CoordType** x,
+        int* types,
+        int ntypes,
+        int* num_neigh_atoms_lst)
+{
+    // Step 1. 
+    int center_atom_idx;
+    int neigh_atom_idx;
+    int* nstart_idxs = (int*)malloc(sizeof(int) * ntypes);
+    for (int ii=0; ii<ntypes; ii++)
+        nstart_idxs[ii] = 0;
+    for (int ii=0; ii<ntypes; ii++)
+        for (int jj=0; jj<ii; jj++)
+            nstart_idxs[ii] += num_neigh_atoms_lst[jj];
+    int* nloop_idxs = (int*)malloc(sizeof(int) * ntypes);
+    int tot_num_neigh_atoms = 0;
+    for (int ii=0; ii<ntypes; ii++)
+        tot_num_neigh_atoms += num_neigh_atoms_lst[ii];
+
+    // Step 2. Populate `prim_indices`
+    for (int ii=0; ii<inum; ii++) {
+        center_atom_idx = ilist[ii];
+        for (int jj=0; jj<ntypes; jj++)
+            nloop_idxs[jj] = 0;
+
+        for (int jj=0; jj<numneigh[ii]; jj++) {
+            neigh_atom_idx = firstneigh[ii][jj];
+            
+            int kk = 0;
+            for (int kk=0; kk<ntypes; kk++)
+                if (types[neigh_atom_idx] == kk)
+                    break;
+            
+            prim_indices[(nstart_idxs[kk]+nloop_idxs[kk]) + ii*tot_num_neigh_atoms] = (neigh_atom_idx % inum + 1);
+            nloop_idxs[kk]++;
+        }
+    }
+
+    // Step . Free memory
+    free(nstart_idxs);
+    free(nloop_idxs);
+}
+
 
 };
 };
