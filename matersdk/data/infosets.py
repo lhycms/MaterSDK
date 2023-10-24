@@ -29,8 +29,13 @@ class InfoSets(object):
         self.infoset_lst:List[InfoSet] = []
         for tmp_file in file_paths_lst:
             self.infoset_lst.append(InfoSet(file_path=tmp_file, file_format=file_format, infosets_atomic_numbers=infosets_atomic_numbers))
-
-        print(self.infoset_lst[1].formula_dict)
+            
+        for tmp_idx1, tmp_infoset1 in enumerate( self.infoset_lst ):
+            for tmp_idx2, tmp_infoset2 in enumerate( self.infoset_lst ):
+                if (tmp_idx1 != tmp_idx2) and \
+                        (tmp_infoset1.formula == tmp_infoset2.formula):
+                    pass
+                
         
         
     def get_num_frames(self):
