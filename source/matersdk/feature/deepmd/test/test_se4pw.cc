@@ -4,6 +4,7 @@
 
 #include "../../../io/publicLayer/include/structure.h"
 #include "../include/se4pw.h"
+#include <cmath>
 
 
 class Se4pwTest : public ::testing::Test {
@@ -162,8 +163,37 @@ public:
 
 TEST_F(Se4pwTest, generate) {
     double* tilde_r = (double*)malloc(sizeof(double) * (inum*tot_num_neigh_atoms*4));
+    double* tilde_r_deriv = (double*)malloc(sizeof(double) * (inum*tot_num_neigh_atoms*4*3));
+    double* relative_coords = (double*)malloc(sizeof(double) * (inum*tot_num_neigh_atoms*3));
+    for (int ii=0; ii<inum; ii++) {
+        for (int jj=0; jj<tot_num_neigh_atoms; jj++) {
+            tilde_r[ii*tot_num_neigh_atoms*4+jj*4] = 0;
+            tilde_r[ii*tot_num_neigh_atoms*4+jj*4+1] = 0;
+            tilde_r[ii*tot_num_neigh_atoms*4+jj*4+2] = 0;
+            tilde_r[ii*tot_num_neigh_atoms*4+jj*4+3] = 0;
+            tilde_r_deriv[ii*tot_num_neigh_atoms*4*3 + jj*4*3 + 0*3 + 0] = 0;
+            tilde_r_deriv[ii*tot_num_neigh_atoms*4*3 + jj*4*3 + 0*3 + 1] = 0;
+            tilde_r_deriv[ii*tot_num_neigh_atoms*4*3 + jj*4*3 + 0*3 + 2] = 0;
+            tilde_r_deriv[ii*tot_num_neigh_atoms*4*3 + jj*4*3 + 1*3 + 0] = 0;
+            tilde_r_deriv[ii*tot_num_neigh_atoms*4*3 + jj*4*3 + 1*3 + 1] = 0;
+            tilde_r_deriv[ii*tot_num_neigh_atoms*4*3 + jj*4*3 + 1*3 + 2] = 0;
+            tilde_r_deriv[ii*tot_num_neigh_atoms*4*3 + jj*4*3 + 2*3 + 0] = 0;
+            tilde_r_deriv[ii*tot_num_neigh_atoms*4*3 + jj*4*3 + 2*3 + 1] = 0;
+            tilde_r_deriv[ii*tot_num_neigh_atoms*4*3 + jj*4*3 + 2*3 + 2] = 0;
+            tilde_r_deriv[ii*tot_num_neigh_atoms*4*3 + jj*4*3 + 3*3 + 0] = 0;
+            tilde_r_deriv[ii*tot_num_neigh_atoms*4*3 + jj*4*3 + 3*3 + 1] = 0;
+            tilde_r_deriv[ii*tot_num_neigh_atoms*4*3 + jj*4*3 + 3*3 + 2] = 0;
+            relative_coords[ii*tot_num_neigh_atoms*3 + jj*3 + 0] = 0;
+            relative_coords[ii*tot_num_neigh_atoms*3 + jj*3 + 1] = 0;
+            relative_coords[ii*tot_num_neigh_atoms*3 + jj*3 + 2] = 0;
+        }
+    }
+    
+    
     matersdk::deepPotSE::Se4pw<double>::generate(
                         tilde_r,
+                        tilde_r_deriv,
+                        relative_coords,
                         inum,
                         ilist,
                         numneigh,
@@ -183,6 +213,41 @@ TEST_F(Se4pwTest, generate) {
                 tilde_r[ii*tot_num_neigh_atoms*4+jj*4+1],
                 tilde_r[ii*tot_num_neigh_atoms*4+jj*4+2],
                 tilde_r[ii*tot_num_neigh_atoms*4+jj*4+3]);
+        }
+    }
+
+    for (int ii=0; ii<inum; ii++) {
+        for (int jj=0; jj<tot_num_neigh_atoms; jj++) {
+            printf("[%3d, %3d] -- [%10f, %10f, %10f], [%10f, %10f, %10f], [%10f, %10f, %10f], [%10f, %10f, %10f]\n",
+                    ii, jj,
+                    tilde_r_deriv[ii*tot_num_neigh_atoms*4*3 + jj*4*3 + 0*3 + 0],
+                    tilde_r_deriv[ii*tot_num_neigh_atoms*4*3 + jj*4*3 + 0*3 + 1],
+                    tilde_r_deriv[ii*tot_num_neigh_atoms*4*3 + jj*4*3 + 0*3 + 2],
+                    tilde_r_deriv[ii*tot_num_neigh_atoms*4*3 + jj*4*3 + 1*3 + 0],
+                    tilde_r_deriv[ii*tot_num_neigh_atoms*4*3 + jj*4*3 + 1*3 + 1],
+                    tilde_r_deriv[ii*tot_num_neigh_atoms*4*3 + jj*4*3 + 1*3 + 2],
+                    tilde_r_deriv[ii*tot_num_neigh_atoms*4*3 + jj*4*3 + 2*3 + 0],
+                    tilde_r_deriv[ii*tot_num_neigh_atoms*4*3 + jj*4*3 + 2*3 + 1],
+                    tilde_r_deriv[ii*tot_num_neigh_atoms*4*3 + jj*4*3 + 2*3 + 2],
+                    tilde_r_deriv[ii*tot_num_neigh_atoms*4*3 + jj*4*3 + 3*3 + 0],
+                    tilde_r_deriv[ii*tot_num_neigh_atoms*4*3 + jj*4*3 + 3*3 + 1],
+                    tilde_r_deriv[ii*tot_num_neigh_atoms*4*3 + jj*4*3 + 3*3 + 2]);
+        }
+    }
+    
+
+    for (int ii=0; ii<inum; ii++) {
+        for (int jj=0; jj<tot_num_neigh_atoms; jj++) {
+            printf("[%3d, %3d] -- [%10f, %10f, %10f] : %10f\n",
+                    ii, jj,
+                    relative_coords[ii*tot_num_neigh_atoms*3 + jj*3 + 0],
+                    relative_coords[ii*tot_num_neigh_atoms*3 + jj*3 + 1],
+                    relative_coords[ii*tot_num_neigh_atoms*3 + jj*3 + 2],
+                    std::sqrt(
+                        std::pow(relative_coords[ii*tot_num_neigh_atoms*3 + jj*3 + 0], 2) + 
+                        std::pow(relative_coords[ii*tot_num_neigh_atoms*3 + jj*3 + 1], 2) + 
+                        std::pow(relative_coords[ii*tot_num_neigh_atoms*3 + jj*3 + 2], 2))
+            );
         }
     }
 }
