@@ -37,16 +37,19 @@ class InfoSet(object):
             self.virial = virial
         else:
             self.virial_mark = False
+            self.virial = False
         if eatom is not False:
             self.eatom_mark = True
             self.eatom = eatom
         else:
             self.eatom_mark = False
+            self.eatom = False
         if magmom is not False:
             self.magmom_mark = True
             self.magmom = magmom
         else:
             self.magmom_mark = False
+            self.magmom = False
         self.formula_dict = formula_dict
         self.formula = formula
         self.num_frames = num_frames
@@ -101,6 +104,7 @@ class InfoSet(object):
         # 2. self.formula
         for k, v in formula_dict.items():
             formula += "{0}{1}".format(k, v)
+            
         # 3. self.types
         new_types:List[np.ndarray] = []
         for tmp_frame_idx in range(num_frames):

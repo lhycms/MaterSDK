@@ -10,10 +10,8 @@ class InfoSetsTest(unittest.TestCase):
         file_name = "MOVEMENT"
         file_format = "pwmat/movement"
         
-        #info_sets = InfoSets(dir_path=dir_path, file_name=file_name, file_format=file_format)
         info_sets = InfoSets.from_dir(dir_path=dir_path, file_name=file_name, file_format=file_format)
         
-        print(info_sets.get_num_frames())
         info_sets.to_dir(dir_path="/data/home/liuhanyu/hyliu/code/test")
 
 if __name__ == "__main__":
