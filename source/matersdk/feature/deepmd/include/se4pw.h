@@ -16,8 +16,8 @@ public:
         int inum,
         int* ilist,
         int* numneigh,
-        int** firstneigh,
-        CoordType** x,
+        int* firstneigh,   // shape = inum * tot_num_neigh_atoms
+        CoordType* x,      // shape = supercell_inum * 3
         int* types, // starts from 0.
         int ntypes, // starts from 0. e.g. 2
         int* num_neigh_atoms_lst,
@@ -49,8 +49,8 @@ void Se4pw<CoordType>::generate(
         int inum,
         int* ilist,
         int* numneigh,
-        int** firstneigh,
-        CoordType** x,
+        int* firstneigh,   
+        CoordType* x,
         int* types, // starts from 0.
         int ntypes, // starts from 0. e.g. 2
         int* num_neigh_atoms_lst,
@@ -80,23 +80,28 @@ void Se4pw<CoordType>::generate(
         for (int jj=0; jj<ii; jj++)
             nstart_idxs[ii] += num_neigh_atoms_lst[jj];
     int* nloop_idxs = (int*)malloc(sizeof(int) * ntypes);
-    
+
     int tot_num_neigh_atoms = 0;
     for (int ii=0; ii<ntypes; ii++)
         tot_num_neigh_atoms += num_neigh_atoms_lst[ii];
-
+    
     // Step 2. Populate `tilde_s/x/y/z`
     for (int ii=0; ii<inum; ii++) {
         center_atom_idx = ilist[ii];
-        center_cart_coords = x[center_atom_idx];
+        center_cart_coords[0] = x[center_atom_idx*3 + 0];
+        center_cart_coords[1] = x[center_atom_idx*3 + 1];
+        center_cart_coords[2] = x[center_atom_idx*3 + 2];
+        printf("+++ [%10f, %10f, %10f]\n", center_cart_coords[0], center_cart_coords[1], center_cart_coords[2]);
         for (int jj=0; jj<ntypes; jj++)
-            nloop_idxs[ii] = 0;
+            nloop_idxs[jj] = 0;
             
         for (int jj=0; jj<numneigh[ii]; jj++) {
-            neigh_atom_idx = firstneigh[ii][jj];
+            neigh_atom_idx = firstneigh[ii*tot_num_neigh_atoms+jj];
             
             // Step 3.1.1. 计算计算 1/r (`distance_ji_recip`), s(r_ji) (`tilde_s_value`)
-            neigh_cart_coords = x[neigh_atom_idx];
+            neigh_cart_coords[0] = x[neigh_atom_idx*3 + 0];
+            neigh_cart_coords[1] = x[neigh_atom_idx*3 + 1];
+            neigh_cart_coords[2] = x[neigh_atom_idx*3 + 2];
             for (int kk=0; kk<3; kk++)
                 diff_cart_coords[kk] = neigh_cart_coords[kk] - center_cart_coords[kk];
             distance_ji = vec3Operation::norm(diff_cart_coords);
@@ -202,6 +207,7 @@ void Se4pw<CoordType>::generate(
 
 
 
+/*
 template <typename CoordType>
 void Se4pw<CoordType>::get_prim_indices_from_matersdk(
         CoordType* prim_indices,
@@ -251,7 +257,7 @@ void Se4pw<CoordType>::get_prim_indices_from_matersdk(
     free(nstart_idxs);
     free(nloop_idxs);
 }
-
+*/
 
 };
 };

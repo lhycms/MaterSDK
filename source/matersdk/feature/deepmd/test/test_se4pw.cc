@@ -24,9 +24,10 @@ public:
     int inum;           // 中心原子的数目
     int* ilist;         // 中心原子在 supercell 中的 index
     int* numneigh;      // 各个中心原子的近邻原子数目
-    int** firstneigh;   // 近邻原子在 supercell 中的 index
+    int* firstneigh;   // 近邻原子在 supercell 中的 index
     int* types;         // supercell 中所有原子的元素种类
-    double** x;         // supercell 中所有原子的位置
+    double** x_2d;         // supercell 中所有原子的位置
+    double* x;  // 将 x_2d -> (inum, tot_num_neigh_atoms, 3)
     int ntypes;
     int* num_neigh_atoms_lst;
     int tot_num_neigh_atoms;
@@ -127,19 +128,8 @@ public:
             numneigh[ii] = neighbor_list.get_neighbor_lists()[ii].size();
         }
 
-        firstneigh = (int**)malloc(sizeof(int*) * inum);
-        for (int ii=0; ii<inum; ii++)
-            firstneigh[ii] = (int*)malloc(sizeof(int) * numneigh[ii]);
-        for (int ii=0; ii<inum; ii++) {
-            for (int jj=0; jj<numneigh[ii]; jj++) {
-                firstneigh[ii][jj] = neighbor_list.get_neighbor_lists()[ii][jj];    
-                printf("%d, ", firstneigh[ii][jj]);
-            }
-            printf("\n");
-        }
 
         int supercell_num_atoms = neighbor_list.get_binLinkedList().get_supercell().get_num_atoms();
-        x = (double**)neighbor_list.get_binLinkedList().get_supercell().get_structure().get_cart_coords();
         types = (int*)neighbor_list.get_binLinkedList().get_supercell().get_structure().get_atomic_numbers();
         ntypes = 2;
         num_neigh_atoms_lst = (int*)malloc(sizeof(int) * ntypes);
@@ -148,14 +138,32 @@ public:
         tot_num_neigh_atoms = 0;
         for (int ii=0; ii<ntypes; ii++)
             tot_num_neigh_atoms += num_neigh_atoms_lst[ii];
+
+        firstneigh = (int*)malloc(sizeof(int) * inum * tot_num_neigh_atoms);
+        memset(firstneigh, -1, sizeof(int) * inum * tot_num_neigh_atoms);
+        for (int ii=0; ii<inum; ii++) {
+            for (int jj=0; jj<tot_num_neigh_atoms; jj++) {  
+                if (jj < numneigh[ii])
+                    firstneigh[ii*tot_num_neigh_atoms+jj] = neighbor_list.get_neighbor_lists()[ii][jj];    
+                printf("%4d, ", firstneigh[ii*tot_num_neigh_atoms+jj]);
+            }
+            printf("\n");
+        }
+
+        x_2d = (double**)neighbor_list.get_binLinkedList().get_supercell().get_structure().get_cart_coords();
+        x = (double*)malloc(sizeof(double) * neighbor_list.get_binLinkedList().get_supercell().get_structure().get_num_atoms() * 3);
+        memset(x, 0, sizeof(double) * neighbor_list.get_binLinkedList().get_supercell().get_structure().get_num_atoms() * 3);
+        for (int ii=0; ii<neighbor_list.get_binLinkedList().get_supercell().get_structure().get_num_atoms(); ii++) {
+            x[ii*3 + 0] = x_2d[ii][0];
+            x[ii*3 + 1] = x_2d[ii][1];
+            x[ii*3 + 2] = x_2d[ii][2];
+        }
     }
 
     void TearDown() override {
         // Step . Free memory
         free(ilist);
         free(numneigh);
-        for (int ii=0; ii<inum; ii++)
-            free(firstneigh[ii]);
         free(firstneigh);
     }
 };
@@ -165,6 +173,7 @@ TEST_F(Se4pwTest, generate) {
     double* tilde_r = (double*)malloc(sizeof(double) * (inum*tot_num_neigh_atoms*4));
     double* tilde_r_deriv = (double*)malloc(sizeof(double) * (inum*tot_num_neigh_atoms*4*3));
     double* relative_coords = (double*)malloc(sizeof(double) * (inum*tot_num_neigh_atoms*3));
+
     for (int ii=0; ii<inum; ii++) {
         for (int jj=0; jj<tot_num_neigh_atoms; jj++) {
             tilde_r[ii*tot_num_neigh_atoms*4+jj*4] = 0;
@@ -235,7 +244,7 @@ TEST_F(Se4pwTest, generate) {
         }
     }
     
-
+    
     for (int ii=0; ii<inum; ii++) {
         for (int jj=0; jj<tot_num_neigh_atoms; jj++) {
             printf("[%3d, %3d] -- [%10f, %10f, %10f] : %10f\n",
