@@ -26,12 +26,11 @@ public:
     
     // Compatible with Fortran. 0 stands for none atom. indices starts from 1
     static void get_prim_indices_from_matersdk(
-        CoordType* prim_indices,
+        int* prim_indices,
         int inum,
         int* ilist,
         int* numneigh,
-        int** firstneigh,
-        CoordType** x,
+        int* firstneigh,   // shape = inum * tot_num_neigh_atoms
         int* types,     // starts from 0.
         int ntypes,    // starts from 0. e.g. 2
         int* num_neigh_atoms_lst);
@@ -84,6 +83,10 @@ void Se4pw<CoordType>::generate(
     int tot_num_neigh_atoms = 0;
     for (int ii=0; ii<ntypes; ii++)
         tot_num_neigh_atoms += num_neigh_atoms_lst[ii];
+
+    memset(tilde_r, 0, sizeof(CoordType)*inum*tot_num_neigh_atoms*4);
+    memset(tilde_r_deriv, 0, sizeof(CoordType)*inum*tot_num_neigh_atoms*4*3);
+    memset(relative_coords, 0, sizeof(CoordType)*inum*tot_num_neigh_atoms*3);
     
     // Step 2. Populate `tilde_s/x/y/z`
     for (int ii=0; ii<inum; ii++) {
@@ -91,7 +94,6 @@ void Se4pw<CoordType>::generate(
         center_cart_coords[0] = x[center_atom_idx*3 + 0];
         center_cart_coords[1] = x[center_atom_idx*3 + 1];
         center_cart_coords[2] = x[center_atom_idx*3 + 2];
-        printf("+++ [%10f, %10f, %10f]\n", center_cart_coords[0], center_cart_coords[1], center_cart_coords[2]);
         for (int jj=0; jj<ntypes; jj++)
             nloop_idxs[jj] = 0;
             
@@ -207,15 +209,14 @@ void Se4pw<CoordType>::generate(
 
 
 
-/*
+
 template <typename CoordType>
 void Se4pw<CoordType>::get_prim_indices_from_matersdk(
-        CoordType* prim_indices,
+        int* prim_indices,
         int inum,
         int* ilist,
         int* numneigh,
-        int** firstneigh,
-        CoordType** x,
+        int* firstneigh,
         int* types,
         int ntypes,
         int* num_neigh_atoms_lst)
@@ -233,6 +234,7 @@ void Se4pw<CoordType>::get_prim_indices_from_matersdk(
     int tot_num_neigh_atoms = 0;
     for (int ii=0; ii<ntypes; ii++)
         tot_num_neigh_atoms += num_neigh_atoms_lst[ii];
+    memset(prim_indices, 0, sizeof(int)*inum*tot_num_neigh_atoms);
 
     // Step 2. Populate `prim_indices`
     for (int ii=0; ii<inum; ii++) {
@@ -241,7 +243,7 @@ void Se4pw<CoordType>::get_prim_indices_from_matersdk(
             nloop_idxs[jj] = 0;
 
         for (int jj=0; jj<numneigh[ii]; jj++) {
-            neigh_atom_idx = firstneigh[ii][jj];
+            neigh_atom_idx = firstneigh[ii*tot_num_neigh_atoms + jj];
             
             int kk = 0;
             for (int kk=0; kk<ntypes; kk++)
@@ -257,7 +259,7 @@ void Se4pw<CoordType>::get_prim_indices_from_matersdk(
     free(nstart_idxs);
     free(nloop_idxs);
 }
-*/
+
 
 };
 };

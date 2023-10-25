@@ -145,9 +145,9 @@ public:
             for (int jj=0; jj<tot_num_neigh_atoms; jj++) {  
                 if (jj < numneigh[ii])
                     firstneigh[ii*tot_num_neigh_atoms+jj] = neighbor_list.get_neighbor_lists()[ii][jj];    
-                printf("%4d, ", firstneigh[ii*tot_num_neigh_atoms+jj]);
+                //printf("%4d, ", firstneigh[ii*tot_num_neigh_atoms+jj]);
             }
-            printf("\n");
+            //printf("\n");
         }
 
         x_2d = (double**)neighbor_list.get_binLinkedList().get_supercell().get_structure().get_cart_coords();
@@ -172,32 +172,7 @@ public:
 TEST_F(Se4pwTest, generate) {
     double* tilde_r = (double*)malloc(sizeof(double) * (inum*tot_num_neigh_atoms*4));
     double* tilde_r_deriv = (double*)malloc(sizeof(double) * (inum*tot_num_neigh_atoms*4*3));
-    double* relative_coords = (double*)malloc(sizeof(double) * (inum*tot_num_neigh_atoms*3));
-
-    for (int ii=0; ii<inum; ii++) {
-        for (int jj=0; jj<tot_num_neigh_atoms; jj++) {
-            tilde_r[ii*tot_num_neigh_atoms*4+jj*4] = 0;
-            tilde_r[ii*tot_num_neigh_atoms*4+jj*4+1] = 0;
-            tilde_r[ii*tot_num_neigh_atoms*4+jj*4+2] = 0;
-            tilde_r[ii*tot_num_neigh_atoms*4+jj*4+3] = 0;
-            tilde_r_deriv[ii*tot_num_neigh_atoms*4*3 + jj*4*3 + 0*3 + 0] = 0;
-            tilde_r_deriv[ii*tot_num_neigh_atoms*4*3 + jj*4*3 + 0*3 + 1] = 0;
-            tilde_r_deriv[ii*tot_num_neigh_atoms*4*3 + jj*4*3 + 0*3 + 2] = 0;
-            tilde_r_deriv[ii*tot_num_neigh_atoms*4*3 + jj*4*3 + 1*3 + 0] = 0;
-            tilde_r_deriv[ii*tot_num_neigh_atoms*4*3 + jj*4*3 + 1*3 + 1] = 0;
-            tilde_r_deriv[ii*tot_num_neigh_atoms*4*3 + jj*4*3 + 1*3 + 2] = 0;
-            tilde_r_deriv[ii*tot_num_neigh_atoms*4*3 + jj*4*3 + 2*3 + 0] = 0;
-            tilde_r_deriv[ii*tot_num_neigh_atoms*4*3 + jj*4*3 + 2*3 + 1] = 0;
-            tilde_r_deriv[ii*tot_num_neigh_atoms*4*3 + jj*4*3 + 2*3 + 2] = 0;
-            tilde_r_deriv[ii*tot_num_neigh_atoms*4*3 + jj*4*3 + 3*3 + 0] = 0;
-            tilde_r_deriv[ii*tot_num_neigh_atoms*4*3 + jj*4*3 + 3*3 + 1] = 0;
-            tilde_r_deriv[ii*tot_num_neigh_atoms*4*3 + jj*4*3 + 3*3 + 2] = 0;
-            relative_coords[ii*tot_num_neigh_atoms*3 + jj*3 + 0] = 0;
-            relative_coords[ii*tot_num_neigh_atoms*3 + jj*3 + 1] = 0;
-            relative_coords[ii*tot_num_neigh_atoms*3 + jj*3 + 2] = 0;
-        }
-    }
-    
+    double* relative_coords = (double*)malloc(sizeof(double) * (inum*tot_num_neigh_atoms*3));    
     
     matersdk::deepPotSE::Se4pw<double>::generate(
                         tilde_r,
@@ -261,6 +236,28 @@ TEST_F(Se4pwTest, generate) {
     }
 }
 
+
+
+TEST_F(Se4pwTest, get_prim_indices_from_matersdk) {
+    int* prim_indices = (int*)malloc(sizeof(int) * inum * tot_num_neigh_atoms);
+
+    matersdk::deepPotSE::Se4pw<double>::get_prim_indices_from_matersdk(
+            prim_indices,
+            inum,
+            ilist,
+            numneigh,
+            firstneigh,
+            types,
+            ntypes,
+            num_neigh_atoms_lst);
+
+    for (int ii=0; ii<inum; ii++) {
+        for (int jj=0; jj<tot_num_neigh_atoms; jj++) {
+            printf("%4d, ", prim_indices[ii*tot_num_neigh_atoms+jj]);
+        }
+        printf("\n");
+    }
+}
 
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
