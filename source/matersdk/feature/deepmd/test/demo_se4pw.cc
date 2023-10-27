@@ -1,15 +1,13 @@
 #include <gtest/gtest.h>
 #include <torch/torch.h>
+#include <torch/script.h>
 #include <iostream>
-#include <stdio.h>
-
+#include <string>
 #include "../include/se4pw_op.h"
-#include "../../../io/publicLayer/include/structure.h"
 
 
-
-class Se4pwOpTest : public ::testing::Test {
-public:
+class DemoSe4pwTest : public ::testing::Test {
+protected:
     int num_atoms;
     double basis_vectors[3][3];
     int atomic_numbers[12];
@@ -21,26 +19,25 @@ public:
     matersdk::Structure<double> structure;
     matersdk::NeighborList<double> neighbor_list;
 
-    // Variables to simulate info of `LAMMPS_NS::LAMMPS* lmp`
-    int sinum;          // 超胞中的总原子数
-    int inum;           // 中心原子的数目
-    int* ilist;         // 中心原子在 supercell 中的 index
-    int* numneigh;      // 各个中心原子的近邻原子数目
-    int* firstneigh;   // 近邻原子在 supercell 中的 index
-    int* types;         // supercell 中所有原子的index，starts from 0
-    double** x_2d;         // supercell 中所有原子的位置
-    double* x;  // 将 x_2d -> (inum, tot_num_neigh_atoms, 3)
+    int sinum;                  // 超胞中的总原子数
+    int inum;                   // 中心原子的数目
+    int* ilist;                  // 中心原子在 supercell 中的 index
+    int* numneigh;              // 各个中心原子的近邻原子数目
+    int* firstneigh;            // 近邻原子在 supercell 中的 index
+    int* types;                 // supercell 中所有原子的index，starts from 0
+    double** x_2d;              // supercell 中所有原子的位置
+    double* x;                  // 将 x_2d -> (inum, tot_num_neigh_atoms, 3)
     int ntypes;
     int* num_neigh_atoms_lst;
     int tot_num_neigh_atoms;
 
 
     static void SetUpTestSuite() {
-        std::cout << "Se4pwOpTest TestSuite is setting up...\n";
+        std::cout << "DemoSe4pwTest TestSuite is setting up...\n";
     }
 
     static void TearDownTestSuite() {
-        std::cout << "Se4pwOpTest TestSuite is tearing down...\n";
+        std::cout << "DemoSe4pwTest TestSuite is tearing down...\n";
     }
 
     void SetUp() override {
@@ -112,11 +109,10 @@ public:
 
         rcut = 3.3;
         rcut_smooth = 3.0;
-
+        
         structure = matersdk::Structure<double>(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
         neighbor_list = matersdk::NeighborList<double>(structure, rcut, pbc_xyz, false);
-        
-        // Variables to simulate the info of `LAMMPS_NS::LAMMPS*`
+
         inum = neighbor_list.get_num_center_atoms();
         
         ilist = (int*)malloc(sizeof(int) * inum);
@@ -126,12 +122,10 @@ public:
             ilist[ii] = ii + prim_cell_idx * prim_num_atoms;
         
         numneigh = (int*)malloc(sizeof(int) * inum);
-        for (int ii=0; ii<inum; ii++) {
+        for (int ii=0; ii<inum; ii++)
             numneigh[ii] = neighbor_list.get_neighbor_lists()[ii].size();
-        }
-
-
-        int supercell_num_atoms = neighbor_list.get_binLinkedList().get_supercell().get_num_atoms();
+        
+        int sinum = neighbor_list.get_binLinkedList().get_supercell().get_num_atoms();
         types = (int*)neighbor_list.get_binLinkedList().get_supercell().get_structure().get_atomic_numbers();
         ntypes = 2;
         num_neigh_atoms_lst = (int*)malloc(sizeof(int) * ntypes);
@@ -142,17 +136,12 @@ public:
             tot_num_neigh_atoms += num_neigh_atoms_lst[ii];
 
         firstneigh = (int*)malloc(sizeof(int) * inum * tot_num_neigh_atoms);
-        memset(firstneigh, -1, sizeof(int) * inum * tot_num_neigh_atoms);
+        memset(firstneigh, 0, sizeof(int) * inum * tot_num_neigh_atoms);
         for (int ii=0; ii<inum; ii++) {
-            for (int jj=0; jj<tot_num_neigh_atoms; jj++) {  
-                if (jj < numneigh[ii])
-                    firstneigh[ii*tot_num_neigh_atoms+jj] = neighbor_list.get_neighbor_lists()[ii][jj];    
-                //printf("%4d, ", firstneigh[ii*tot_num_neigh_atoms+jj]);
-            }
-            //printf("\n");
+            for (int jj=0; jj<numneigh[ii]; jj++)
+                firstneigh[ii*tot_num_neigh_atoms + jj] = neighbor_list.get_neighbor_lists()[ii][jj];
         }
 
-        sinum = neighbor_list.get_binLinkedList().get_supercell().get_structure().get_num_atoms();
         x_2d = (double**)neighbor_list.get_binLinkedList().get_supercell().get_structure().get_cart_coords();
         x = (double*)malloc(sizeof(double) * sinum * 3);
         memset(x, 0, sizeof(double) * sinum * 3);
@@ -174,12 +163,11 @@ public:
 };
 
 
-
-TEST_F(Se4pwOpTest, forward) {
+TEST_F(DemoSe4pwTest, demo) {
     // Note: It doesn't matter whether input tensor is flatten or not.
     c10::TensorOptions int_tensor_options = c10::TensorOptions().dtype(torch::kInt32).device(c10::kCPU);
     c10::TensorOptions float_tensor_options = c10::TensorOptions().dtype(torch::kFloat64).device(c10::kCPU);
-    
+
     at::Tensor ilist_tensor = torch::from_blob(ilist, {inum}, int_tensor_options);
     at::Tensor numneigh_tensor = torch::from_blob(numneigh, {inum}, int_tensor_options);
     at::Tensor firstneigh_tensor = torch::from_blob(firstneigh, {inum, tot_num_neigh_atoms}, int_tensor_options);
@@ -201,9 +189,33 @@ TEST_F(Se4pwOpTest, forward) {
     at::Tensor tilde_r = outputs[0];
     at::Tensor tilde_r_deriv = outputs[1];
     at::Tensor relative_coords = outputs[2];
-    std::cout << "1. tilde_r:\n" << tilde_r << std::endl;
-    std::cout << "2. tilde_r_deriv:\n" << tilde_r_deriv << std::endl;
-    std::cout << "3. relative_coords=:\n" << relative_coords << std::endl;
+
+
+    // Step 1.2. list_neigh
+    int* prim_indices = (int*)malloc(sizeof(int) * inum * tot_num_neigh_atoms);
+    matersdk::deepPotSE::Se4pw<double>::get_prim_indices_from_matersdk(
+            prim_indices,
+            inum,
+            ilist,
+            numneigh,
+            firstneigh,
+            types,
+            ntypes,
+            num_neigh_atoms_lst);
+    at::Tensor prim_indices_tensor = torch::from_blob(prim_indices, {inum, tot_num_neigh_atoms}, int_tensor_options);
+    
+    // Step 1.3. 
+
+    // Step 2. Load torch script module
+    std::string pt_file = "/data/home/liuhanyu/hyliu/code/mlff/PWmatMLFF_dev/test/CH4_torch_script/test.pt";
+    std::cout << pt_file << std::endl;
+    torch::jit::script::Module module;
+    try {
+        module = torch::jit::load(pt_file, c10::kCUDA);
+    } catch (const c10::Error& e) {
+        std::cerr << "Error loading the module.\n";
+    }
+    std::cout << module.attr("atom_type_order") << std::endl;
 }
 
 

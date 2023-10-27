@@ -116,10 +116,10 @@ void Se4pw<CoordType>::generate(
             tilde_z_value = tilde_s_value * distance_ji_recip * diff_cart_coords[2];
             
             // Step 3.1.3. Assignment
-            int kk = 0;
-            for (kk=0; kk<ntypes; kk++) 
-                if (types[neigh_atom_idx] == kk)
-                    break;
+            int kk = types[neigh_atom_idx]; // Note: So `types` must starts from 0.
+            //for (kk=0; kk<ntypes; kk++) 
+            //   if (types[neigh_atom_idx] == kk)
+            //       break;
 
             tilde_r[0 + (nstart_idxs[kk]+nloop_idxs[kk])*4 + ii*tot_num_neigh_atoms*4] = tilde_s_value;
             tilde_r[1 + (nstart_idxs[kk]+nloop_idxs[kk])*4 + ii*tot_num_neigh_atoms*4] = tilde_x_value;
