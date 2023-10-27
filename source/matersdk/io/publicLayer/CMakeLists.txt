@@ -1,3 +1,7 @@
+# 2. Include package
+list(APPEND CMAKE_PREFIX_PATH "/data/home/liuhanyu/anaconda3/envs/mlff38/lib/python3.8/site-packages/pybind11/share/cmake/")
+find_package(pybind11 CONFIG REQUIRED)
+
 # 3. 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/matersdk/io/publicLayer)
 file(MAKE_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
@@ -12,6 +16,8 @@ file(MAKE_DIRECTORY ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
 # 5. 
 #add_library(CpuNeighborList SHARED ${CMAKE_CURRENT_SOURCE_DIR}/src/CpuNeighborList.cc)
 #add_library(structure SHARED ${CMAKE_CURRENT_SOURCE_DIR}/src/structure.cc)
+###pybind11_add_module(structure ${CMAKE_CURRENT_SOURCE_DIR}/bind/structure_bind.cc)
+
 
 # 6.
 if (BUILD_TEST)

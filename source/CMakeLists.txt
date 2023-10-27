@@ -1,19 +1,28 @@
 # 1. Basic
-cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
 project(matersdk)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 
 # 2. include FetchContent
-include(FetchContent)
-FetchContent_Declare(
-        googletest
-        GIT_REPOSITORY https://github.com/google/googletest.git
-        GIT_TAG v1.12.0
-)
-FetchContent_MakeAvailable(googletest)
+## 2.1. Way 1: Build gtest
+#include(FetchContent)
+#FetchContent_Declare(
+#        googletest
+#        GIT_REPOSITORY https://github.com/google/googletest.git
+#        GIT_TAG v1.12.0
+#)
+#FetchContent_MakeAvailable(googletest)
+#include(GoogleTest)
+
+## 2.2. Way 2: Build gtest
+add_subdirectory("/data/home/liuhanyu/hyliu/code/matersdk/source/ext/googletest-main")
 include(GoogleTest)
+
+
+#list(APPEND CMAKE_PREFIX_PATH "/data/home/liuhanyu/anaconda3/envs/mlff38/lib/python3.8/site-packages/pybind11/share/cmake/")
+#find_package(pybind11 CONFIG REQUIRED)
 
 
 # 3. dirs
@@ -28,6 +37,7 @@ file(MAKE_DIRECTORY ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
 
 
 # 4. add_subdirectory
+message(STATUS ${CMAKE_CURRENT_SOURCE_DIR}/core)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/core)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/matersdk/io/publicLayer)

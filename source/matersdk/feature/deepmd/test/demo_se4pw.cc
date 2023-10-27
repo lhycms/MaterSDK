@@ -3,6 +3,8 @@
 #include <torch/script.h>
 #include <iostream>
 #include <string>
+#include <vector>
+#include <stdio.h>
 #include "../include/se4pw_op.h"
 
 
@@ -204,7 +206,17 @@ TEST_F(DemoSe4pwTest, demo) {
             num_neigh_atoms_lst);
     at::Tensor prim_indices_tensor = torch::from_blob(prim_indices, {inum, tot_num_neigh_atoms}, int_tensor_options);
     
-    // Step 1.3. 
+    // Step 1.3. `natoms_image`, `atom_types`
+    int* natoms_image = (int*)malloc(sizeof(int) * 3);
+    natoms_image[0] = 12; // 5
+    natoms_image[1] = 3; // 1
+    natoms_image[2] = 9; // 4
+    at::Tensor natoms_image_tensor = torch::from_blob(natoms_image, {1, 3}, int_tensor_options);
+    int* atom_types = (int*)malloc(sizeof(int) * 3);
+    atom_types[0] = 6;   // 6
+    atom_types[1] = 1;   // 1
+    at::Tensor atom_types_tensor = torch::from_blob(atom_types, {1, 2}, int_tensor_options);
+
 
     // Step 2. Load torch script module
     std::string pt_file = "/data/home/liuhanyu/hyliu/code/mlff/PWmatMLFF_dev/test/CH4_torch_script/test.pt";
@@ -215,7 +227,18 @@ TEST_F(DemoSe4pwTest, demo) {
     } catch (const c10::Error& e) {
         std::cerr << "Error loading the module.\n";
     }
-    std::cout << module.attr("atom_type_order") << std::endl;
+    
+    // Step 3. 
+    std::vector<torch::jit::IValue> inputs;
+    inputs.push_back(tilde_r);
+    inputs.push_back(tilde_r_deriv);
+    inputs.push_back(prim_indices_tensor);
+    inputs.push_back(natoms_image_tensor);
+    inputs.push_back(atom_types_tensor);
+    inputs.push_back(relative_coords);
+    std::cout << inputs[0] << std::endl;
+    
+    auto result = module.forward(inputs);    
 }
 
 
