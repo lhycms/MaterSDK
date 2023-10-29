@@ -1,5 +1,6 @@
 #include <torch/torch.h>
 #include <cstdlib>
+#include <stdio.h>
 #include "../include/se4pw_op.h"
 
 
@@ -41,13 +42,14 @@ torch::autograd::variable_list Se4pwOp::forward(
     c10::Device device = x.device();
     c10::ScalarType dtype = x.scalar_type();
     c10::TensorOptions tensor_options = c10::TensorOptions().device(device).dtype(dtype);
-
-    ilist.to(torch::kInt32);
-    numneigh.to(torch::kInt32);
-    firstneigh.to(torch::kInt32);
-    types.to(torch::kInt32);
-    num_neigh_atoms_lst.to(torch::kInt32);
-
+    c10::ScalarType int_dtype = ilist.scalar_type();
+    
+    ilist.to(int_dtype);
+    numneigh.to(int_dtype);
+    firstneigh.to(int_dtype);
+    types.to(int_dtype);
+    num_neigh_atoms_lst.to(int_dtype);
+    
     int tot_num_neigh_atoms = num_neigh_atoms_lst.sum().item<int>();
     at::Tensor tilde_r = at::zeros({inum, tot_num_neigh_atoms, 4}, tensor_options);
     at::Tensor tilde_r_deriv = at::zeros({inum, tot_num_neigh_atoms, 4, 3}, tensor_options);

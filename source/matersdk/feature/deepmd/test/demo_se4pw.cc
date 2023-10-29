@@ -176,7 +176,7 @@ TEST_F(DemoSe4pwTest, demo) {
     at::Tensor types_tensor = torch::from_blob(types, {sinum}, int_tensor_options);
     at::Tensor num_neigh_atoms_lst_tensor = torch::from_blob(num_neigh_atoms_lst, {ntypes}, int_tensor_options);
     at::Tensor x_tensor = torch::from_blob(x, {sinum, 3}, float_tensor_options);
-
+    
     torch::autograd::variable_list outputs = matersdk::deepPotSE::Se4pwOp::forward(
             inum,
             ilist_tensor,
@@ -188,6 +188,7 @@ TEST_F(DemoSe4pwTest, demo) {
             num_neigh_atoms_lst_tensor,
             rcut,
             rcut_smooth);
+    
     at::Tensor tilde_r = outputs[0];
     at::Tensor tilde_r_deriv = outputs[1];
     at::Tensor relative_coords = outputs[2];
@@ -219,7 +220,7 @@ TEST_F(DemoSe4pwTest, demo) {
 
 
     // Step 2. Load torch script module
-    std::string pt_file = "/data/home/liuhanyu/hyliu/code/mlff/PWmatMLFF_dev/test/CH4_torch_script/test.pt";
+    std::string pt_file = "/data/home/liuhanyu/hyliu/code/mlff/PWmatMLFF_dev/test/CH4_torch_script/torch_script_module.pt";
     std::cout << pt_file << std::endl;
     torch::jit::script::Module module;
     try {
@@ -237,7 +238,7 @@ TEST_F(DemoSe4pwTest, demo) {
     inputs.push_back(atom_types_tensor);
     inputs.push_back(relative_coords);
     std::cout << inputs[0] << std::endl;
-    
+
     auto result = module.forward(inputs);    
 }
 
