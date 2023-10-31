@@ -129,7 +129,7 @@ protected:
         for (int ii=0; ii<inum; ii++)
             numneigh[ii] = neighbor_list.get_neighbor_lists()[ii].size();
         
-        int sinum = neighbor_list.get_binLinkedList().get_supercell().get_num_atoms();
+        sinum = neighbor_list.get_binLinkedList().get_supercell().get_num_atoms();
         types = (int*)neighbor_list.get_binLinkedList().get_supercell().get_structure().get_atomic_numbers();
         ntypes = 2;
         num_neigh_atoms_lst = (int*)malloc(sizeof(int) * ntypes);
@@ -214,12 +214,12 @@ TEST_F(DemoSe4pwTest, demo) {
     // Step 1.3. `natoms_image`, `atom_types`
     int* natoms_image = (int*)malloc(sizeof(int) * 3);
     natoms_image[0] = 12; // 5
-    natoms_image[1] = 3; // 1
-    natoms_image[2] = 9; // 4
+    natoms_image[1] = 3;  // 1
+    natoms_image[2] = 9;  // 4
     at::Tensor natoms_image_tensor = torch::from_blob(natoms_image, {1, 3}, int_tensor_options);
     int* atom_types = (int*)malloc(sizeof(int) * 3);
-    atom_types[0] = 6;   // 6
-    atom_types[1] = 1;   // 1
+    atom_types[0] = 6;    // 6
+    atom_types[1] = 1;    // 1
     at::Tensor atom_types_tensor = torch::from_blob(atom_types, {1, 2}, int_tensor_options);
 
 
@@ -232,6 +232,8 @@ TEST_F(DemoSe4pwTest, demo) {
     } catch (const c10::Error& e) {
         std::cerr << "Error loading the module.\n";
     }
+    at::Tensor davg = torch::index_select(module.attr("davg").toTensor(), 1, torch::arange(0, 4));
+    at::Tensor dstd = torch::index_select(module.attr("dstd").toTensor(), 1, torch::arange(0, 4));
     
     // Step 3. 
     std::vector<torch::jit::IValue> inputs;
@@ -241,7 +243,17 @@ TEST_F(DemoSe4pwTest, demo) {
     inputs.push_back(natoms_image_tensor);
     inputs.push_back(atom_types_tensor);
     inputs.push_back(relative_coords);
+    
+    // Step 3.1. Rubbish part: have to calculate `davg`, `dstd` outside model.forward()
+    at::Tensor prim_types_tensor = torch::index_select(types_tensor, 1, torch::arange(0, inum));
+    for (int ii=0; ii<ntypes; ii++) {
+        auto mask = (prim_types_tensor.squeeze(0) == ii);
+        std::cout << torch::index_select(tilde_r, 1, mask.nonzero().squeeze(1)).sizes() << std::endl;
+    }
 
+
+    // Step 3.2. 
+    /*
     std::cout << "1. The dim of `feature` : " << tilde_r.sizes() << std::endl;
     std::cout << "2. The dim of `deriv of feature` : " << tilde_r_deriv.sizes() << std::endl;
     std::cout << "3. The dim of `index of neighbor atoms` : " << prim_indices_tensor.sizes() << std::endl;
@@ -249,7 +261,19 @@ TEST_F(DemoSe4pwTest, demo) {
     std::cout << "5. The dim of `atomic number in image` : " << atom_types_tensor.sizes() << std::endl;
     std::cout << "6. The dim of `relative coordinates` : " << relative_coords.sizes() << std::endl;
 
-    auto result = module.forward(inputs);    
+    auto result = module.forward(inputs); 
+    
+    std::cout << result.toTuple()->elements()[2].toTensor() << std::endl;   
+    std::cout << module.attr("ntypes") << std::endl;;
+    std::cout << module.attr("atom_type") << std::endl;;
+    std::cout << module.attr("maxNeighborNum") << std::endl;
+    //std::cout << module.attr("dtype") << std::endl;
+    std::cout << module.attr("davg").toTensor().sizes() << std::endl;
+    std::cout << module.attr("dstd").toTensor().sizes() << std::endl;
+    
+    std::cout << davg << std::endl;
+    std::cout << dstd << std::endl;
+    */
 }
 
 

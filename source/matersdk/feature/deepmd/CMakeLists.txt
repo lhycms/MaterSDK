@@ -11,9 +11,10 @@ file(MAKE_DIRECTORY ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
 
 # 5. add_library
 if (TORCH_OP)
-    #list(APPEND CMAKE_PREFIX_PATH "/data/home/liuhanyu/anaconda3/envs/mlff_1/lib/python3.9/site-packages/torch/share/cmake")
-    list(APPEND CMAKE_PREFIX_PATH "/data/home/liuhanyu/anaconda3/envs/mlff311_hhf/lib/python3.11/site-packages/torch/share/cmake")
-    find_package(Torch REQUIRED)
+    execute_process(COMMAND python3 -c "import torch;print(torch.__path__[0])" OUTPUT_VARIABLE TORCH_PATH)
+    string(REPLACE "\n" "/share/cmake" TORCH_CMAKE_PREFIX_PATH ${TORCH_PATH})
+    list(APPEND CMAKE_PREFIX_PATH ${TORCH_CMAKE_PREFIX_PATH})
+    find_package(Torch CONFIG REQUIRED)
     list(APPEND CMAKE_CXX_FLAGS ${TORCH_CXX_FLAGS})
 
     add_library(se4pw_op SHARED ${CMAKE_CURRENT_SOURCE_DIR}/src/se4pw_op.cc)
