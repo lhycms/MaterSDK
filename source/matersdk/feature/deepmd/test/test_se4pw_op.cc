@@ -22,6 +22,7 @@ public:
     matersdk::NeighborList<double> neighbor_list;
 
     // Variables to simulate info of `LAMMPS_NS::LAMMPS* lmp`
+    int batch_size;
     int sinum;          // 超胞中的总原子数
     int inum;           // 中心原子的数目
     int* ilist;         // 中心原子在 supercell 中的 index
@@ -117,6 +118,7 @@ public:
         neighbor_list = matersdk::NeighborList<double>(structure, rcut, pbc_xyz, false);
         
         // Variables to simulate the info of `LAMMPS_NS::LAMMPS*`
+        batch_size = 1;
         inum = neighbor_list.get_num_center_atoms();
         
         ilist = (int*)malloc(sizeof(int) * inum);
@@ -180,14 +182,15 @@ TEST_F(Se4pwOpTest, forward) {
     c10::TensorOptions int_tensor_options = c10::TensorOptions().dtype(torch::kInt32).device(c10::kCPU);
     c10::TensorOptions float_tensor_options = c10::TensorOptions().dtype(torch::kFloat64).device(c10::kCPU);
     
-    at::Tensor ilist_tensor = torch::from_blob(ilist, {inum}, int_tensor_options);
-    at::Tensor numneigh_tensor = torch::from_blob(numneigh, {inum}, int_tensor_options);
-    at::Tensor firstneigh_tensor = torch::from_blob(firstneigh, {inum, tot_num_neigh_atoms}, int_tensor_options);
-    at::Tensor types_tensor = torch::from_blob(types, {sinum}, int_tensor_options);
+    at::Tensor ilist_tensor = torch::from_blob(ilist, {batch_size, inum}, int_tensor_options);
+    at::Tensor numneigh_tensor = torch::from_blob(numneigh, {batch_size, inum}, int_tensor_options);
+    at::Tensor firstneigh_tensor = torch::from_blob(firstneigh, {batch_size, inum, tot_num_neigh_atoms}, int_tensor_options);
+    at::Tensor types_tensor = torch::from_blob(types, {batch_size, sinum}, int_tensor_options);
     at::Tensor num_neigh_atoms_lst_tensor = torch::from_blob(num_neigh_atoms_lst, {ntypes}, int_tensor_options);
-    at::Tensor x_tensor = torch::from_blob(x, {sinum, 3}, float_tensor_options);
+    at::Tensor x_tensor = torch::from_blob(x, {batch_size, sinum, 3}, float_tensor_options);
 
     torch::autograd::variable_list outputs = matersdk::deepPotSE::Se4pwOp::forward(
+            batch_size,
             inum,
             ilist_tensor,
             numneigh_tensor,
@@ -201,9 +204,32 @@ TEST_F(Se4pwOpTest, forward) {
     at::Tensor tilde_r = outputs[0];
     at::Tensor tilde_r_deriv = outputs[1];
     at::Tensor relative_coords = outputs[2];
-    std::cout << "1. tilde_r:\n" << tilde_r << std::endl;
-    std::cout << "2. tilde_r_deriv:\n" << tilde_r_deriv << std::endl;
-    std::cout << "3. relative_coords=:\n" << relative_coords << std::endl;
+    std::cout << "1. tilde_r : " << tilde_r.sizes() << std::endl;
+    std::cout << "2. tilde_r_deriv : " << tilde_r_deriv.sizes() << std::endl;
+    std::cout << "3. relative_coords : " << relative_coords.sizes() << std::endl;
+}
+
+
+TEST_F(Se4pwOpTest, get_prim_indices_from_matersdk) {
+    c10::TensorOptions int_tensor_options = c10::TensorOptions().dtype(torch::kInt32).device(c10::kCPU);
+
+    at::Tensor ilist_tensor = torch::from_blob(ilist, {batch_size, inum}, int_tensor_options);
+    at::Tensor numneigh_tensor = torch::from_blob(numneigh, {batch_size, inum}, int_tensor_options);
+    at::Tensor firstneigh_tensor = torch::from_blob(firstneigh, {batch_size, inum, tot_num_neigh_atoms}, int_tensor_options);
+    at::Tensor types_tensor = torch::from_blob(types, {batch_size, sinum}, int_tensor_options);
+    at::Tensor num_neigh_atoms_lst_tensor = torch::from_blob(num_neigh_atoms_lst, {ntypes}, int_tensor_options);
+
+    at::Tensor prim_indices = matersdk::deepPotSE::Se4pwOp::get_prim_indices_from_matersdk(
+            batch_size, 
+            inum, 
+            ilist_tensor, 
+            numneigh_tensor, 
+            firstneigh_tensor, 
+            types_tensor, 
+            ntypes, 
+            num_neigh_atoms_lst_tensor);
+    
+    std::cout << "1. prim_indices.sizes() : " << prim_indices.sizes() << std::endl;
 }
 
 

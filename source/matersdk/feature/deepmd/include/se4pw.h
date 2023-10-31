@@ -245,10 +245,7 @@ void Se4pw<CoordType>::get_prim_indices_from_matersdk(
         for (int jj=0; jj<numneigh[ii]; jj++) {
             neigh_atom_idx = firstneigh[ii*tot_num_neigh_atoms + jj];
             
-            int kk = 0;
-            for (int kk=0; kk<ntypes; kk++)
-                if (types[neigh_atom_idx] == kk)
-                    break;
+            int kk = types[neigh_atom_idx];
             
             prim_indices[(nstart_idxs[kk]+nloop_idxs[kk]) + ii*tot_num_neigh_atoms] = (neigh_atom_idx % inum + 1);
             nloop_idxs[kk]++;

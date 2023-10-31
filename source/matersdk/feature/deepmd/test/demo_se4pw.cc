@@ -21,6 +21,7 @@ protected:
     matersdk::Structure<double> structure;
     matersdk::NeighborList<double> neighbor_list;
 
+    int batch_size;
     int sinum;                  // 超胞中的总原子数
     int inum;                   // 中心原子的数目
     int* ilist;                  // 中心原子在 supercell 中的 index
@@ -115,6 +116,7 @@ protected:
         structure = matersdk::Structure<double>(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
         neighbor_list = matersdk::NeighborList<double>(structure, rcut, pbc_xyz, false);
 
+        batch_size = 1;
         inum = neighbor_list.get_num_center_atoms();
         
         ilist = (int*)malloc(sizeof(int) * inum);
@@ -170,14 +172,15 @@ TEST_F(DemoSe4pwTest, demo) {
     c10::TensorOptions int_tensor_options = c10::TensorOptions().dtype(torch::kInt32).device(c10::kCPU);
     c10::TensorOptions float_tensor_options = c10::TensorOptions().dtype(torch::kFloat64).device(c10::kCPU);
 
-    at::Tensor ilist_tensor = torch::from_blob(ilist, {inum}, int_tensor_options);
-    at::Tensor numneigh_tensor = torch::from_blob(numneigh, {inum}, int_tensor_options);
-    at::Tensor firstneigh_tensor = torch::from_blob(firstneigh, {inum, tot_num_neigh_atoms}, int_tensor_options);
-    at::Tensor types_tensor = torch::from_blob(types, {sinum}, int_tensor_options);
-    at::Tensor num_neigh_atoms_lst_tensor = torch::from_blob(num_neigh_atoms_lst, {ntypes}, int_tensor_options);
-    at::Tensor x_tensor = torch::from_blob(x, {sinum, 3}, float_tensor_options);
+    at::Tensor ilist_tensor = torch::from_blob(ilist, {batch_size, inum}, int_tensor_options);
+    at::Tensor numneigh_tensor = torch::from_blob(numneigh, {batch_size, inum}, int_tensor_options);
+    at::Tensor firstneigh_tensor = torch::from_blob(firstneigh, {batch_size, inum, tot_num_neigh_atoms}, int_tensor_options);
+    at::Tensor types_tensor = torch::from_blob(types, {batch_size, sinum}, int_tensor_options);
+    at::Tensor num_neigh_atoms_lst_tensor = torch::from_blob(num_neigh_atoms_lst, {batch_size, ntypes}, int_tensor_options);
+    at::Tensor x_tensor = torch::from_blob(x, {batch_size, sinum, 3}, float_tensor_options);
     
     torch::autograd::variable_list outputs = matersdk::deepPotSE::Se4pwOp::forward(
+            batch_size,
             inum,
             ilist_tensor,
             numneigh_tensor,
@@ -192,20 +195,21 @@ TEST_F(DemoSe4pwTest, demo) {
     at::Tensor tilde_r = outputs[0];
     at::Tensor tilde_r_deriv = outputs[1];
     at::Tensor relative_coords = outputs[2];
+    tilde_r.requires_grad_(true);
+    tilde_r_deriv.requires_grad_(true);
+    relative_coords.requires_grad_(true);
 
 
     // Step 1.2. list_neigh
-    int* prim_indices = (int*)malloc(sizeof(int) * inum * tot_num_neigh_atoms);
-    matersdk::deepPotSE::Se4pw<double>::get_prim_indices_from_matersdk(
-            prim_indices,
+    at::Tensor prim_indices_tensor = matersdk::deepPotSE::Se4pwOp::get_prim_indices_from_matersdk(
+            batch_size,
             inum,
-            ilist,
-            numneigh,
-            firstneigh,
-            types,
+            ilist_tensor,
+            numneigh_tensor,
+            firstneigh_tensor,
+            types_tensor,
             ntypes,
-            num_neigh_atoms_lst);
-    at::Tensor prim_indices_tensor = torch::from_blob(prim_indices, {inum, tot_num_neigh_atoms}, int_tensor_options);
+            num_neigh_atoms_lst_tensor);
     
     // Step 1.3. `natoms_image`, `atom_types`
     int* natoms_image = (int*)malloc(sizeof(int) * 3);
@@ -224,7 +228,7 @@ TEST_F(DemoSe4pwTest, demo) {
     std::cout << pt_file << std::endl;
     torch::jit::script::Module module;
     try {
-        module = torch::jit::load(pt_file, c10::kCUDA);
+        module = torch::jit::load(pt_file, c10::kCPU);
     } catch (const c10::Error& e) {
         std::cerr << "Error loading the module.\n";
     }
@@ -237,7 +241,13 @@ TEST_F(DemoSe4pwTest, demo) {
     inputs.push_back(natoms_image_tensor);
     inputs.push_back(atom_types_tensor);
     inputs.push_back(relative_coords);
-    std::cout << inputs[0] << std::endl;
+
+    std::cout << "1. The dim of `feature` : " << tilde_r.sizes() << std::endl;
+    std::cout << "2. The dim of `deriv of feature` : " << tilde_r_deriv.sizes() << std::endl;
+    std::cout << "3. The dim of `index of neighbor atoms` : " << prim_indices_tensor.sizes() << std::endl;
+    std::cout << "4. The dim of `number of each element` : " << natoms_image_tensor.sizes() << std::endl;
+    std::cout << "5. The dim of `atomic number in image` : " << atom_types_tensor.sizes() << std::endl;
+    std::cout << "6. The dim of `relative coordinates` : " << relative_coords.sizes() << std::endl;
 
     auto result = module.forward(inputs);    
 }
