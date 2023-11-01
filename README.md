@@ -117,3 +117,34 @@ $ pip install .
 
 ## 2.1. Offline
 1. You can download a python interpreter containing `matersdk` from https://www.jianguoyun.com/p/DfhQFx8Q_qS-CxifgfwEIAA.matersdk.egg-info
+
+
+# 3. Integrate MaterSDK with `lammps` as third-party libraries
+```shell
+# Step 1.
+$ mkdir <your_path_lammps>/lammps/src/MATERSDK
+$ cd <your_path_lammps>/lammps/src/MATERSDK
+
+# Step 2.
+$ cp <your_path_to_matersdk>/matersdk/source ./.
+$ cp <your_path_to_matersdk>/matersdk/cmake ./.
+$ ls .
+source cmake LICENSE
+
+# Step 3. 
+$ vim <your_path_to_lammps>/cmake/CMakeLists.txt
+### Add content below to CMakeLists.txt
+include("<your_path_to_lammps>/src/MATERSDK/cmake/matersdk.cmake")   ### matersdk
+include_directories(${MATESDK_INCLUDE_DIRS}) ### matesdk
+
+# Link libraries of matersdk to lammps.so/lammps.a
+add_library(lammps ${ALL_SOURCES})
+target_link_libraries(lammps PUBLIC ${MATERSDK_LIBRARIES})
+
+# Step 4. 
+$ cd <your_path_to_lammps>/build
+$ cmake ../cmake 
+-- +++ MATERSDK_DIR : /data/home/liuhanyu/hyliu/code1/lammps_gpu/src/MATERSDK
+-- +++ MATERSDK_INCLUDE_DIRS : /data/home/liuhanyu/hyliu/code1/lammps_gpu/src/MATERSDK/source/include;/data/home/liuhanyu/hyliu/code1/lammps_gpu/src/MATERSDK/source/core/include;/data/home/liuhanyu/hyliu/code1/lammps_gpu/src/MATERSDK/source/matersdk/io/publicLayer/include;/data/home/liuhanyu/hyliu/code1/lammps_gpu/src/MATERSDK/source/matersdk/feature/deepmd/include
+-- +++ MATERSDK_LIBRARIES : /data/home/liuhanyu/hyliu/code1/lammps_gpu/src/MATERSDK/source/build/lib/matersdk/feature/deepmd/se4pw_op
+```
