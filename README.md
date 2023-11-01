@@ -138,8 +138,8 @@ include("<your_path_to_lammps>/src/MATERSDK/cmake/matersdk.cmake")   ### matersd
 include_directories(${MATESDK_INCLUDE_DIRS}) ### matesdk
 
 # Link libraries of matersdk to lammps.so/lammps.a
-add_library(lammps ${ALL_SOURCES})
-target_link_libraries(lammps PUBLIC ${MATERSDK_LIBRARIES})
+add_library(lammps ${ALL_SOURCES})  ### matersdk
+target_link_libraries(lammps PUBLIC ${MATERSDK_LIBRARIES})  ### matersdk
 
 # Step 4. 
 $ cd <your_path_to_lammps>/build
