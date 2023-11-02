@@ -21,7 +21,7 @@ list(APPEND MATERSDK_INCLUDE_DIRS ${MATERSDK_DIR}/source/matersdk/feature/deepmd
 
 ## 3.2. MATERSDK_LIBRARIES
 set(MATERSDK_LIBRARIES)
-list(APPEND MATERSDK_LIBRARIES ${MATERSDK_DIR}/source/build/lib/matersdk/feature/deepmd/se4pw_op;)
+list(APPEND MATERSDK_LIBRARIES ${MATERSDK_DIR}/source/build/lib/matersdk/feature/deepmd/libse4pw_op.so;)
 
 message(STATUS "+++ MATERSDK_DIR : ${MATERSDK_DIR}")
 message(STATUS "+++ MATERSDK_INCLUDE_DIRS : ${MATERSDK_INCLUDE_DIRS}")

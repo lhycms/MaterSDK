@@ -172,8 +172,8 @@ public:
 TEST_F(Se4pwTest, generate) {
     double* tilde_r = (double*)malloc(sizeof(double) * (inum*tot_num_neigh_atoms*4));
     double* tilde_r_deriv = (double*)malloc(sizeof(double) * (inum*tot_num_neigh_atoms*4*3));
-    double* relative_coords = (double*)malloc(sizeof(double) * (inum*tot_num_neigh_atoms*3));    
-    
+    double* relative_coords = (double*)malloc(sizeof(double) * (inum*tot_num_neigh_atoms*3));
+
     matersdk::deepPotSE::Se4pw<double>::generate(
                         tilde_r,
                         tilde_r_deriv,

@@ -179,6 +179,13 @@ TEST_F(DemoSe4pwTest, demo) {
     at::Tensor num_neigh_atoms_lst_tensor = torch::from_blob(num_neigh_atoms_lst, {batch_size, ntypes}, int_tensor_options);
     at::Tensor x_tensor = torch::from_blob(x, {batch_size, sinum, 3}, float_tensor_options);
     
+    std::cout << "ilist_tensor.sizes() = " << ilist_tensor.sizes() << std::endl;
+    std::cout << "numneigh_tensor.sizes() = " << numneigh_tensor.sizes() << std::endl;
+    std::cout << "firstneigh_tensor.sizes() = " << firstneigh_tensor.sizes() << std::endl;
+    std::cout << "x_tensor.sizes() = " << x_tensor.sizes() << std::endl;
+    std::cout << "types_tensor.sizes() = " << types_tensor.sizes() << std::endl;
+    std::cout << "num_neigh_atoms_lst_tensor.sizes() = " << num_neigh_atoms_lst_tensor.sizes() << std::endl;
+
     torch::autograd::variable_list outputs = matersdk::deepPotSE::Se4pwOp::forward(
             batch_size,
             inum,
@@ -195,10 +202,6 @@ TEST_F(DemoSe4pwTest, demo) {
     at::Tensor tilde_r = outputs[0];
     at::Tensor tilde_r_deriv = outputs[1];
     at::Tensor relative_coords = outputs[2];
-    tilde_r.requires_grad_(true);
-    tilde_r_deriv.requires_grad_(true);
-    relative_coords.requires_grad_(true);
-
 
     // Step 1.2. list_neigh
     at::Tensor prim_indices_tensor = matersdk::deepPotSE::Se4pwOp::get_prim_indices_from_matersdk(
@@ -210,6 +213,7 @@ TEST_F(DemoSe4pwTest, demo) {
             types_tensor,
             ntypes,
             num_neigh_atoms_lst_tensor);
+    prim_indices_tensor = prim_indices_tensor + 1;
     
     // Step 1.3. `natoms_image`, `atom_types`
     int* natoms_image = (int*)malloc(sizeof(int) * 3);
@@ -248,32 +252,43 @@ TEST_F(DemoSe4pwTest, demo) {
     at::Tensor prim_types_tensor = torch::index_select(types_tensor, 1, torch::arange(0, inum));
     for (int ii=0; ii<ntypes; ii++) {
         auto mask = (prim_types_tensor.squeeze(0) == ii);
-        std::cout << torch::index_select(tilde_r, 1, mask.nonzero().squeeze(1)).sizes() << std::endl;
+        at::Tensor selected_indices = mask.nonzero().squeeze(1).to(torch::kInt64);  // e.g. torch::tensor(8);
+
+        // Step 3.1.1. tilde_r
+        at::Tensor selected_tilde_r = torch::index_select(tilde_r, 1, selected_indices);
+        selected_tilde_r = ( selected_tilde_r - davg[ii].unsqueeze(0).unsqueeze(0) ) / dstd[ii];
+        torch::index_put_(tilde_r, {torch::tensor(0).to(torch::kInt64), selected_indices}, selected_tilde_r[0]);
+
+        // Step 3.1.2. tilde_r
+        at::Tensor selected_tilde_r_deriv = torch::index_select(tilde_r_deriv, 1, selected_indices);
+        selected_tilde_r_deriv = selected_tilde_r_deriv / dstd[ii].unsqueeze(0).unsqueeze(0).unsqueeze(-1); // (1, 4) -> (1, 1, 1, 4, 3)
+        torch::index_put_(tilde_r_deriv, {torch::tensor(0).to(torch::kInt64), selected_indices}, selected_tilde_r_deriv[0]);
     }
 
-
-    // Step 3.2. 
-    /*
+    // Step 3.2. print out dims
     std::cout << "1. The dim of `feature` : " << tilde_r.sizes() << std::endl;
     std::cout << "2. The dim of `deriv of feature` : " << tilde_r_deriv.sizes() << std::endl;
     std::cout << "3. The dim of `index of neighbor atoms` : " << prim_indices_tensor.sizes() << std::endl;
     std::cout << "4. The dim of `number of each element` : " << natoms_image_tensor.sizes() << std::endl;
     std::cout << "5. The dim of `atomic number in image` : " << atom_types_tensor.sizes() << std::endl;
     std::cout << "6. The dim of `relative coordinates` : " << relative_coords.sizes() << std::endl;
-
+    
+    tilde_r.requires_grad_(true);
+    tilde_r_deriv.requires_grad_(true);
+    relative_coords.requires_grad_(true);
     auto result = module.forward(inputs); 
     
-    std::cout << result.toTuple()->elements()[2].toTensor() << std::endl;   
-    std::cout << module.attr("ntypes") << std::endl;;
-    std::cout << module.attr("atom_type") << std::endl;;
+    std::cout << result.toTuple()->elements()[2].toTensor().sizes() << std::endl;   
+    std::cout << module.attr("ntypes") << std::endl;
+    std::cout << module.attr("atom_type") << std::endl;
     std::cout << module.attr("maxNeighborNum") << std::endl;
     //std::cout << module.attr("dtype") << std::endl;
     std::cout << module.attr("davg").toTensor().sizes() << std::endl;
     std::cout << module.attr("dstd").toTensor().sizes() << std::endl;
     
-    std::cout << davg << std::endl;
-    std::cout << dstd << std::endl;
-    */
+    //std::cout << davg << std::endl;
+    //std::cout << dstd << std::endl;
+    
 }
 
 

@@ -234,7 +234,7 @@ void Se4pw<CoordType>::get_prim_indices_from_matersdk(
     int tot_num_neigh_atoms = 0;
     for (int ii=0; ii<ntypes; ii++)
         tot_num_neigh_atoms += num_neigh_atoms_lst[ii];
-    memset(prim_indices, 0, sizeof(int)*inum*tot_num_neigh_atoms);
+    memset(prim_indices, -1, sizeof(int)*inum*tot_num_neigh_atoms);
 
     // Step 2. Populate `prim_indices`
     for (int ii=0; ii<inum; ii++) {
@@ -247,7 +247,7 @@ void Se4pw<CoordType>::get_prim_indices_from_matersdk(
             
             int kk = types[neigh_atom_idx];
             
-            prim_indices[(nstart_idxs[kk]+nloop_idxs[kk]) + ii*tot_num_neigh_atoms] = (neigh_atom_idx % inum + 1);
+            prim_indices[(nstart_idxs[kk]+nloop_idxs[kk]) + ii*tot_num_neigh_atoms] = neigh_atom_idx % inum;
             nloop_idxs[kk]++;
         }
     }
