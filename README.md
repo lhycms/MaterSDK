@@ -130,6 +130,10 @@ $ cp <your_path_to_matersdk>/matersdk/source ./.
 $ cp <your_path_to_matersdk>/matersdk/cmake ./.
 $ ls .
 source cmake LICENSE
+$ vim <your_path_to_lammps>/src/MATERSDK/source/CMakeLiest.txt
+### Modify the path of MATERSDK
+add_subdirectory("<your_path_to_lammps>/src/MATERSDK/source/ext/googletest-main")
+$ cd vim <your_path_to_lammps>/src/MATERSDK/source/build; cmake ..; make
 
 # Step 3. 
 $ vim <your_path_to_lammps>/cmake/CMakeLists.txt
