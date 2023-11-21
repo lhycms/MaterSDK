@@ -53,9 +53,6 @@ class DStructure(Structure):
 
         if (file_format == "pwmat"):
             atom_config_extractor = ACExtractor(file_path=file_path)
-            print(atom_config_extractor.basis_vectors.shape)
-            print(atom_config_extractor.types.shape)
-            print(atom_config_extractor.coords.shape)
             structure = Structure(
                 lattice=atom_config_extractor.basis_vectors.reshape(3, 3),
                 species=atom_config_extractor.types.flatten(),
