@@ -36,7 +36,7 @@ int Structure::from_file(const char* file_path)
     }
 
     // Step 3. 
-    this->structure_py = structure_py;
+    //this->structure_py = structure_py;
     Py_DECREF(structure_py);
 
     Py_Finalize();

@@ -24,7 +24,7 @@ public:
     //void find_cart_coords(double** cart_coords);
 
 private:
-    PyObject* structure_py = nullptr;
+    //PyObject* structure_py = nullptr;
 };  // class : StructureLoader
 
 
