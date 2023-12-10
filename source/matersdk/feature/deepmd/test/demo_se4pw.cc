@@ -256,12 +256,14 @@ TEST_F(DemoSe4pwTest, demo) {
 
         // Step 3.1.1. tilde_r
         at::Tensor selected_tilde_r = torch::index_select(tilde_r, 1, selected_indices);
-        selected_tilde_r = ( selected_tilde_r - davg[ii].unsqueeze(0).unsqueeze(0) ) / dstd[ii];
+        // selected_tilde_r: (1, N_c, N_b, 4); this->davg : (4,)
+        selected_tilde_r = ( selected_tilde_r - davg[ii].unsqueeze(0) ) / dstd[ii].unsqueeze(0);
         torch::index_put_(tilde_r, {torch::tensor(0).to(torch::kInt64), selected_indices}, selected_tilde_r[0]);
 
         // Step 3.1.2. tilde_r
         at::Tensor selected_tilde_r_deriv = torch::index_select(tilde_r_deriv, 1, selected_indices);
-        selected_tilde_r_deriv = selected_tilde_r_deriv / dstd[ii].unsqueeze(0).unsqueeze(0).unsqueeze(-1); // (1, 4) -> (1, 1, 1, 4, 3)
+         // selected_tilde_r: (1, N_c, N_b, 4); this->davg : (4,)
+        selected_tilde_r_deriv = selected_tilde_r_deriv / dstd[ii].unsqueeze(0).unsqueeze(-1); // (1, 4) -> (1, 1, 1, 4, 3)
         torch::index_put_(tilde_r_deriv, {torch::tensor(0).to(torch::kInt64), selected_indices}, selected_tilde_r_deriv[0]);
     }
 
@@ -278,7 +280,8 @@ TEST_F(DemoSe4pwTest, demo) {
     relative_coords.requires_grad_(true);
     auto result = module.forward(inputs); 
     
-    std::cout << result.toTuple()->elements()[2].toTensor().sizes() << std::endl;   
+    std::cout << result.toTuple()->elements()[2].toTensor().sizes() << std::endl;  
+    std::cout << result.toTuple()->elements()[2].toTensor() << std::endl;  
     std::cout << module.attr("ntypes") << std::endl;
     std::cout << module.attr("atom_type") << std::endl;
     std::cout << module.attr("maxNeighborNum") << std::endl;

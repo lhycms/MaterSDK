@@ -41,7 +41,6 @@ file(MAKE_DIRECTORY ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
 
 
 # 4. add_subdirectory
-message(STATUS ${CMAKE_CURRENT_SOURCE_DIR}/core)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/core)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/matersdk/io/publicLayer)
