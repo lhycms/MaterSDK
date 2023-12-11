@@ -254,7 +254,10 @@ TEST_F(NeighborListTest, find_info4mlff) {
         types,
         umax_num_neigh_atoms);
     
-    /*
+    for (int ii=0; ii<inum; ii++)
+        printf("%3d, ", types[ii]);
+    printf("\n\n");
+    
     for (int ii=0; ii<inum; ii++) {
         for (int jj=0; jj<numneigh[ii]; jj++) {
             double tmp_distance;
@@ -267,7 +270,7 @@ TEST_F(NeighborListTest, find_info4mlff) {
         }
         printf("\n");
     }
-    */
+    
 }
 
 
