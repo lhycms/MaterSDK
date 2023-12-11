@@ -61,7 +61,7 @@ PyObject* find_info4mlff(
     }
     
     // Step 1.3. You must init it with fractional coordinates
-    matersdk::Structure<double> structure((int)num_atoms, lattice, atomic_numbers, frac_coords, false);
+    matersdk::Structure<double> structure(num_atoms, lattice, atomic_numbers, frac_coords, false);
     structure.show();
 
     // Step 2. Init matersdk::NeighborList<double>
@@ -123,9 +123,13 @@ PyObject* find_info4mlff(
     relative_coords_dims[2] = 3;
     PyObject* relative_coords_py = PyArray_SimpleNewFromData(3, relative_coords_dims, NPY_DOUBLE, relative_coords);
     // Step 4.6. types
-    npy_intp* types_dims = (npy_intp*)malloc(sizeof(npy_intp) * 1);
+    npy_intp* types_dims = (npy_intp*)malloc(sizeof(npy_intp));
     types_dims[0] = inum;
-    PyObject* types_py = PyArray_SimpleNewFromData(1, types_dims, NPY_INT, types);
+    printf("*** %3d\n", inum);
+    for (int ii=0; ii<types_dims[0]; ii++)
+        printf("%3d, ", types[ii]);
+    printf("\n");
+    PyObject* types_py = PyArray_SimpleNewFromData(1, types_dims, NPY_INT32, types);
     
     // Step 4.7. 
     PyTuple_SetItem(nblist_info, 1, ilist_py);
@@ -136,11 +140,11 @@ PyObject* find_info4mlff(
     
 
     // Step . Free memory
-    free(ilist);
-    free(numneigh);
-    free(firstneigh);
-    free(relative_coords);
-    free(types);
+    //free(ilist);
+    //free(numneigh);
+    //free(firstneigh);
+    //free(relative_coords);
+    //free(types);
     free(ilist_dims);
     free(numneigh_dims);
     free(firstneigh_dims);
