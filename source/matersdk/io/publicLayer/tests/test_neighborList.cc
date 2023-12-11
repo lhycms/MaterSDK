@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include <iostream>
+#include <cmath>
 
 #include "../include/structure.h"
 #include "../include/neighborList.h"
@@ -139,9 +140,9 @@ TEST_F(NeighborListTest, constructor_2) {
     //printf("\n");
     //neighbor_list.show_in_prim_index();
     //printf("\n");
-    neighbor_list.show_in_an();
-    printf("\n");
-    neighbor_list.show_in_distances();
+    //neighbor_list.show_in_an();
+    //printf("\n");
+    //neighbor_list.show_in_distances();
 }
 
 
@@ -158,8 +159,8 @@ TEST_F(NeighborListTest, copy_constructor) {
     matersdk::NeighborList<double> neighbor_list_3(neighbor_list_1);
     matersdk::NeighborList<double> neighbor_list_4(neighbor_list_2);
 
-    neighbor_list_3.show_in_an();
-    neighbor_list_4.show_in_an();
+    //neighbor_list_3.show_in_an();
+    //neighbor_list_4.show_in_an();
 }
 
 
@@ -180,7 +181,7 @@ TEST_F(NeighborListTest, assignment_operator) {
     neighbor_list_4 = neighbor_list_1;
     //neighbor_list_4 = neighbor_list_2;
     
-    neighbor_list_4.show_in_an();
+    //neighbor_list_4.show_in_an();
 }
 
 
@@ -216,7 +217,58 @@ TEST_F(NeighborListTest, get_rcut) {
 }
 
 
+TEST_F(NeighborListTest, get_max_num_neigh_atoms) {
+    rcut = 3.2;
+    pbc_xyz[0] = true;
+    pbc_xyz[1] = true;
+    pbc_xyz[2] = false;
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    matersdk::NeighborList<double> neighbor_list(structure, rcut, pbc_xyz, false);
 
+    int max_num_neigh_atoms = neighbor_list.get_max_num_neigh_atoms();
+    EXPECT_EQ(max_num_neigh_atoms, 12);
+}
+
+
+TEST_F(NeighborListTest, find_info4mlff) {
+    rcut = 3.2;
+    pbc_xyz[0] = true;
+    pbc_xyz[1] = true;
+    pbc_xyz[2] = false;
+    int umax_num_neigh_atoms = 19;
+    matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
+    matersdk::NeighborList<double> neighbor_list(structure, rcut, pbc_xyz, true);
+    int inum = structure.get_num_atoms();
+    int* ilist = (int*)malloc(sizeof(int) * inum);
+    int* numneigh = (int*)malloc(sizeof(int) * inum);
+    int* firstneigh = (int*)malloc(sizeof(int) * inum * umax_num_neigh_atoms);
+    double* relative_coords = (double*)malloc(sizeof(double) * inum * umax_num_neigh_atoms * 3);
+    int* types = (int*)malloc(sizeof(int) * inum);
+
+    neighbor_list.find_info4mlff(
+        inum,
+        ilist,
+        numneigh,
+        firstneigh, 
+        relative_coords,
+        types,
+        umax_num_neigh_atoms);
+    
+    /*
+    for (int ii=0; ii<inum; ii++) {
+        for (int jj=0; jj<numneigh[ii]; jj++) {
+            double tmp_distance;
+            tmp_distance = std::sqrt(
+                std::pow(relative_coords[ii*umax_num_neigh_atoms*3 + jj*3 + 0], 2) + 
+                std::pow(relative_coords[ii*umax_num_neigh_atoms*3 + jj*3 + 1], 2) + 
+                std::pow(relative_coords[ii*umax_num_neigh_atoms*3 + jj*3 + 2], 2)
+            );
+            printf("%6f, ", tmp_distance);
+        }
+        printf("\n");
+    }
+    */
+}
 
 
 

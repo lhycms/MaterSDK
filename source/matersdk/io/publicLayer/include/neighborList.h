@@ -5,6 +5,7 @@
 #include <cmath>
 #include <vector>
 #include <algorithm>
+#include <stdlib.h>
 #include "./binLinkedList.h"
 
 
@@ -93,6 +94,19 @@ public:
     const BinLinkedList<CoordType>& get_binLinkedList() const;
 
     const int get_max_num_neigh_atoms_ssss(int center_atomic_number, int neigh_atomic_number) const; // `ssss`: specified center/neigh specie
+
+    const int get_max_num_neigh_atoms();
+
+    void find_info4mlff(
+        int& inum,
+        int* ilist,
+        int* numneigh,
+        int* firstneigh,
+        CoordType* relative_coords,
+        int* types,
+        int umax_num_neigh_atoms_lst
+    );
+
 
 private:
     BinLinkedList<CoordType> bin_linked_list;
@@ -460,6 +474,82 @@ const int NeighborList<CoordType>::get_max_num_neigh_atoms_ssss(int center_atomi
     return max_num_neigh_atoms_ssss;
 }
 
+
+template <typename CoordType>
+const int NeighborList<CoordType>::get_max_num_neigh_atoms() {
+    int max_num_neigh_atoms = 0;
+    for (int ii=0; ii<this->num_atoms; ii++) {
+        if (this->neighbor_lists[ii].size() > max_num_neigh_atoms)
+            max_num_neigh_atoms = this->neighbor_lists[ii].size();
+    }
+    return max_num_neigh_atoms;
+}
+
+
+/**
+ * @brief Establish a neighbor list in which atomic indices are mapped to primitive cell. This is just for mlff.
+ * 
+ * @tparam CoordType 
+ * @param inum : number of primitive cell atoms
+ * @param ilist : len = inum
+ * @param numneigh : len = inum
+ * @param firstneigh : len = inum * umax_num_neigh_atoms
+ * @param relative_coords : len = inum * umax_neigh_atoms * 3
+ * @param types : len = inum, depends on `firstneigh`
+ * @param umax_num_neigh_atoms: User specified `max_num_neigh_atoms` which is larger than `max_num_neigh_atoms_real`. Just for mlff!
+ *          # note: If system contains `H` and `O`
+ *          #   1) H  ->  | ... H ... | ... O ... |
+ *          #   2) O  ->  | ... H ... | ... O ... |
+ *          #       1) and 2) must have the same shape;
+ *          #       | ... H ... | and | ... O ... | may have different shape;
+ *          #       this issue is deal when calculating descriptor.
+ */
+template <typename CoordType>
+void NeighborList<CoordType>::find_info4mlff(
+    int& inum,
+    int* ilist,
+    int* numneigh,
+    int* firstneigh,
+    CoordType* relative_coords,
+    int* types,
+    int umax_num_neigh_atoms)
+{
+    int tmp_center_idx;
+    int tmp_neigh_idx;
+    const CoordType* tmp_center_cart_coord;
+    const CoordType* tmp_neigh_cart_coord;
+    const int prim_cell_idx = this->bin_linked_list.get_supercell().get_prim_cell_idx();
+    const int prim_num_atoms = this->num_atoms;
+    const CoordType** supercell_cart_coords = this->bin_linked_list.get_supercell().get_structure().get_cart_coords();
+
+    // assert(umax_num_neigh_atoms > this->get_max_num_neigh_atoms);
+    inum = this->num_atoms; // number of atom in primitive cell.
+    for (int ii=0; ii<inum; ii++) {
+        ilist[ii] = ii;
+        numneigh[ii] = this->neighbor_lists[ii].size();
+        types[ii] = this->bin_linked_list.get_supercell().get_structure().get_atomic_numbers()[ii];
+    }
+    std::fill(firstneigh, firstneigh + inum * umax_num_neigh_atoms, -1);
+    for (int ii=0; ii<inum; ii++) 
+        for (int jj=0; jj<numneigh[ii]; jj++)
+            firstneigh[ii*umax_num_neigh_atoms + jj] = this->neighbor_lists[ii][jj] % inum;
+    
+    std::fill(relative_coords, relative_coords + inum * umax_num_neigh_atoms * 3, 0.0);
+    for (int ii=0; ii<inum; ii++) {
+        tmp_center_idx = ii + prim_cell_idx * prim_num_atoms;
+        tmp_center_cart_coord = supercell_cart_coords[tmp_center_idx];
+        for (int jj=0; jj<numneigh[ii]; jj++) {
+            tmp_neigh_idx = this->neighbor_lists[ii][jj];
+            tmp_neigh_cart_coord = supercell_cart_coords[tmp_neigh_idx];
+
+            relative_coords[ii*umax_num_neigh_atoms*3 + jj*3 + 0] = tmp_neigh_cart_coord[0] - tmp_center_cart_coord[0];
+            relative_coords[ii*umax_num_neigh_atoms*3 + jj*3 + 1] = tmp_neigh_cart_coord[1] - tmp_center_cart_coord[1];
+            relative_coords[ii*umax_num_neigh_atoms*3 + jj*3 + 2] = tmp_neigh_cart_coord[2] - tmp_center_cart_coord[2];
+        }
+    }
+    
+    // Step . Free memory
+}
 
 
 }; // namespace: matersdk
