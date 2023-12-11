@@ -296,7 +296,6 @@ void BasicStructureInfo<CoordType>::show() const{
 
 
 
-
 /**
  * @brief Construct a new matersdk::Supercell<Coord Type>::Supercell object
  * 

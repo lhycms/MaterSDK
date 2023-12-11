@@ -484,7 +484,7 @@ TEST_F(BinLinkedListTest, constructor_2) {
 
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
     matersdk::BinLinkedList<double> bin_linked_list(structure, rcut, pbc_xyz);
-    bin_linked_list.show();
+    //bin_linked_list.show();
 
 
     /*
@@ -708,10 +708,10 @@ TEST_F(BinLinkedListTest, get_neigh_atoms) {
     matersdk::Structure<double> structure(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
     matersdk::BinLinkedList<double> bin_linked_list(structure, rcut, bin_size_xyz, pbc_xyz);
     std::vector<int> neigh_atom_idxs = bin_linked_list.get_neigh_atoms(0);
-    for (int neigh_atom_idx: neigh_atom_idxs) {
-        printf("%d, ", neigh_atom_idx);
-    }
-    printf("\n");
+    //for (int neigh_atom_idx: neigh_atom_idxs) {
+        //printf("%d, ", neigh_atom_idx);
+    //}
+    //printf("\n");
 }
 
 
