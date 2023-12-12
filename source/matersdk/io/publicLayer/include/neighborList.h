@@ -65,9 +65,9 @@ public:
     
     NeighborList();
 
-    NeighborList(Structure<CoordType>& structure, CoordType rcut, CoordType* bin_size_xyz, bool* pbc_xyz, bool sort=false);
+    NeighborList(Structure<CoordType> structure, CoordType rcut, CoordType* bin_size_xyz, bool* pbc_xyz, bool sort=false);
 
-    NeighborList(Structure<CoordType>& structure, CoordType rcut, bool* pbc_xyz, bool sort=false);
+    NeighborList(Structure<CoordType> structure, CoordType rcut, bool* pbc_xyz, bool sort=false);
 
     NeighborList(const NeighborList& rhs);
 
@@ -140,7 +140,7 @@ NeighborList<CoordType>::NeighborList() {
  * @param pbc_xyz 
  */
 template <typename CoordType>
-NeighborList<CoordType>::NeighborList(Structure<CoordType>& structure, CoordType rcut, CoordType* bin_size_xyz, bool* pbc_xyz, bool sort) {
+NeighborList<CoordType>::NeighborList(Structure<CoordType> structure, CoordType rcut, CoordType* bin_size_xyz, bool* pbc_xyz, bool sort) {
     assert(structure.get_num_atoms() > 0);
     
     this->bin_linked_list = BinLinkedList<CoordType>(structure, rcut, bin_size_xyz, pbc_xyz);
@@ -161,7 +161,7 @@ NeighborList<CoordType>::NeighborList(Structure<CoordType>& structure, CoordType
  * @param sort 
  */
 template <typename CoordType>
-NeighborList<CoordType>::NeighborList(Structure<CoordType>& structure, CoordType rcut, bool* pbc_xyz, bool sort) {
+NeighborList<CoordType>::NeighborList(Structure<CoordType> structure, CoordType rcut, bool* pbc_xyz, bool sort) {
     assert(structure.get_num_atoms() > 0);
 
     CoordType bin_size_xyz[3];
@@ -235,6 +235,8 @@ NeighborList<CoordType>& NeighborList<CoordType>::operator=(const NeighborList<C
 template <typename CoordType>
 NeighborList<CoordType>::~NeighborList() {
     if (this->num_atoms != 0) {
+        for (int ii=0; ii<this->num_atoms; ii++)
+            this->neighbor_lists[ii].clear();
         delete [] this->neighbor_lists;
         this->num_atoms = 0;
     }

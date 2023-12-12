@@ -742,6 +742,11 @@ BinLinkedList<CoordType>::BinLinkedList(const BinLinkedList<CoordType>& rhs) {
  */
 template <typename CoordType>
 BinLinkedList<CoordType>& BinLinkedList<CoordType>::operator=(const BinLinkedList<CoordType>& rhs) {
+    if (this->rcut != 0) {
+        free(this->heads_lst);
+        free(this->nexts_lst);
+    }
+    
     this->rcut = rhs.rcut;
 
     if (this->rcut == 0) {

@@ -304,6 +304,7 @@ TEST_F(StructureArrayTest, get_projected_lengths4supercell) {
         free(limit_xyz[ii]);
     }
     free(limit_xyz);
+    free(standard_projected_lengths);
 }
 
 

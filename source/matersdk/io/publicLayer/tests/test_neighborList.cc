@@ -125,6 +125,13 @@ TEST_F(NeighborListTest, constructor_1) {
     neighbor_list.show_in_an();
     printf("\n");
     neighbor_list.show_in_distances();
+
+    for (int ii=0; ii<neighbor_list.get_num_center_atoms(); ii++) {
+        for (int jj=0; jj<neighbor_list.get_neighbor_lists()[ii].size(); jj++) {
+            printf("%3d, ", neighbor_list.get_neighbor_lists()[ii][jj] % neighbor_list.get_num_center_atoms());
+        }
+        printf("\n");
+    }
 }
 
 
@@ -270,7 +277,13 @@ TEST_F(NeighborListTest, find_info4mlff) {
         }
         printf("\n");
     }
-    
+
+    // Step . Free memory
+    free(ilist);
+    free(numneigh);
+    free(firstneigh);
+    free(relative_coords);
+    free(types);
 }
 
 

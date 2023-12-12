@@ -592,6 +592,12 @@ void Structure<CoordType>::make_supercell(const int *scaling_matrix) {
         this->basis_vectors[ii][2] *= scaling_matrix[ii];
     }
 
+
+    // Step 4. Free memory
+    free(atomic_numbers_prim);
+    for (int ii=0; ii<num_atoms_prim; ii++)
+        free(cart_coords_prim[ii]);
+    free(cart_coords_prim);
 }
 
 

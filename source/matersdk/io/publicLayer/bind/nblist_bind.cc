@@ -62,7 +62,6 @@ PyObject* find_info4mlff(
     
     // Step 1.3. You must init it with fractional coordinates
     matersdk::Structure<double> structure(num_atoms, lattice, atomic_numbers, frac_coords, false);
-    structure.show();
 
     // Step 2. Init matersdk::NeighborList<double>
     // Step 2.1. 
@@ -107,29 +106,30 @@ PyObject* find_info4mlff(
     npy_intp* ilist_dims = (npy_intp*)malloc(sizeof(npy_intp) * 1);
     ilist_dims[0] = inum;
     PyObject* ilist_py = PyArray_SimpleNewFromData(1, ilist_dims, NPY_INT, ilist);
+    PyArray_ENABLEFLAGS((PyArrayObject*)ilist_py, NPY_OWNDATA);
     // Step 4.3. numneigh
     npy_intp* numneigh_dims = (npy_intp*)malloc(sizeof(npy_intp) * 1);
     numneigh_dims[0] = inum;
     PyObject* numneigh_py = PyArray_SimpleNewFromData(1, numneigh_dims, NPY_INT, numneigh);
+    PyArray_ENABLEFLAGS((PyArrayObject*)numneigh_py, NPY_OWNDATA);
     // Step 4.4. firstneigh
     npy_intp* firstneigh_dims = (npy_intp*)malloc(sizeof(npy_intp) * 2);
     firstneigh_dims[0] = inum;
     firstneigh_dims[1] = umax_num_neigh_atoms;
     PyObject* firstneigh_py = PyArray_SimpleNewFromData(2, firstneigh_dims, NPY_INT, firstneigh);
+    PyArray_ENABLEFLAGS((PyArrayObject*)numneigh_py, NPY_OWNDATA);
     // Step 4.5. relative_coords
     npy_intp* relative_coords_dims = (npy_intp*)malloc(sizeof(npy_intp) * 3);
     relative_coords_dims[0] = inum;
     relative_coords_dims[1] = umax_num_neigh_atoms;
     relative_coords_dims[2] = 3;
     PyObject* relative_coords_py = PyArray_SimpleNewFromData(3, relative_coords_dims, NPY_DOUBLE, relative_coords);
+    PyArray_ENABLEFLAGS((PyArrayObject*)relative_coords_py, NPY_OWNDATA);
     // Step 4.6. types
     npy_intp* types_dims = (npy_intp*)malloc(sizeof(npy_intp));
     types_dims[0] = inum;
-    printf("*** %3d\n", inum);
-    for (int ii=0; ii<types_dims[0]; ii++)
-        printf("%3d, ", types[ii]);
-    printf("\n");
     PyObject* types_py = PyArray_SimpleNewFromData(1, types_dims, NPY_INT32, types);
+    PyArray_ENABLEFLAGS((PyArrayObject*)types_dims, NPY_OWNDATA);
     
     // Step 4.7. 
     PyTuple_SetItem(nblist_info, 1, ilist_py);
