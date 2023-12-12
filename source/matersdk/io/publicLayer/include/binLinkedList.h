@@ -764,16 +764,15 @@ BinLinkedList<CoordType>& BinLinkedList<CoordType>::operator=(const BinLinkedLis
             this->pbc_xyz[ii] = rhs.pbc_xyz[ii];
             this->num_bin_xyz[ii] = rhs.num_bin_xyz[ii];
             this->min_limit_xyz[ii] = rhs.min_limit_xyz[ii];
+        }
+        this->heads_lst = (int*)malloc(sizeof(int) * this->num_bin_xyz[0] * this->num_bin_xyz[1] * this->num_bin_xyz[2]);
+        for (int ii=0; ii<this->num_bin_xyz[0] * this->num_bin_xyz[1] * this->num_bin_xyz[2]; ii++) {
+            this->heads_lst[ii] = rhs.heads_lst[ii];
+        }
 
-            this->heads_lst = (int*)malloc(sizeof(int) * this->num_bin_xyz[0] * this->num_bin_xyz[1] * this->num_bin_xyz[2]);
-            for (int ii=0; ii<this->num_bin_xyz[0] * this->num_bin_xyz[1] * this->num_bin_xyz[2]; ii++) {
-                this->heads_lst[ii] = rhs.heads_lst[ii];
-            }
-
-            this->nexts_lst = (int*)malloc(sizeof(int) * this->supercell.get_num_atoms());
-            for (int ii=0; ii<this->supercell.get_num_atoms(); ii++) {
-                this->nexts_lst[ii] = rhs.nexts_lst[ii];
-            }
+        this->nexts_lst = (int*)malloc(sizeof(int) * this->supercell.get_num_atoms());
+        for (int ii=0; ii<this->supercell.get_num_atoms(); ii++) {
+            this->nexts_lst[ii] = rhs.nexts_lst[ii];
         }
     }
 

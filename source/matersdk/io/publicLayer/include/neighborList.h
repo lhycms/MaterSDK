@@ -142,7 +142,6 @@ NeighborList<CoordType>::NeighborList() {
 template <typename CoordType>
 NeighborList<CoordType>::NeighborList(Structure<CoordType> structure, CoordType rcut, CoordType* bin_size_xyz, bool* pbc_xyz, bool sort) {
     assert(structure.get_num_atoms() > 0);
-    
     this->bin_linked_list = BinLinkedList<CoordType>(structure, rcut, bin_size_xyz, pbc_xyz);
     this->num_atoms = this->bin_linked_list.get_supercell().get_prim_num_atoms();
     this->neighbor_lists = new std::vector<int>[this->num_atoms];
@@ -208,6 +207,13 @@ NeighborList<CoordType>::NeighborList(const NeighborList<CoordType>& rhs) {
  */
 template <typename CoordType>
 NeighborList<CoordType>& NeighborList<CoordType>::operator=(const NeighborList<CoordType>& rhs) {
+    if (this->num_atoms != 0) {
+        for (int ii=0; ii<num_atoms; ii++)
+            this->neighbor_lists[ii].clear();
+        delete [] this->neighbor_lists;
+    }
+
+    
     this->bin_linked_list = rhs.bin_linked_list;
     this->num_atoms = rhs.num_atoms;
     this->rcut = rhs.rcut;
@@ -304,6 +310,7 @@ void NeighborList<CoordType>::_build(bool sort) {
             // Step 3.2.3. Sort 
             std::sort(indices, indices + tmp_num_neigh_atoms, SingleNeighborListSortBasis<CoordType>(distances));
             SingleNeighborListArrangement<CoordType> snl_arrangement(this->neighbor_lists[ii], indices);
+            this->neighbor_lists[ii].clear();
             this->neighbor_lists[ii] = snl_arrangement.arrange();
 
             // Step 3.2.4. Free `distances`

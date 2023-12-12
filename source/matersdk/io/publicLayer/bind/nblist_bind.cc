@@ -129,7 +129,7 @@ PyObject* find_info4mlff(
     npy_intp* types_dims = (npy_intp*)malloc(sizeof(npy_intp));
     types_dims[0] = inum;
     PyObject* types_py = PyArray_SimpleNewFromData(1, types_dims, NPY_INT32, types);
-    PyArray_ENABLEFLAGS((PyArrayObject*)types_dims, NPY_OWNDATA);
+    PyArray_ENABLEFLAGS((PyArrayObject*)types_py, NPY_OWNDATA);
     
     // Step 4.7. 
     PyTuple_SetItem(nblist_info, 1, ilist_py);
@@ -138,7 +138,7 @@ PyObject* find_info4mlff(
     PyTuple_SetItem(nblist_info, 4, relative_coords_py);
     PyTuple_SetItem(nblist_info, 5, types_py);
     
-
+    
     // Step . Free memory
     //free(ilist);
     //free(numneigh);
