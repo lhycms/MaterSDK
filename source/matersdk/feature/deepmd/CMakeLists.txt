@@ -45,7 +45,11 @@ if (BUILD_TEST)
 
     add_executable(demo ${CMAKE_CURRENT_SOURCE_DIR}/test/demo.cc)
 
+    add_executable(test_envMatrix ${CMAKE_CURRENT_SOURCE_DIR}/test/test_envMatrix.cc)
+    target_link_libraries(test_envMatrix PRIVATE gtest gtest_main)
+
     gtest_discover_tests(test_se)
     gtest_discover_tests(test_se_lmp)
     gtest_discover_tests(test_se4pw)
+    gtest_discover_tests(test_envMatrix)
 endif()
