@@ -12,6 +12,10 @@ nblist_name:str = "nblist"
 nblist_bind_dir:str = os.path.join(matersdk_root_dir, "source", "matersdk", "io", "publicLayer", "bind")
 nblist_bind_gen_dir:str = os.path.join(nblist_bind_dir, "gen")
 subprocess.call([
+    "mkdir", "-p",
+    nblist_bind_gen_dir
+])
+subprocess.call([
     "python",
     "{0}".format( os.path.join(nblist_bind_dir, "setup.py") ),
     "build_ext",
