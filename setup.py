@@ -1,6 +1,25 @@
+import os
+import subprocess
+from pathlib import Path
 from setuptools import setup, find_packages
 
 
+matersdk_root_dir:str = Path(__file__).parent.absolute()
+
+
+### Part . Set up nblist
+nblist_name:str = "nblist"
+nblist_bind_dir:str = os.path.join(matersdk_root_dir, "source", "matersdk", "io", "publicLayer", "bind")
+nblist_bind_gen_dir:str = os.path.join(nblist_bind_dir, "gen")
+subprocess.call([
+    "python",
+    "{0}".format( os.path.join(nblist_bind_dir, "setup.py") ),
+    "build_ext",
+    "--build-lib={0}".format( nblist_bind_gen_dir )
+])
+
+
+### Part . Set up matersdk
 setup(
     name="matersdk",
     version="v1.0",
@@ -17,5 +36,6 @@ setup(
             "click>=8.1.3",
             "joblib>=1.2.0",
             "h5py>=3.8.0",
+            "pybind11>=2.11.1",
     ]
 )
