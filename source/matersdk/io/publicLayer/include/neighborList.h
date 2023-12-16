@@ -30,7 +30,7 @@ private:
 template <typename CoordType>
 class SingleNeighborListArrangement {
 public:
-    SingleNeighborListArrangement(std::vector<int>& single_neighbor_list, int *new_indices)
+    SingleNeighborListArrangement(std::vector<int> single_neighbor_list, int *new_indices)
     : single_neighbor_list(single_neighbor_list), new_indices(new_indices)
     {}
 

@@ -21,7 +21,7 @@ class BasicStructureInfo {
 public:
     BasicStructureInfo();
 
-    BasicStructureInfo(Structure<CoordType> &structure);
+    BasicStructureInfo(Structure<CoordType> structure);
 
     BasicStructureInfo& operator=(const BasicStructureInfo& rhs);
 
@@ -47,7 +47,7 @@ class Supercell {
 public:
     Supercell();
 
-    Supercell(Structure<CoordType>& structure, int *scaling_matrix); // Note `Structure<CoordType> &structure` is a reference.
+    Supercell(Structure<CoordType> structure, int *scaling_matrix); // Note `Structure<CoordType> &structure` is a reference.
 
     //Supercell(Structure<CoordType> Structure, int scaling_matrix[3]);
     
@@ -100,9 +100,9 @@ class BinLinkedList {
 public:
     BinLinkedList();
 
-    BinLinkedList(Structure<CoordType>& structure, CoordType rcut, CoordType* bin_size_xyz, bool* pbc_xyz);
+    BinLinkedList(Structure<CoordType> structure, CoordType rcut, CoordType* bin_size_xyz, bool* pbc_xyz);
 
-    BinLinkedList(Structure<CoordType>& structure, CoordType rcut, bool* pbc_xyz);
+    BinLinkedList(Structure<CoordType> structure, CoordType rcut, bool* pbc_xyz);
 
     BinLinkedList(const BinLinkedList& rhs);
 
@@ -175,7 +175,7 @@ BasicStructureInfo<CoordType>::BasicStructureInfo() {
  * @param structure 
  */
 template <typename CoordType>
-BasicStructureInfo<CoordType>::BasicStructureInfo(Structure<CoordType> &structure) {
+BasicStructureInfo<CoordType>::BasicStructureInfo(Structure<CoordType> structure) {
     this->num_atoms = structure.num_atoms;
 
     if (this->num_atoms == 0) {
@@ -329,7 +329,7 @@ matersdk::Supercell<CoordType>::Supercell() {
  * @param scaling_matrix 
  */
 template <typename CoordType>
-matersdk::Supercell<CoordType>::Supercell(Structure<CoordType>& structure, int *scaling_matrix)
+matersdk::Supercell<CoordType>::Supercell(Structure<CoordType> structure, int *scaling_matrix)
 {
     this->structure = structure;
     this->prim_structure_info = BasicStructureInfo<CoordType>(structure);
@@ -585,7 +585,7 @@ BinLinkedList<CoordType>::BinLinkedList() {
  * @param pbc_xyz 是否满足周期性边界条件
  */
 template <typename CoordType>
-BinLinkedList<CoordType>::BinLinkedList(Structure<CoordType>& structure, CoordType rcut, CoordType* bin_size_xyz, bool* pbc_xyz) {
+BinLinkedList<CoordType>::BinLinkedList(Structure<CoordType> structure, CoordType rcut, CoordType* bin_size_xyz, bool* pbc_xyz) {
     assert(structure.get_num_atoms() > 0);
 
     // Step 1. 计算 `scaling_matrix` -- 根据 `rcut` 和 `interplanar_distances`
@@ -645,7 +645,7 @@ BinLinkedList<CoordType>::BinLinkedList(Structure<CoordType>& structure, CoordTy
  * @param pbc_xyz 
  */
 template <typename CoordType>
-BinLinkedList<CoordType>::BinLinkedList(Structure<CoordType>& structure, CoordType rcut, bool* pbc_xyz) {
+BinLinkedList<CoordType>::BinLinkedList(Structure<CoordType> structure, CoordType rcut, bool* pbc_xyz) {
     assert(structure.get_num_atoms() > 0);
 
     // Step 1. 计算 `scaling_matrix` -- 根据 `rcut` 和 `interplanar_distances`
