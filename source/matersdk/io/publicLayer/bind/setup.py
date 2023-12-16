@@ -46,7 +46,7 @@ NblistSwigExecutor().run(
     nblist_bind_gen_dir=nblist_bind_gen_dir)
 
 nblist_module = Extension(
-    name="nblist",
+    name="_nblist",
     sources=[
         *nblist_cc_lst,
         os.path.join(nblist_bind_dir, "{0}_bind.cc".format(nblist_name)),
