@@ -22,7 +22,7 @@ class NblistSwigExecutor(object):
                 "-c++", "-python",
                 "-o", cxx_wrap_file,
                 "-outdir", nblist_bind_gen_dir,
-                "{0}.i".format(nblist_name)
+                "{0}.i".format(os.path.join(nblist_bind_dir, nblist_name))
             ]
         )
 
@@ -46,7 +46,7 @@ NblistSwigExecutor().run(
     nblist_bind_gen_dir=nblist_bind_gen_dir)
 
 nblist_module = Extension(
-    name="_nblist",
+    name="nblist",
     sources=[
         *nblist_cc_lst,
         os.path.join(nblist_bind_dir, "{0}_bind.cc".format(nblist_name)),
