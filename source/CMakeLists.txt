@@ -43,7 +43,7 @@ file(MAKE_DIRECTORY ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
 # 4. add_subdirectory
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/core)
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/matersdk/io/publicLayer)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/nblist)
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/matersdk/feature/deepmd)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/matersdk/feature/mtp)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/descriptor/deepmd)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/descriptor/mtp)

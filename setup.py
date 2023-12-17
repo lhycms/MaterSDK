@@ -9,7 +9,7 @@ matersdk_root_dir:str = Path(__file__).parent.absolute()
 
 ### Part . Set up nblist
 nblist_name:str = "nblist"
-nblist_bind_dir:str = os.path.join(matersdk_root_dir, "source", "matersdk", "io", "publicLayer", "bind")
+nblist_bind_dir:str = os.path.join(matersdk_root_dir, "source", "nblist", "bind")
 nblist_bind_gen_dir:str = os.path.join(nblist_bind_dir, "gen")
 subprocess.call([
     "mkdir", "-p",

@@ -133,7 +133,7 @@ source cmake LICENSE
 $ vim <your_path_to_lammps>/src/MATERSDK/source/CMakeLiest.txt
 ### Modify the path of MATERSDK
 add_subdirectory("<your_path_to_lammps>/src/MATERSDK/source/ext/googletest-main")
-$ cd vim <your_path_to_lammps>/src/MATERSDK/source/build; cmake ..; make
+$ cd vim <your_path_to_lammps>/src/MATERSDK/source/build; cmake -DBUILD_TEST=1 -DTORCH_OP=1 ..; make
 
 # Step 3. 
 $ vim <your_path_to_lammps>/cmake/CMakeLists.txt
