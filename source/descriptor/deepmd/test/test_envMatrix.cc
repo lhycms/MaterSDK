@@ -27,6 +27,9 @@ protected:
     int ntypes;
     int umax_num_neigh_atoms;
     int* umax_num_neigh_atoms_lst;
+
+    double* tilde_r;
+    double* tilde_r_deriv;
     
 
     static void SetUpTestSuite() {
@@ -121,6 +124,10 @@ protected:
         firstneigh = (int*)malloc(sizeof(int) * inum * umax_num_neigh_atoms);
         relative_coords = (double*)malloc(sizeof(double) * inum * umax_num_neigh_atoms * 3);
         types = (int*)malloc(sizeof(int) * inum);
+
+
+        tilde_r = (double*)malloc(sizeof(double) * inum * umax_num_neigh_atoms * 4);
+        tilde_r_deriv = (double*)malloc(sizeof(double) * inum * umax_num_neigh_atoms * 4 * 3);
     }
 
     void TearDown() override {
@@ -130,6 +137,8 @@ protected:
         free(relative_coords);
         free(types);
         free(umax_num_neigh_atoms_lst);
+        free(tilde_r);
+        free(tilde_r_deriv);
     }
 };  // class : EnvMatrixTest
 
@@ -144,18 +153,20 @@ TEST_F(EnvMatrixTest, find_value_deriv) {
         types,
         umax_num_neigh_atoms);
     
-    for (int ii=0; ii<inum; ii++) {
-        for (int jj=0; jj<numneigh[ii]; jj++) {
-            printf("%10lf", 
-                std::sqrt(
-                    std::pow(relative_coords[ii*umax_num_neigh_atoms*3 + jj*3 + 0], 2) + 
-                    std::pow(relative_coords[ii*umax_num_neigh_atoms*3 + jj*3 + 1], 2) + 
-                    std::pow(relative_coords[ii*umax_num_neigh_atoms*3 + jj*3 + 2], 2))
-            );
-        }
-        printf("\n");
-    }
-    printf("\n");
+    matersdk::deepPotSE::EnvMatrix<double>::find_value_deriv(
+        tilde_r,
+        tilde_r_deriv,
+        inum,
+        ilist,
+        numneigh,
+        firstneigh,
+        relative_coords,
+        types,
+        ntypes,
+        umax_num_neigh_atoms_lst,
+        rcut,
+        rcut_smooth);
+    
 }
 
 

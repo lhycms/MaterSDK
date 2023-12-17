@@ -15,11 +15,13 @@ public:
         int inum, 
         int* ilist,
         int* numneigh,
-        CoordType* firstneigh,
+        int* firstneigh,
         CoordType* relative_coords,
         int* types,
         int ntypes,
-        int* umax_num_neigh_atoms_lst);
+        int* umax_num_neigh_atoms_lst,
+        CoordType rcut,
+        CoordType rcut_smooth);
 };  // class : EnvMatrix
 
 
@@ -48,11 +50,13 @@ void EnvMatrix<CoordType>::find_value_deriv(
         int inum, 
         int* ilist,
         int* numneigh,
-        CoordType* firstneigh,
+        int* firstneigh,
         CoordType* relative_coords,
         int* types,
         int ntypes,
-        int* umax_num_neigh_atoms_lst)
+        int* umax_num_neigh_atoms_lst,
+        CoordType rcut,
+        CoordType rcut_smooth)
 {   
     // Step 1. 
     // Step 1.1. Init tilde_r, tilde_r_deriv
@@ -63,6 +67,13 @@ void EnvMatrix<CoordType>::find_value_deriv(
     memset(tilde_r_deriv, 0.0, sizeof(CoordType) * inum * umax_num_neigh_atoms * 4 * 3);
     
     // Step 1.2. 
+    CoordType tmp_distance_ij;
+    CoordType tmp_distance_ij_recip;
+    CoordType tilde_s_value;
+    CoordType tilde_x_value;
+    CoordType tilde_y_value;
+    CoordType tilde_z_value;
+    SwitchFunc<CoordType> switch_func(rcut, rcut_smooth);
     int* nstart_idxs = (int*)malloc(sizeof(int) * ntypes);
     memset(nstart_idxs, 0, sizeof(int) * ntypes);
     for (int ii=0; ii<ntypes; ii++)
@@ -70,22 +81,58 @@ void EnvMatrix<CoordType>::find_value_deriv(
             nstart_idxs[ii] += umax_num_neigh_atoms_lst[jj];
     int* nloop_idxs = (int*)malloc(sizeof(int) * ntypes);
     memset(nloop_idxs, 0, sizeof(int) * ntypes);
-
+    CoordType* tmp_diff_cart_coords = (CoordType*)malloc(sizeof(CoordType) * 3);
 
     // Step 2. 
     for (int ii=0; ii<inum; ii++) {
+        for (int jj=0; jj<ntypes; jj++)
+            nloop_idxs[jj] = 0;
+
         for (int jj=0; jj<numneigh[ii]; jj++) {
-            int tmp_neigh_idx = firstneigh[ii][jj];
+            int tmp_neigh_idx = firstneigh[ii*umax_num_neigh_atoms + jj];
             int tmp_neigh_type = types[tmp_neigh_idx];
-            CoordType distance = relative_coords[ii][jj];
+            tmp_diff_cart_coords[0] = relative_coords[ii*umax_num_neigh_atoms*3 + jj*3 + 0];
+            tmp_diff_cart_coords[1] = relative_coords[ii*umax_num_neigh_atoms*3 + jj*3 + 1];
+            tmp_diff_cart_coords[2] = relative_coords[ii*umax_num_neigh_atoms*3 + jj*3 + 2];
+            tmp_distance_ij = std::sqrt( 
+                std::pow(tmp_diff_cart_coords[0], 2) + 
+                std::pow(tmp_diff_cart_coords[1], 2) +
+                std::pow(tmp_diff_cart_coords[2], 2));
+            tmp_distance_ij_recip = recip<CoordType>(tmp_distance_ij);
+            tilde_s_value = smooth_func(tmp_distance_ij, rcut, rcut_smooth);
+            tilde_x_value = tilde_s_value * tmp_distance_ij_recip * tmp_diff_cart_coords[0];
+            tilde_y_value = tilde_s_value * tmp_distance_ij_recip * tmp_diff_cart_coords[1];
+            tilde_z_value = tilde_s_value * tmp_distance_ij_recip * tmp_diff_cart_coords[2];
+
+            // Step 2.1. Value of EnvMatrix
+            tilde_r[ii*umax_num_neigh_atoms*4 + (nstart_idxs[tmp_neigh_type]+nloop_idxs[tmp_neigh_type])*4 + 0] = tilde_s_value;
+            tilde_r[ii*umax_num_neigh_atoms*4 + (nstart_idxs[tmp_neigh_type]+nloop_idxs[tmp_neigh_type])*4 + 1] = tilde_x_value;
+            tilde_r[ii*umax_num_neigh_atoms*4 + (nstart_idxs[tmp_neigh_type]+nloop_idxs[tmp_neigh_type])*4 + 2] = tilde_y_value;
+            tilde_r[ii*umax_num_neigh_atoms*4 + (nstart_idxs[tmp_neigh_type]+nloop_idxs[tmp_neigh_type])*4 + 3] = tilde_z_value;
+
+            // Step 2.2. Deriv wrt. R_{ij} of EnvMatrix
             
+
+            // Step 2.3. 
+            nloop_idxs[tmp_neigh_type]++;
         }
     }
 
 
+    for (int ii=0; ii<inum; ii++) {
+        for (int jj=0; jj<umax_num_neigh_atoms; jj++) {
+            printf("[%3d, %3d] : [%10f, %10f, %10f, %10f]\n", ii, jj,
+                tilde_r[ii*umax_num_neigh_atoms*4 + jj*4 + 0],
+                tilde_r[ii*umax_num_neigh_atoms*4 + jj*4 + 1],
+                tilde_r[ii*umax_num_neigh_atoms*4 + jj*4 + 2],
+                tilde_r[ii*umax_num_neigh_atoms*4 + jj*4 + 3]);
+        }
+    }
+
     // Step . Free memory
     free(nstart_idxs);
     free(nloop_idxs);
+    free(tmp_diff_cart_coords);
 }
 
 
