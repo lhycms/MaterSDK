@@ -106,7 +106,7 @@ double PairDeepPotSe::init_one(int ii, int jj) {
         this->error->all(FLERR, "All pair coeffs are not set");
     
     this->cut[jj][ii] = this->cut[ii][jj];
-
+    
     return this->cut[ii][jj];
 }
 
