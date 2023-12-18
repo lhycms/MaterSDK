@@ -112,7 +112,7 @@ public:
         rcut_smooth = 3.0;
 
         structure = matersdk::Structure<double>(num_atoms, basis_vectors, atomic_numbers, frac_coords, false);
-        neighbor_list = matersdk::NeighborList<double>(structure, rcut, pbc_xyz, false);
+        neighbor_list = matersdk::NeighborList<double>(structure, rcut, pbc_xyz, true);
         
         // Variables to simulate the info of `LAMMPS_NS::LAMMPS*`
         inum = neighbor_list.get_num_center_atoms();

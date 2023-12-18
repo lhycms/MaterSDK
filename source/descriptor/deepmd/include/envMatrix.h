@@ -111,21 +111,55 @@ void EnvMatrix<CoordType>::find_value_deriv(
             tilde_r[ii*umax_num_neigh_atoms*4 + (nstart_idxs[tmp_neigh_type]+nloop_idxs[tmp_neigh_type])*4 + 3] = tilde_z_value;
 
             // Step 2.2. Deriv wrt. R_{ij} of EnvMatrix
-            
+            // Step 2.2.1. switch_func * 1/r_ij
+            tilde_r_deriv[ii*umax_num_neigh_atoms*4*3 + (nstart_idxs[tmp_neigh_type]+nloop_idxs[tmp_neigh_type])*4*3 + 0*3 + 0] = (
+                std::pow(tmp_distance_ij_recip, 2) * switch_func.get_deriv2r(tmp_distance_ij) * tmp_diff_cart_coords[0] -
+                std::pow(tmp_distance_ij_recip, 3) * switch_func.get_result(tmp_distance_ij) * tmp_diff_cart_coords[0]);
+            tilde_r_deriv[ii*umax_num_neigh_atoms*4*3 + (nstart_idxs[tmp_neigh_type]+nloop_idxs[tmp_neigh_type])*4*3 + 0*3 + 1] = (
+                std::pow(tmp_distance_ij_recip, 2) * switch_func.get_deriv2r(tmp_distance_ij) * tmp_diff_cart_coords[1] -
+                std::pow(tmp_distance_ij_recip, 3) * switch_func.get_result(tmp_distance_ij) * tmp_diff_cart_coords[1]);      
+            tilde_r_deriv[ii*umax_num_neigh_atoms*4*3 + (nstart_idxs[tmp_neigh_type]+nloop_idxs[tmp_neigh_type])*4*3 + 0*3 + 2] = (
+                std::pow(tmp_distance_ij_recip, 2) * switch_func.get_deriv2r(tmp_distance_ij) * tmp_diff_cart_coords[2] -
+                std::pow(tmp_distance_ij_recip, 3) * switch_func.get_result(tmp_distance_ij) * tmp_diff_cart_coords[2]);
+
+            // Step 2.2.2. switch_func * 1/r_ij * x_ij * 1/r_ij
+            tilde_r_deriv[ii*umax_num_neigh_atoms*4*3 + (nstart_idxs[tmp_neigh_type]+nloop_idxs[tmp_neigh_type])*4*3 + 1*3 + 0] = (
+                std::pow(tmp_distance_ij_recip, 3) * switch_func.get_deriv2r(tmp_distance_ij) * std::pow(tmp_diff_cart_coords[0], 2) + 
+                std::pow(tmp_distance_ij_recip, 2) * switch_func.get_result(tmp_distance_ij) - 
+                2 * std::pow(tmp_distance_ij_recip, 4) * switch_func.get_result(tmp_distance_ij) * std::pow(tmp_diff_cart_coords[0], 2));
+            tilde_r_deriv[ii*umax_num_neigh_atoms*4*3 + (nstart_idxs[tmp_neigh_type]+nloop_idxs[tmp_neigh_type])*4*3 + 1*3 + 1] = (
+                std::pow(tmp_distance_ij_recip, 3) * switch_func.get_deriv2r(tmp_distance_ij) * tmp_diff_cart_coords[0] * tmp_diff_cart_coords[1] - 
+                2 * std::pow(tmp_distance_ij_recip, 4) * switch_func.get_result(tmp_distance_ij) * tmp_diff_cart_coords[0] * tmp_diff_cart_coords[1]);
+            tilde_r_deriv[ii*umax_num_neigh_atoms*4*3 + (nstart_idxs[tmp_neigh_type]+nloop_idxs[tmp_neigh_type])*4*3 + 1*3 + 2] = (
+                std::pow(tmp_distance_ij_recip, 3) * switch_func.get_deriv2r(tmp_distance_ij) * tmp_diff_cart_coords[0] * tmp_diff_cart_coords[2] - 
+                2 * std::pow(tmp_distance_ij_recip, 4) * switch_func.get_result(tmp_distance_ij) * tmp_diff_cart_coords[0] * tmp_diff_cart_coords[2]);
+
+            // Step 2.2.3. switch_func * 1/r_ij * y_ij * 1/r_ij
+            tilde_r_deriv[ii*umax_num_neigh_atoms*4*3 + (nstart_idxs[tmp_neigh_type]+nloop_idxs[tmp_neigh_type])*4*3 + 2*3 + 0] = (
+                std::pow(tmp_distance_ij_recip, 3) * switch_func.get_deriv2r(tmp_distance_ij) * tmp_diff_cart_coords[1] * tmp_diff_cart_coords[0] - 
+                2 * std::pow(tmp_distance_ij_recip, 4) * switch_func.get_result(tmp_distance_ij) * tmp_diff_cart_coords[1] * tmp_diff_cart_coords[0]);
+            tilde_r_deriv[ii*umax_num_neigh_atoms*4*3 + (nstart_idxs[tmp_neigh_type]+nloop_idxs[tmp_neigh_type])*4*3 + 2*3 + 1] = (
+                std::pow(tmp_distance_ij_recip, 3) * switch_func.get_deriv2r(tmp_distance_ij) * std::pow(tmp_diff_cart_coords[1], 2) + 
+                std::pow(tmp_distance_ij_recip, 2) * switch_func.get_result(tmp_distance_ij) - 
+                2 * std::pow(tmp_distance_ij_recip, 4) * switch_func.get_result(tmp_distance_ij) * std::pow(tmp_diff_cart_coords[1], 2));
+            tilde_r_deriv[ii*umax_num_neigh_atoms*4*3 + (nstart_idxs[tmp_neigh_type]+nloop_idxs[tmp_neigh_type])*4*3 + 2*3 + 2] = (
+                std::pow(tmp_distance_ij_recip, 3) * switch_func.get_deriv2r(tmp_distance_ij) * tmp_diff_cart_coords[1] * tmp_diff_cart_coords[2] - 
+                2 * std::pow(tmp_distance_ij_recip, 4) * switch_func.get_result(tmp_distance_ij) * tmp_diff_cart_coords[1] * tmp_diff_cart_coords[2]);
+
+            // Step 2.2.4. switch_func * 1/r_ij * z_ij * 1/r_ij
+            tilde_r_deriv[ii*umax_num_neigh_atoms*4*3 + (nstart_idxs[tmp_neigh_type]+nloop_idxs[tmp_neigh_type])*4*3 + 3*3 + 0] = (
+                std::pow(tmp_distance_ij_recip, 3) * switch_func.get_deriv2r(tmp_distance_ij) * tmp_diff_cart_coords[2] * tmp_diff_cart_coords[0] - 
+                2 * std::pow(tmp_distance_ij_recip, 4) * switch_func.get_result(tmp_distance_ij) * tmp_diff_cart_coords[2] * tmp_diff_cart_coords[0]);
+            tilde_r_deriv[ii*umax_num_neigh_atoms*4*3 + (nstart_idxs[tmp_neigh_type]+nloop_idxs[tmp_neigh_type])*4*3 + 3*3 + 1] = (
+                std::pow(tmp_distance_ij_recip, 3) * switch_func.get_deriv2r(tmp_distance_ij) * tmp_diff_cart_coords[2] * tmp_diff_cart_coords[1] - 
+                2 * std::pow(tmp_distance_ij_recip, 4) * switch_func.get_result(tmp_distance_ij) * tmp_diff_cart_coords[2] * tmp_diff_cart_coords[1]);
+            tilde_r_deriv[ii*umax_num_neigh_atoms*4*3 + (nstart_idxs[tmp_neigh_type]+nloop_idxs[tmp_neigh_type])*4*3 + 3*3 + 2] = (
+                std::pow(tmp_distance_ij_recip, 3) * switch_func.get_deriv2r(tmp_distance_ij) * std::pow(tmp_diff_cart_coords[2], 2) + 
+                std::pow(tmp_distance_ij_recip, 2) * switch_func.get_result(tmp_distance_ij) - 
+                2 * std::pow(tmp_distance_ij_recip, 4) * switch_func.get_result(tmp_distance_ij) * std::pow(tmp_diff_cart_coords[2], 2));
 
             // Step 2.3. 
             nloop_idxs[tmp_neigh_type]++;
-        }
-    }
-
-
-    for (int ii=0; ii<inum; ii++) {
-        for (int jj=0; jj<umax_num_neigh_atoms; jj++) {
-            printf("[%3d, %3d] : [%10f, %10f, %10f, %10f]\n", ii, jj,
-                tilde_r[ii*umax_num_neigh_atoms*4 + jj*4 + 0],
-                tilde_r[ii*umax_num_neigh_atoms*4 + jj*4 + 1],
-                tilde_r[ii*umax_num_neigh_atoms*4 + jj*4 + 2],
-                tilde_r[ii*umax_num_neigh_atoms*4 + jj*4 + 3]);
         }
     }
 

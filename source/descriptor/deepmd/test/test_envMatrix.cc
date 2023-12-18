@@ -166,7 +166,36 @@ TEST_F(EnvMatrixTest, find_value_deriv) {
         umax_num_neigh_atoms_lst,
         rcut,
         rcut_smooth);
-    
+
+
+    for (int ii=0; ii<inum; ii++) {
+        for (int jj=0; jj<umax_num_neigh_atoms; jj++) {
+            printf("[%3d, %3d] : [%10f, %10f, %10f, %10f]\n", ii, jj,
+                tilde_r[ii*umax_num_neigh_atoms*4 + jj*4 + 0],
+                tilde_r[ii*umax_num_neigh_atoms*4 + jj*4 + 1],
+                tilde_r[ii*umax_num_neigh_atoms*4 + jj*4 + 2],
+                tilde_r[ii*umax_num_neigh_atoms*4 + jj*4 + 3]);
+        }
+    }
+
+    for (int ii=0; ii<inum; ii++) {
+        for (int jj=0; jj<umax_num_neigh_atoms; jj++) {
+            printf("[%3d, %3d] -- [%10f, %10f, %10f], [%10f, %10f, %10f], [%10f, %10f, %10f], [%10f, %10f, %10f]\n", 
+                ii, jj, 
+                -tilde_r_deriv[ii*umax_num_neigh_atoms*4*3 + jj*4*3 + 0*3 + 0], 
+                -tilde_r_deriv[ii*umax_num_neigh_atoms*4*3 + jj*4*3 + 0*3 + 1], 
+                -tilde_r_deriv[ii*umax_num_neigh_atoms*4*3 + jj*4*3 + 0*3 + 2],
+                -tilde_r_deriv[ii*umax_num_neigh_atoms*4*3 + jj*4*3 + 1*3 + 0], 
+                -tilde_r_deriv[ii*umax_num_neigh_atoms*4*3 + jj*4*3 + 1*3 + 1], 
+                -tilde_r_deriv[ii*umax_num_neigh_atoms*4*3 + jj*4*3 + 1*3 + 2],
+                -tilde_r_deriv[ii*umax_num_neigh_atoms*4*3 + jj*4*3 + 2*3 + 0], 
+                -tilde_r_deriv[ii*umax_num_neigh_atoms*4*3 + jj*4*3 + 2*3 + 1], 
+                -tilde_r_deriv[ii*umax_num_neigh_atoms*4*3 + jj*4*3 + 2*3 + 2],
+                -tilde_r_deriv[ii*umax_num_neigh_atoms*4*3 + jj*4*3 + 3*3 + 0], 
+                -tilde_r_deriv[ii*umax_num_neigh_atoms*4*3 + jj*4*3 + 3*3 + 1], 
+                -tilde_r_deriv[ii*umax_num_neigh_atoms*4*3 + jj*4*3 + 3*3 + 2]);
+        }
+    }
 }
 
 
