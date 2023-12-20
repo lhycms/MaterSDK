@@ -4,10 +4,12 @@ A python library for computational materials science. You can use it to:
 2. Process Kohn-Sham state (For PWmat)
 3. Generate feature for structure.
 
-## Contributors
-
-- [Liu Hanyu](https://github.com/lhycms)
-- [Tian Hongzhen](https://github.com/LonxunQuantum)
+# Installation
+```shell
+$ git clone git@github.com:lhycms/MaterSDK.git
+$ cd MaterSDK
+$ pip install -e .
+```
 
 # 1. Brief introduction
 ## 1.1. Process structure file
