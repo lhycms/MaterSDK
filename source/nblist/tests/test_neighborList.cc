@@ -259,6 +259,7 @@ TEST_F(NeighborListTest, find_info4mlff) {
     int* firstneigh = (int*)malloc(sizeof(int) * inum * umax_num_neigh_atoms);
     double* relative_coords = (double*)malloc(sizeof(double) * inum * umax_num_neigh_atoms * 3);
     int* types = (int*)malloc(sizeof(int) * inum);
+    int nghost;
 
     neighbor_list.find_info4mlff(
         inum,
@@ -267,8 +268,10 @@ TEST_F(NeighborListTest, find_info4mlff) {
         firstneigh, 
         relative_coords,
         types,
+        nghost,
         umax_num_neigh_atoms);
     
+    printf("nghost = %d\n", nghost);
     for (int ii=0; ii<inum; ii++)
         printf("%3d, ", types[ii]);
     printf("\n\n");

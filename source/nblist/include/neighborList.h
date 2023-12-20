@@ -104,6 +104,7 @@ public:
         int* firstneigh,
         CoordType* relative_coords,
         int* types,
+        int& nghost,
         int umax_num_neigh_atoms_lst
     );
 
@@ -521,6 +522,7 @@ void NeighborList<CoordType>::find_info4mlff(
     int* firstneigh,
     CoordType* relative_coords,
     int* types,
+    int& nghost,
     int umax_num_neigh_atoms)
 {
     int tmp_center_idx;
@@ -533,6 +535,7 @@ void NeighborList<CoordType>::find_info4mlff(
 
     // assert(umax_num_neigh_atoms > this->get_max_num_neigh_atoms);
     inum = this->num_atoms; // number of atom in primitive cell.
+    nghost = 0;
     for (int ii=0; ii<inum; ii++) {
         ilist[ii] = ii;
         numneigh[ii] = this->neighbor_lists[ii].size();

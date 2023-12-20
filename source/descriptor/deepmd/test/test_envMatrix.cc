@@ -15,6 +15,7 @@ protected:
     double rcut;
     double rcut_smooth;
     bool pbc_xyz[3];
+    int nghost;
     matersdk::Structure<double> structure;
     matersdk::NeighborList<double> neighbor_list;
 
@@ -151,6 +152,7 @@ TEST_F(EnvMatrixTest, find_value_deriv) {
         firstneigh,
         relative_coords,
         types,
+        nghost,
         umax_num_neigh_atoms);
     
     matersdk::deepPotSE::EnvMatrix<double>::find_value_deriv(

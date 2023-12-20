@@ -89,6 +89,7 @@ PyObject* find_info4mlff(
     int* firstneigh = (int*)malloc(sizeof(int) * inum * umax_num_neigh_atoms);
     double* relative_coords = (double*)malloc(sizeof(double) * inum * umax_num_neigh_atoms * 3);
     int* types = (int*)malloc(sizeof(int) * inum);
+    int nghost;
     neighbor_list.find_info4mlff(
         inum,
         ilist,
@@ -96,10 +97,11 @@ PyObject* find_info4mlff(
         firstneigh,
         relative_coords,
         types,
+        nghost,
         umax_num_neigh_atoms);
 
     // Step 4. Return 
-    PyObject* nblist_info = PyTuple_New(6);
+    PyObject* nblist_info = PyTuple_New(7);
     // Step 4.1. inum
     PyTuple_SetItem(nblist_info, 0, PyLong_FromLong(inum));
     // Step 4.2. ilist
@@ -130,6 +132,8 @@ PyObject* find_info4mlff(
     types_dims[0] = inum;
     PyObject* types_py = PyArray_SimpleNewFromData(1, types_dims, NPY_INT32, types);
     PyArray_ENABLEFLAGS((PyArrayObject*)types_py, NPY_OWNDATA);
+    // Step 4.7. nghost
+    //PyTuple_SetItem(nblist_info, 6, PyLong_FromLong((long)nghost));
     
     // Step 4.7. 
     PyTuple_SetItem(nblist_info, 1, ilist_py);
@@ -137,6 +141,7 @@ PyObject* find_info4mlff(
     PyTuple_SetItem(nblist_info, 3, firstneigh_py);
     PyTuple_SetItem(nblist_info, 4, relative_coords_py);
     PyTuple_SetItem(nblist_info, 5, types_py);
+    PyTuple_SetItem(nblist_info, 6, PyLong_FromLong((long)nghost));
     
     
     // Step . Free memory

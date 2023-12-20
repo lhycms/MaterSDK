@@ -7,13 +7,13 @@ import numpy as np
 
 
 nblist_name:str = "nblist"
-nblist_root_dir:str = Path(__file__).parent.parent.absolute()
+nblist_root_dir:str = Path(__file__).parent.absolute().parent.absolute()
 nblist_include_dir:str = os.path.join(nblist_root_dir, "include")
 nblist_src_dir:str = os.path.join(nblist_root_dir, "src")
 nblist_bind_dir:str = os.path.join(nblist_root_dir, "bind")
 nblist_bind_gen_dir:str = os.path.join(nblist_root_dir, "bind", "gen")
 
-
+print(nblist_root_dir)
 class NblistSwigExecutor(object):
     def run(self, cxx_wrap_file:str, nblist_bind_gen_dir:str):
         subprocess.call(
