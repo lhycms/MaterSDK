@@ -21,9 +21,13 @@ if (TORCH_OP)
     target_include_directories(se4pw_op PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include/)
     target_link_libraries(se4pw_op PRIVATE ${TORCH_LIBRARIES})
 
-    add_library(envMatrixFunction SHARED ${CMAKE_CURRENT_SOURCE_DIR}/src/envMatrixFunction.cc)
-    target_include_directories(envMatrixFunction PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-    target_link_libraries(envMatrixFunction PRIVATE ${TORCH_LIBRARIES})
+    add_library(envMatrixOp SHARED ${CMAKE_CURRENT_SOURCE_DIR}/src/envMatrixOp.cc)
+    target_include_directories(envMatrixOp PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+    target_link_libraries(envMatrixOp PRIVATE ${TORCH_LIBRARIES})
+
+    add_library(envMatrixOp_bind SHARED ${CMAKE_CURRENT_SOURCE_DIR}/bind/envMatrixOp_bind.cc)
+    target_include_directories(envMatrixOp_bind PRIVATE ${PYTHON_INCLUDE_DIRS})
+    target_link_libraries(envMatrixOp_bind PRIVATE ${TORCH_LIBRARIES} envMatrixOp ${PYTHON_LIBRARIES})
 endif()
 
 
@@ -58,12 +62,12 @@ if (BUILD_TEST)
         target_link_directories(test_demo_se4pw PRIVATE ${CMAKE_BINARY_DIR}/lib/matersdk/feature/deepmd/)
         target_link_libraries(test_demo_se4pw PRIVATE gtest gtest_main ${TORCH_LIBRARIES} se4pw_op)
 
-        add_executable(test_envMatrixFunction ${CMAKE_CURRENT_SOURCE_DIR}/test/test_envMatrixFunction.cc)
-        target_link_directories(test_envMatrixFunction PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-        target_link_libraries(test_envMatrixFunction PRIVATE gtest gtest_main ${TORCH_LIBRARIES} envMatrixFunction)
+        add_executable(test_envMatrixOp ${CMAKE_CURRENT_SOURCE_DIR}/test/test_envMatrixOp.cc)
+        target_link_directories(test_envMatrixOp PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+        target_link_libraries(test_envMatrixOp PRIVATE gtest gtest_main ${TORCH_LIBRARIES} envMatrixOp)
 
         gtest_discover_tests(test_se4pw_op)
         gtest_discover_tests(test_demo_se4pw)
-        gtest_discover_tests(test_envMatrixFunction)
+        gtest_discover_tests(test_envMatrixOp)
     endif()
 endif()

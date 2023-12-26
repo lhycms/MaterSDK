@@ -7,10 +7,10 @@
 
 #include "../../../nblist/include/structure.h"
 #include "../../../nblist/include/neighborList.h"
-#include "../include/envMatrixFunction.h"
+#include "../include/envMatrixOp.h"
 
 
-class EnvMatrixFunctionTest : public ::testing::Test {
+class EnvMatrixOpTest : public ::testing::Test {
 protected:
     int num_atoms;
     double basis_vectors[3][3];
@@ -36,11 +36,11 @@ protected:
     int batch_size;
 
     static void SetUpTestSuite() {
-        std::cout << "EnvMatrixFunctionTest (TestSuite) is setting up...\n";
+        std::cout << "EnvMatrixOpTest (TestSuite) is setting up...\n";
     }
 
     static void TearDownTestSuite() {
-        std::cout << "EnvMatrixFunctionTest (TestSuite) is tearing down...\n";
+        std::cout << "EnvMatrixOpTest (TestSuite) is tearing down...\n";
     }
 
     void SetUp() override {
@@ -139,10 +139,10 @@ protected:
         free(types);
         free(umax_num_neigh_atoms_lst);
     }
-}; // class : EnvMatrixFunctionTest
+}; // class : EnvMatrixOpTest
 
 
-TEST_F(EnvMatrixFunctionTest, apply) {
+TEST_F(EnvMatrixOpTest, test_EnvMatrixFunction) {
     neighbor_list.find_info4mlff(
         inum,
         ilist,
@@ -188,8 +188,20 @@ TEST_F(EnvMatrixFunctionTest, apply) {
         umax_num_neigh_atoms_lst_tensor,
         rcut,
         rcut_smooth);
-    std::cout << result[0] << std::endl;
-    std::cout << result[1] << std::endl;
+    //std::cout << result[0] << std::endl;
+    //std::cout << result[1] << std::endl;
+
+    auto result1 = matersdk::deepPotSE::EnvMatrixOp(
+        ilist_tensor,
+        numneigh_tensor,
+        firstneigh_tensor,
+        relative_coords_tensor,
+        types_tensor,
+        umax_num_neigh_atoms_lst_tensor,
+        rcut,
+        rcut_smooth);
+    //std::cout << result1[0] << std::endl;
+    //std::cout << result1[1] << std::endl;
 }
 
 

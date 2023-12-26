@@ -23,5 +23,16 @@ public:
         torch::autograd::variable_list grad_outputs);
 };  // class : EnvMatrixFunction
 
+
+torch::autograd::variable_list EnvMatrixOp(
+    at::Tensor ilist_tensor,
+    at::Tensor numneigh_tensor,
+    at::Tensor firstneigh_tensor,
+    at::Tensor relative_coords_tensor,
+    at::Tensor types_tensor,
+    at::Tensor umax_num_neigh_atoms_lst_tensor,
+    double rcut,
+    double rcut_smooth);
+
 };  // namespace : deepPotSE
 };  // namespace : matersdk

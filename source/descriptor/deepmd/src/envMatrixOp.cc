@@ -1,5 +1,5 @@
 #include <stdexcept>
-#include "../include/envMatrixFunction.h"
+#include "../include/envMatrixOp.h"
 
 
 namespace matersdk {
@@ -132,6 +132,28 @@ torch::autograd::variable_list EnvMatrixFunction::backward(
             at::Tensor(), at::Tensor(), at::Tensor(),
             at::Tensor(), at::Tensor()
         };
+}
+
+
+torch::autograd::variable_list EnvMatrixOp(
+    at::Tensor ilist_tensor,
+    at::Tensor numneigh_tensor,
+    at::Tensor firstneigh_tensor,
+    at::Tensor relative_coords_tensor,
+    at::Tensor types_tensor,
+    at::Tensor umax_num_neigh_atoms_lst_tensor,
+    double rcut,
+    double rcut_smooth)
+{
+    return EnvMatrixFunction::apply(
+        ilist_tensor,
+        numneigh_tensor,
+        firstneigh_tensor,
+        relative_coords_tensor,
+        types_tensor,
+        umax_num_neigh_atoms_lst_tensor,
+        rcut,
+        rcut_smooth);
 }
 
 
