@@ -21,14 +21,9 @@ if (TORCH_OP)
     target_include_directories(se4pw_op PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include/)
     target_link_libraries(se4pw_op PRIVATE ${TORCH_LIBRARIES})
 
-    # 5.1. test
-    add_executable(test_se4pw_op ${CMAKE_CURRENT_SOURCE_DIR}/test/test_se4pw_op.cc)
-    target_link_directories(test_se4pw_op PRIVATE ${CMAKE_BINARY_DIR}/lib/matersdk/feature/deepmd/)
-    target_link_libraries(test_se4pw_op PRIVATE gtest gtest_main ${TORCH_LIBRARIES} se4pw_op)
-
-    add_executable(test_demo_se4pw ${CMAKE_CURRENT_SOURCE_DIR}/test/demo_se4pw.cc)
-    target_link_directories(test_demo_se4pw PRIVATE ${CMAKE_BINARY_DIR}/lib/matersdk/feature/deepmd/)
-    target_link_libraries(test_demo_se4pw PRIVATE gtest gtest_main ${TORCH_LIBRARIES} se4pw_op)
+    add_library(envMatrixFunction SHARED ${CMAKE_CURRENT_SOURCE_DIR}/src/envMatrixFunction.cc)
+    target_include_directories(envMatrixFunction PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+    target_link_libraries(envMatrixFunction PRIVATE ${TORCH_LIBRARIES})
 endif()
 
 
@@ -52,4 +47,23 @@ if (BUILD_TEST)
     gtest_discover_tests(test_se_lmp)
     gtest_discover_tests(test_se4pw)
     gtest_discover_tests(test_envMatrix)
+    
+    if (TORCH_OP)
+        # 6.1. test
+        add_executable(test_se4pw_op ${CMAKE_CURRENT_SOURCE_DIR}/test/test_se4pw_op.cc)
+        target_link_directories(test_se4pw_op PRIVATE ${CMAKE_BINARY_DIR}/lib/matersdk/feature/deepmd/)
+        target_link_libraries(test_se4pw_op PRIVATE gtest gtest_main ${TORCH_LIBRARIES} se4pw_op)
+    
+        add_executable(test_demo_se4pw ${CMAKE_CURRENT_SOURCE_DIR}/test/demo_se4pw.cc)
+        target_link_directories(test_demo_se4pw PRIVATE ${CMAKE_BINARY_DIR}/lib/matersdk/feature/deepmd/)
+        target_link_libraries(test_demo_se4pw PRIVATE gtest gtest_main ${TORCH_LIBRARIES} se4pw_op)
+
+        add_executable(test_envMatrixFunction ${CMAKE_CURRENT_SOURCE_DIR}/test/test_envMatrixFunction.cc)
+        target_link_directories(test_envMatrixFunction PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+        target_link_libraries(test_envMatrixFunction PRIVATE gtest gtest_main ${TORCH_LIBRARIES} envMatrixFunction)
+
+        gtest_discover_tests(test_se4pw_op)
+        gtest_discover_tests(test_demo_se4pw)
+        gtest_discover_tests(test_envMatrixFunction)
+    endif()
 endif()
