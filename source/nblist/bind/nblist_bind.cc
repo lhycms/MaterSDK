@@ -1,6 +1,7 @@
 #include <Python.h>
 #include <numpy/arrayobject.h>
 #include <stdio.h>
+#include <stdexcept>
 
 #include "../include/neighborList.h"
 
@@ -32,8 +33,20 @@ PyObject* find_info4mlff(
         PyObject* pbc_xyz_py,
         PyObject* umax_num_neigh_atoms_py,
         PyObject* sort_py)
-{
+{   
     import_array();
+
+    // Step 0. Ensure NPY_INT32 and NPY_FLOAT64
+    //PyArray_Descr* descr_lattice_py = PyArray_DESCR((PyArrayObject*)lattice_py);
+    //PyArray_Descr* descr_atomic_numbers_py = PyArray_DESCR((PyArrayObject*)atomic_numbers_py);
+    //PyArray_Descr* descr_frac_coords_py = PyArray_DESCR((PyArrayObject*)frac_coords_py);
+    //PyArray_Descr* descr_umax_num_neigh_atoms_py = PyArray_DESCR((PyArrayObject*)umax_num_neigh_atoms_py);
+    //assert(descr_lattice_py->type_num == NPY_FLOAT64);
+    //assert(descr_atomic_numbers_py->type_num == NPY_INT32);
+    //assert(descr_frac_coords_py->type_num == NPY_FLOAT64);
+    //assert(descr_umax_num_neigh_atoms_py->type_num == NPY_INT32);
+    
+
     // Step 1. Init matersdk::Structure<double>
     // Step 1.1. 
     PyArrayObject* lattice_py_array = (PyArrayObject*)lattice_py;
