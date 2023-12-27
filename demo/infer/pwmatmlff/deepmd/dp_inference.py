@@ -1,5 +1,5 @@
 from matersdk.io.pwmat.output.movement import Movement
-from matersdk.data.deepmd.data_system import DpLabeledSystem
+from matersdk.data.struct_collection import DpLabeledSystem
 from matersdk.feature.deepmd.preprocess import TildeRNormalizer
 from matersdk.infer.pwmatmlff.deepmd.inference import DpInfer
 

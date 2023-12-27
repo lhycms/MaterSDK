@@ -4,7 +4,7 @@ import time
 
 
 poscar_path = "/data/home/liuhanyu/hyliu/pwmat_demo/MoS2/scf_/POSCAR"
-structure = Structure.from_file(poscar_path)#.make_supercell([6, 6, 1])
+structure = Structure.from_file(poscar_path)    #.make_supercell([3, 4, 1])
 lattice = structure.lattice.matrix
 species = np.array([tmp_specie.Z for tmp_specie in structure.species])
 species = np.where(species==42, 0, 1)
@@ -21,16 +21,16 @@ from matersdk.fromcc import nblist
 
 start = time.time()    
 info = nblist.find_info4mlff(
-    lattice,
+    lattice.astype(np.float64),
     species.astype(np.int32),
-    frac_coords,
+    frac_coords.astype(np.float64),
     rcut,
     pbc_xyz,
-    umax_num_neigh_atoms,
+    umax_num_neigh_atoms.astype(np.int32),
     sort
 )
 end = time.time()
-print("Consuming time in seconds: ", end-start)
+#print("Consuming time in seconds: ", end-start)
 
 inum:int = info[0]
 ilist:np.array = info[1]
@@ -85,6 +85,6 @@ for _ in range(3000):
         rcut,
         rcut_smooth)
 time2 = time.time()  
-print(time2 - time1)
-#print(tilde_r.size())
-#print(tilde_r_deriv.size())
+print("Consuming time in seconds: ", time2 - time1)
+print(tilde_r.size())
+print(tilde_r_deriv.size())
