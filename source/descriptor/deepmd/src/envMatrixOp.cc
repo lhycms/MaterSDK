@@ -53,11 +53,12 @@ torch::autograd::variable_list EnvMatrixFunction::forward(
     int ntypes = (int)umax_num_neigh_atoms_lst_tensor.size(1);  // long -> int
     
     // Step 2. Init return variables
+    c10::Device device = relative_coords_tensor.device();
     c10::TensorOptions float_options;
     at::Tensor tilde_r_tensor;
     at::Tensor tilde_r_deriv_tensor;
     if (relative_coords_tensor.scalar_type() == torch::kFloat32) {
-        float_options = c10::TensorOptions().dtype(torch::kFloat32);
+        float_options = c10::TensorOptions().dtype(torch::kFloat32).device(device);
         tilde_r_tensor = at::zeros(
             {batch_size, inum, umax_num_neigh_atoms, 4}, 
             float_options);
@@ -65,7 +66,7 @@ torch::autograd::variable_list EnvMatrixFunction::forward(
             {batch_size, inum, umax_num_neigh_atoms, 4, 3},
             float_options);
     } else {
-        float_options = c10::TensorOptions().dtype(torch::kFloat64);
+        float_options = c10::TensorOptions().dtype(torch::kFloat64).device(device);
         tilde_r_tensor = at::zeros(
             {batch_size, inum, umax_num_neigh_atoms, 4},
             float_options);
@@ -155,8 +156,6 @@ torch::autograd::variable_list EnvMatrixOp(
         rcut,
         rcut_smooth);
 }
-
-
 
 };  // namespace : deepPotSE
 };  // namespace : matersdk
