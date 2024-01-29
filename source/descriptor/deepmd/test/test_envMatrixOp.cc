@@ -202,7 +202,7 @@ TEST_F(EnvMatrixOpTest, test_EnvMatrixFunction) {
         rcut_smooth);
     std::cout << result1[0][0][11][10][3].item<double>() << std::endl;
     std::cout << result1[0][0][11][15][1].item<double>() << std::endl;
-    //std::cout << result1[1] << std::endl;
+    std::cout << result1[1] << std::endl;
 }
 
 

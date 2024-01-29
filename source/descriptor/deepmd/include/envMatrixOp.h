@@ -9,12 +9,12 @@ class EnvMatrixFunction : public torch::autograd::Function<EnvMatrixFunction> {
 public: 
     static torch::autograd::variable_list forward(
         torch::autograd::AutogradContext* ctx,
-        at::Tensor ilist_tensor,
-        at::Tensor numneigh_tensor,
-        at::Tensor firstneigh_tensor,
-        at::Tensor relative_coords_tensor,
-        at::Tensor types_tensor,
-        at::Tensor umax_num_neigh_atoms_lst_tensor,
+        const at::Tensor& ilist_tensor,
+        const at::Tensor& numneigh_tensor,
+        const at::Tensor& firstneigh_tensor,
+        const at::Tensor& relative_coords_tensor,
+        const at::Tensor& types_tensor,
+        const at::Tensor& umax_num_neigh_atoms_lst_tensor,
         double rcut,
         double rcut_smooth);
 
@@ -25,12 +25,12 @@ public:
 
 
 torch::autograd::variable_list EnvMatrixOp(
-    at::Tensor ilist_tensor,
-    at::Tensor numneigh_tensor,
-    at::Tensor firstneigh_tensor,
-    at::Tensor relative_coords_tensor,
-    at::Tensor types_tensor,
-    at::Tensor umax_num_neigh_atoms_lst_tensor,
+    const at::Tensor& ilist_tensor,
+    const at::Tensor& numneigh_tensor,
+    const at::Tensor& firstneigh_tensor,
+    const at::Tensor& relative_coords_tensor,
+    const at::Tensor& types_tensor,
+    const at::Tensor& umax_num_neigh_atoms_lst_tensor,
     double rcut,
     double rcut_smooth);
 
