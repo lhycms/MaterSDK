@@ -26,6 +26,7 @@ protected:
             .dtype(torch::kFloat32)
             .device(c10::kCPU);
         relative_coord_tensor = at::ones({3}, options);
+        relative_coord_tensor.requires_grad_(true);
         nu_0 = 0;
         nu_1 = 1;
         nu_2 = 2;
@@ -36,7 +37,7 @@ protected:
 };  // class : MtpMAngularTest
 
 
-TEST_F(MtpMAngularTest, all) {
+TEST_F(MtpMAngularTest, forward_and_backward) {
     at::Tensor mtp_angular_0 = matersdk::mtp::MtpMAngularOp(
         relative_coord_tensor,
         nu_0);
@@ -52,6 +53,11 @@ TEST_F(MtpMAngularTest, all) {
     //std::cout << mtp_angular_0.sizes() << std::endl;
     //std::cout << mtp_angular_1.sizes() << std::endl;
     //std::cout << mtp_angular_2.sizes() << std::endl;
+
+    auto result = mtp_angular_2.sum();
+    result.backward();
+    assert (relative_coord_tensor.dim() == 1);
+    //std::cout << relative_coord_tensor.grad() << std::endl;
 }
 
 
