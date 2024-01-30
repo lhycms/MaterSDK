@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../include/radial_basis.h"
+#include "../include/mtpMRadial.h"
 #include "../../../core/include/arrayUtils.h"
 #include "../../../core/include/vec3Operation.h"
 

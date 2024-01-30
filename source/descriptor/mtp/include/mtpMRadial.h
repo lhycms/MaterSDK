@@ -64,7 +64,7 @@ CoordType SwitchFunc<CoordType>::get_result(CoordType r_ji) const {
     if (r_ji < this->rcut_smooth)
         result = 1;
     else if ((r_ji>=this->rcut_smooth) && (r_ji<this->rcut))
-        result = std::pow(uu, 3) * (-6*std::pow(uu, 2) + 15*uu - 10) +1;
+        result = std::pow(uu, 3) * (-6*std::pow(uu, 2) + 15*uu - 10) + 1;
     else
         result = 0;
     

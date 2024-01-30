@@ -15,7 +15,7 @@ if (TORCH_OP)
     string(REPLACE "\n" "/share/cmake" TORCH_CMAKE_PREFIX_PATH ${TORCH_PATH})
     list(APPEND CMAKE_PREFIX_PATH ${TORCH_CMAKE_PREFIX_PATH})
     find_package(Torch CONFIG REQUIRED)
-    list(APPEND CMAKE_CXX_FLAGS ${TORCH_CXX_FLAGS})
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 
     add_library(se4pw_op SHARED ${CMAKE_CURRENT_SOURCE_DIR}/src/se4pw_op.cc)
     target_include_directories(se4pw_op PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include/)

@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <algorithm>
 #include <chrono>
+#include <omp.h>
 #include "../include/mtpMAngularOp.h"
 
 
@@ -62,8 +63,9 @@ TEST_F(MtpMAngularTest, forward_and_backward) {
 
 
 TEST_F(MtpMAngularTest, speed) {
-    int times = 1E5;
+    int times = 5 * 1E5;
     auto time1 = std::chrono::high_resolution_clock::now();
+    #pragma omp parallel for
     for (int ii=0; ii<times; ii++) {
         at::Tensor mtp_angular = matersdk::mtp::MtpMAngularOp(
             relative_coord_tensor,
@@ -72,6 +74,24 @@ TEST_F(MtpMAngularTest, speed) {
     auto time2 = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(time2 - time1);
     std::cout << "Time costing in (ms) = " << duration.count() << std::endl;
+}
+
+
+TEST_F(MtpMAngularTest, deriv_accuracy) {
+    at::Tensor mtp_angular_tensor = matersdk::mtp::MtpMAngularOp(
+        relative_coord_tensor,
+        2);
+    auto result = mtp_angular_tensor.sum();
+    result.backward();
+    std::cout << "1. Derivative calculated by Autograd = " << relative_coord_tensor.grad()[0].item<float>() << std::endl;
+
+    float* relative_coord = relative_coord_tensor.data_ptr<float>();
+    relative_coord[0] += 0.001;
+    at::Tensor mtp_angular_tensor1 = matersdk::mtp::MtpMAngularOp(
+        relative_coord_tensor,
+        2);
+    auto result1 = mtp_angular_tensor1.sum();
+    std::cout << "2. Derivative calculated by finite difference = " << (result1 - result).item<float>() / 0.001 << std::endl;
 }
 
 

@@ -7,7 +7,7 @@ namespace mtp {
 
 
 /**
- * @brief Given i,j, Calculate $r_{ij} \otimes_{nu} r_{ij}$
+ * @brief Given i,j, and \nu. Calculate $r_{ij} \otimes_{nu} r_{ij}$
  * 
  * @param relative_coord_tensor sizes() = (3)
  * @param nu $\nu$ in r_{ij} \otimes_{nu} r_{ij}
