@@ -119,7 +119,7 @@ torch::autograd::variable_list EnvMatrixFunction::forward(
                 rcut_smooth);
         }
     }
-
+    
     return {tilde_r_tensor, tilde_r_deriv_tensor};
 }
 
