@@ -55,6 +55,7 @@ protected:
 
 class ChebyshevPolyTest : public ::testing::Test {
 protected:
+    int size; 
     double rcut;
     double rcut_smooth;
     double distance_ij;
@@ -163,15 +164,91 @@ TEST_F(MtpSwitchFunc2Test, get_result_and_deriv2r) {
 }
 
 
-TEST_F(ChebyshevPolyTest, build) {
-    distance_ij = 3.1;
-    matersdk::mtp::ChebyshevPoly<double> chebyshev(8, rcut, rcut_smooth);
+TEST_F(ChebyshevPolyTest, build) 
+{
+    distance_ij = 3.05;
+    size = 8;
+    matersdk::mtp::ChebyshevPoly<double> chebyshev(size, rcut, rcut_smooth);
     chebyshev.build(distance_ij);
-    for (int ii=0; ii<chebyshev.size(); ii++) {
-        printf("%6f, ", chebyshev.get_result()[ii]);
-    }
-    printf("\n");
+    chebyshev.show();
 }
+
+TEST_F(ChebyshevPolyTest, copy_constructor) 
+{
+    distance_ij = 3.05;
+    size = 8;
+    matersdk::mtp::ChebyshevPoly<double> chebyshev1(size, rcut, rcut_smooth);
+    chebyshev1.build(distance_ij);
+    matersdk::mtp::ChebyshevPoly<double> chebyshev2(chebyshev1);
+    //chebyshev2.show();
+    //chebyshev1.show();
+
+    for (int ii=0; ii<chebyshev2.size(); ii++) {
+        ASSERT_DOUBLE_EQ(
+            chebyshev1.get_result()[ii],
+            chebyshev2.get_result()[ii]);
+        ASSERT_DOUBLE_EQ(
+            chebyshev1.get_deriv2xi()[ii],
+            chebyshev2.get_deriv2xi()[ii]);
+        ASSERT_DOUBLE_EQ(
+            chebyshev1.get_deriv2r()[ii],
+            chebyshev2.get_deriv2r()[ii]);
+    }
+}
+
+TEST_F(ChebyshevPolyTest, copy_constructor_move)
+{
+    distance_ij = 3.05;
+    size = 8;
+    matersdk::mtp::ChebyshevPoly<double> chebyshev1(size, rcut, rcut_smooth);
+    chebyshev1.build(distance_ij);
+    matersdk::mtp::ChebyshevPoly<double> chebyshev2(std::move(chebyshev1));
+    //chebyshev1.show();
+    //chebyshev2.show();
+    ASSERT_EQ(chebyshev1.get_result(), nullptr);
+    ASSERT_EQ(chebyshev1.get_deriv2xi(), nullptr);
+    ASSERT_EQ(chebyshev1.get_deriv2r(), nullptr);
+}
+
+TEST_F(ChebyshevPolyTest, assignment_operator)
+{
+    distance_ij = 3.05;
+    size = 8;
+    matersdk::mtp::ChebyshevPoly<double> chebyshev1(size, rcut, rcut_smooth);
+    chebyshev1.build(distance_ij);
+    matersdk::mtp::ChebyshevPoly<double> chebyshev2(size, rcut, rcut_smooth);
+    chebyshev2 = chebyshev1;
+
+    //chebyshev1.show();
+    //chebyshev2.show();
+    for (int ii=0; ii<chebyshev2.size(); ii++) {
+        ASSERT_DOUBLE_EQ(
+            chebyshev1.get_result()[ii],
+            chebyshev2.get_result()[ii]);
+        ASSERT_DOUBLE_EQ(
+            chebyshev1.get_deriv2xi()[ii],
+            chebyshev2.get_deriv2xi()[ii]);
+        ASSERT_DOUBLE_EQ(
+            chebyshev1.get_deriv2r()[ii],
+            chebyshev2.get_deriv2r()[ii]);
+    }
+}
+
+TEST_F(ChebyshevPolyTest, assignment_operator_move)
+{
+    distance_ij = 3.05;
+    size = 8;
+    matersdk::mtp::ChebyshevPoly<double> chebyshev1(size, rcut, rcut_smooth);
+    chebyshev1.build(distance_ij);
+    matersdk::mtp::ChebyshevPoly<double> chebyshev2(size, rcut, rcut_smooth);
+    chebyshev2 = std::move(chebyshev1);
+    //chebyshev1.show();
+    //chebyshev2.show();
+    ASSERT_EQ(chebyshev1.get_result(), nullptr);
+    ASSERT_EQ(chebyshev1.get_deriv2xi(), nullptr);
+    ASSERT_EQ(chebyshev1.get_deriv2r(), nullptr);
+}
+
 
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);

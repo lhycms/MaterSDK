@@ -138,7 +138,7 @@ TEST_F(RadialBasisChebyshevTest, get_chebyshev_vals) {
     rcut = 3.2;
     rcut_smooth = 3.0;
     hmju = 3;
-    rji = 3.1;
+    rji = 3.05;
     matersdk::mtp::RadialBasisChebyshev<double> rb(rcut, rcut_smooth, hmju, rji);
 
     const double* chebyshev_vals = rb.get_chebyshev_vals();
@@ -200,11 +200,11 @@ TEST_F(RadialBasisChebyshevTest, get_rb_ders) {
 
 TEST_F(RadialBasisChebyshevTest, check_deriv_from_definition_way1) {
     // Step 1. Declare parameters
-    rcut = 6.0;
-    rcut_smooth = 2.0;
-    hmju = 3;
-    rji = 3.0;
-    double rji_end = 3.001;
+    rcut = 3.2;
+    rcut_smooth = 3.0;
+    hmju = 8;
+    rji = 3.05;
+    double rji_end = 3.051;
     double delta = rji_end - rji;
 
     matersdk::mtp::RadialBasisChebyshev<double> rb(rcut, rcut_smooth, hmju, rji);

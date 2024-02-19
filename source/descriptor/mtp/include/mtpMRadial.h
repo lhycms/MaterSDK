@@ -78,6 +78,8 @@ public:
 
     const CoordType* get_deriv2r() const;
 
+    void show() const;
+
 private:
     int size_ = 0;
     MtpSwitchFunc1<CoordType> switch_func;
@@ -285,7 +287,7 @@ ChebyshevPoly<CoordType>& ChebyshevPoly<CoordType>::operator=(const ChebyshevPol
         this->size_ = 0;
         this->rcut = 0;
         this->rcut_smooth = 0;
-        free(this->rcut);
+        free(this->result);
         free(this->deriv2xi);
         free(this->deriv2r);
     }
@@ -295,6 +297,7 @@ ChebyshevPoly<CoordType>& ChebyshevPoly<CoordType>::operator=(const ChebyshevPol
     this->rcut = rhs.rcut;
     this->rcut_smooth = rhs.rcut_smooth;
     this->result = (CoordType*)malloc(sizeof(CoordType) * this->size_);
+    this->deriv2xi = (CoordType*)malloc(sizeof(CoordType) * this->size_);
     this->deriv2r = (CoordType*)malloc(sizeof(CoordType) * this->size_);
     for (int ii=0; ii<this->size_; ii++) {
         this->result[ii] = rhs.result[ii];
@@ -313,6 +316,7 @@ ChebyshevPoly<CoordType>& ChebyshevPoly<CoordType>::operator=(ChebyshevPoly&& rh
             this->rcut = 0;
             this->rcut_smooth = 0;
             free(this->result);
+            free(this->deriv2xi);
             free(this->deriv2r);
         }
         this->size_ = rhs.size_;
@@ -340,11 +344,11 @@ void ChebyshevPoly<CoordType>::build(CoordType distance_ij)
         if (ii == 0) {
             this->result[ii] = 1;
             this->deriv2xi[ii] = 0;
-            this->deriv2r[ii] *= this->switch_func.get_deriv2r();
+            this->deriv2r[ii] = this->deriv2xi[ii] * this->switch_func.get_deriv2r();
         } else if (ii == 1) {
             this->result[ii] = xi;
             this->deriv2xi[ii] = 1;
-            this->deriv2r[ii] *= this->switch_func.get_deriv2r();
+            this->deriv2r[ii] = this->deriv2xi[ii] * this->switch_func.get_deriv2r();
         } else {
             this->result[ii] = 2 * xi * this->result[ii-1] - this->result[ii-2];
             this->deriv2xi[ii] = (
@@ -352,7 +356,7 @@ void ChebyshevPoly<CoordType>::build(CoordType distance_ij)
                 2 * xi * this->deriv2xi[ii-1] - 
                 this->deriv2xi[ii-2]
             );
-            this->deriv2r[ii] *= this->switch_func.get_deriv2r();
+            this->deriv2r[ii] = this->deriv2xi[ii] * this->switch_func.get_deriv2r();
         }
     }
 }
@@ -379,6 +383,28 @@ template <typename CoordType>
 const CoordType* ChebyshevPoly<CoordType>::get_deriv2r() const
 {
     return (const CoordType*)this->deriv2r;
+}
+
+template <typename CoordType>
+void ChebyshevPoly<CoordType>::show() const
+{
+    printf("ChebyshevPoly.result:\n\t");
+    for (int ii=0; ii<this->size_; ii++) {
+        printf("%6f, ", this->result[ii]);
+    }
+    printf("\n");
+
+    printf("ChebyshevPoly.deriv2xi:\n\t");
+    for (int ii=0; ii<this->size_; ii++) {
+        printf("%6f, ", this->deriv2xi[ii]);
+    }
+    printf("\n");
+
+    printf("ChebyshevPoly.deriv2r:\n\t");
+    for (int ii=0; ii<this->size_; ii++) {
+        printf("%6f, ", this->deriv2r[ii]);
+    }
+    printf("\n");
 }
 
 };  // namespace : mtp
