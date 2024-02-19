@@ -7,7 +7,7 @@
 #include "../include/mtpMAngularOp.h"
 
 
-class MtpMAngularTest: public ::testing::Test {
+class MtpMAngularOpTest: public ::testing::Test {
 protected:
     at::Tensor relative_coord_tensor;
     int nu_0;
@@ -15,11 +15,11 @@ protected:
     int nu_2;
 
     static void SetUpTestSuite() {
-        std::cout << "MtpMAngularTest (TestSuite) is setting up...\n";        
+        std::cout << "MtpMAngularOpTest (TestSuite) is setting up...\n";        
     }
 
     static void TearDownTestSuite() {
-        std::cout << "MtpMAngularTest (TestSuite) is tearing down...\n";
+        std::cout << "MtpMAngularOpTest (TestSuite) is tearing down...\n";
     }
 
     void SetUp() override {
@@ -35,10 +35,10 @@ protected:
 
     void TearDown() override {
     }
-};  // class : MtpMAngularTest
+};  // class : MtpMAngularOpTest
 
 
-TEST_F(MtpMAngularTest, forward_and_backward) {
+TEST_F(MtpMAngularOpTest, forward_and_backward) {
     at::Tensor mtp_angular_0 = matersdk::mtp::MtpMAngularOp(
         relative_coord_tensor,
         nu_0);
@@ -62,7 +62,7 @@ TEST_F(MtpMAngularTest, forward_and_backward) {
 }
 
 
-TEST_F(MtpMAngularTest, speed) {
+TEST_F(MtpMAngularOpTest, speed) {
     int times = 5 * 1E5;
     auto time1 = std::chrono::high_resolution_clock::now();
     #pragma omp parallel for
@@ -77,7 +77,7 @@ TEST_F(MtpMAngularTest, speed) {
 }
 
 
-TEST_F(MtpMAngularTest, deriv_accuracy) {
+TEST_F(MtpMAngularOpTest, deriv_accuracy) {
     at::Tensor mtp_angular_tensor = matersdk::mtp::MtpMAngularOp(
         relative_coord_tensor,
         2);

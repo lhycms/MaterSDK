@@ -14,7 +14,7 @@ namespace mtp {
  * @return at::Tensor 
  */
 at::Tensor MtpMAngularOp(
-    at::Tensor relative_coord_tensor,
+    const at::Tensor& relative_coord_tensor,
     int nu)
 {
     c10::TensorOptions options = c10::TensorOptions()

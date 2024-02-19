@@ -25,6 +25,9 @@ endif()
 
 # 6. compile test
 if (BUILD_TEST)
+    add_executable(test_mtpMRadial_de ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_mtpMRadial_de.cc)
+    target_link_libraries(test_mtpMRadial_de PRIVATE gtest gtest_main)
+
     add_executable(test_mtpMRadial ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_mtpMRadial.cc)
     target_link_libraries(test_mtpMRadial PRIVATE gtest gtest_main)
 
@@ -39,6 +42,7 @@ if (BUILD_TEST)
         endif()
     endif()
 
+    gtest_discover_tests(test_mtpMRadial_de)
     gtest_discover_tests(test_mtpMRadial)
     gtest_discover_tests(test_level)
     if (TORCH_OP)

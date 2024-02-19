@@ -1,12 +1,12 @@
-#ifndef MATERSDK_ANGULAR_OP_H
-#define MATERSDK_ANGULAR_OP_H
+#ifndef MATERSDK_MTPM_ANGULAR_OP_H
+#define MATERSDK_MTPM_ANGULAR_OP_H
 #include <torch/torch.h>
 
 namespace matersdk {
 namespace mtp {
 
 at::Tensor MtpMAngularOp(
-    at::Tensor relative_coord_tensor,
+    const at::Tensor& relative_coord_tensor,
     int nu);
 
 }; // namespace : mtp
