@@ -12,7 +12,8 @@ protected:
     double rcut_smooth;
     double distance_ij;
     c10::TensorOptions options;
-    at::Tensor rs_tensor;
+    at::Tensor rcuts_tensor;
+    at::Tensor distances_tensor;
     static void SetUpTestSuite() {
         std::cout << "MtpQOpTest (TestSuite) is setting up...\n";
     }
@@ -29,11 +30,16 @@ protected:
         options = c10::TensorOptions()
             .dtype(torch::kFloat64)
             .device(c10::kCPU);
-        rs_tensor = at::zeros({3}, options);
-        double* rs = rs_tensor.data_ptr<double>();
-        rs[0] = rcut;
-        rs[1] = rcut_smooth;
-        rs[2] = distance_ij;
+        rcuts_tensor = at::zeros({2}, options);
+        double* rcuts = rcuts_tensor.data_ptr<double>();
+        rcuts[0] = rcut;
+        rcuts[1] = rcut_smooth;
+        distances_tensor = at::zeros({3}, options);
+        double* distances = distances_tensor.data_ptr<double>();
+        distances[0] = 3;
+        distances[1] = 3.05;
+        distances[2] = 3.2;
+        distances_tensor.requires_grad_(true);
     }
 
     void TearDown() override {
@@ -42,8 +48,11 @@ protected:
 
 
 TEST_F(MtpQOpTest, apply) {
-    at::Tensor result = matersdk::mtp::MtpQOp(size, rs_tensor)[0];
+    at::Tensor result = matersdk::mtp::MtpQOp(size, rcuts_tensor, distances_tensor)[0];
     std::cout << result << std::endl;
+    at::Tensor sum = result.sum();
+    sum.backward();
+    std::cout << distances_tensor.grad() << std::endl;
 }
 
 
