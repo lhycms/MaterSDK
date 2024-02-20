@@ -77,6 +77,28 @@ protected:
 };  // class : ChebyshevPolyTest
 
 
+class MtpQTest : public ::testing::Test {
+protected:
+    int size;
+    double rcut;
+    double rcut_smooth;
+    double distance_ij;
+    static void SetUpTestSuite() {
+        std::cout << "MtpQTest (TestSuite) is setting up...\n";
+    }
+
+    static void TearDownTestSutie() {
+        std::cout << "MtpQTest (TestSuite) is tearing down...\n";
+    }
+
+    void SetUp() override {
+        rcut = 3.2;
+        rcut_smooth = 3.0;
+    }
+
+    void TearDown() override {
+    }
+};  // class : MtpQ
 
 
 TEST_F(MtpSwitchFunc1Test, copy_constructor) {
@@ -250,7 +272,78 @@ TEST_F(ChebyshevPolyTest, assignment_operator_move)
 }
 
 
+TEST_F(MtpQTest, build)
+{
+    size = 8;
+    distance_ij = 3.05;
+    matersdk::mtp::MtpQ<double> mtp_q(size, rcut, rcut_smooth);
+    mtp_q.build(distance_ij);
+    mtp_q.show();
+}
+
+TEST_F(MtpQTest, copy_constructor)
+{
+    size = 8;
+    distance_ij = 3.05;
+    matersdk::mtp::MtpQ<double> mtp_q_1(size, rcut, rcut_smooth);
+    mtp_q_1.build(distance_ij);
+    matersdk::mtp::MtpQ<double> mtp_q_2(mtp_q_1);
+    //mtp_q_1.show();
+    //mtp_q_2.show();
+    for (int ii=0; ii<mtp_q_1.size(); ii++) {
+        ASSERT_EQ(mtp_q_1.get_result()[ii], mtp_q_2.get_result()[ii]);
+        ASSERT_EQ(mtp_q_1.get_deriv2r()[ii], mtp_q_2.get_deriv2r()[ii]);
+    }
+}
+
+TEST_F(MtpQTest, copy_constructor_move)
+{
+    size = 8;
+    distance_ij = 3.05;
+    matersdk::mtp::MtpQ<double> mtp_q_1(size, rcut, rcut_smooth);
+    mtp_q_1.build(distance_ij);
+    matersdk::mtp::MtpQ<double> mtp_q_2(std::move(mtp_q_1));
+    //mtp_q_1.show();
+    //mtp_q_2.show();
+
+    ASSERT_EQ(mtp_q_1.get_result(), nullptr);
+    ASSERT_EQ(mtp_q_1.get_deriv2r(), nullptr);
+}
+
+TEST_F(MtpQTest, assignment_operator)
+{
+    size = 8;
+    distance_ij = 3.05;
+    matersdk::mtp::MtpQ<double> mtp_q_1(size, rcut, rcut_smooth);
+    mtp_q_1.build(distance_ij);
+    matersdk::mtp::MtpQ<double> mtp_q_2(size, rcut-0.1, rcut_smooth);
+    mtp_q_2 = mtp_q_1;
+    //mtp_q_1.show();
+    //mtp_q_2.show();
+    for (int ii=0; ii<mtp_q_1.size(); ii++) {
+        ASSERT_EQ(mtp_q_1.get_result()[ii], mtp_q_2.get_result()[ii]);
+        ASSERT_EQ(mtp_q_1.get_deriv2r()[ii], mtp_q_2.get_deriv2r()[ii]);
+    }
+}
+
+TEST_F(MtpQTest, assignment_operator_move)
+{
+    size = 8;
+    distance_ij = 3.05;
+    matersdk::mtp::MtpQ<double> mtp_q_1(size, rcut, rcut_smooth);
+    mtp_q_1.build(distance_ij);
+    matersdk::mtp::MtpQ<double> mtp_q_2(size, rcut-0.1, rcut_smooth);
+    mtp_q_2 = std::move(mtp_q_1);
+    //mtp_q_1.show();
+    //mtp_q_2.show();
+    ASSERT_EQ(mtp_q_1.get_result(), nullptr);
+    ASSERT_EQ(mtp_q_1.get_deriv2r(), nullptr);
+}
+
+
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
+
+

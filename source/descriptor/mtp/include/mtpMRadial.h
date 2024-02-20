@@ -91,6 +91,42 @@ private:
 };  // class : ChebyshevPoly
 
 
+template <typename CoordType>
+class MtpQ {
+public:
+    MtpQ();
+
+    MtpQ(int size, CoordType rcut, CoordType rcut_smooth);
+
+    MtpQ(const MtpQ& rhs);
+
+    MtpQ(MtpQ&& rhs);
+
+    ~MtpQ();
+
+    MtpQ& operator=(const MtpQ& rhs);
+
+    MtpQ& operator=(MtpQ&& rhs);
+
+    void build(CoordType distance_ij);
+
+    const int size() const;
+
+    const CoordType* get_result() const;
+
+    const CoordType* get_deriv2r() const;
+
+    void show() const;
+
+private:
+    int size_ = 0;
+    MtpSwitchFunc2<CoordType> switch_func2;
+    ChebyshevPoly<CoordType> chebyshev;
+    CoordType* result;
+    CoordType* deriv2r;
+};  // class : MtpQ
+
+
 
 
 
@@ -406,6 +442,151 @@ void ChebyshevPoly<CoordType>::show() const
     }
     printf("\n");
 }
+
+
+template <typename CoordType>
+MtpQ<CoordType>::MtpQ() {}
+
+template <typename CoordType>
+MtpQ<CoordType>::MtpQ(int size, CoordType rcut, CoordType rcut_smooth)
+{
+    this->size_ = size;
+    this->switch_func2 = MtpSwitchFunc2<CoordType>(rcut, rcut_smooth);
+    this->chebyshev = ChebyshevPoly<CoordType>(size, rcut, rcut_smooth);
+    this->result = (CoordType*)malloc(sizeof(CoordType) * this->size_);
+    memset(this->result, 0, sizeof(CoordType) * this->size_);
+    this->deriv2r = (CoordType*)malloc(sizeof(CoordType) * this->size_);
+    memset(this->deriv2r, 0, sizeof(CoordType) * this->size_);
+}
+
+template <typename CoordType>
+MtpQ<CoordType>::MtpQ(const MtpQ& rhs)
+{
+    this->size_ = rhs.size_;
+    this->switch_func2 = rhs.switch_func2;
+    this->chebyshev = rhs.chebyshev;
+    this->result = (CoordType*)malloc(sizeof(CoordType) * this->size_);
+    this->deriv2r = (CoordType*)malloc(sizeof(CoordType) * this->size_);
+    for (int ii=0; ii<this->size_; ii++) {
+        this->result[ii] = rhs.result[ii];
+        this->deriv2r[ii] = rhs.deriv2r[ii];
+    }
+}
+
+template <typename CoordType>
+MtpQ<CoordType>::MtpQ(MtpQ&& rhs)
+{
+    if (this != &rhs) {
+        this->size_ = rhs.size_;
+        this->switch_func2 = rhs.switch_func2;
+        this->chebyshev = rhs.chebyshev;
+        this->result = rhs.result;
+        this->deriv2r = rhs.deriv2r;
+
+        rhs.size_ = 0;
+        rhs.switch_func2 = MtpSwitchFunc2<CoordType>();
+        rhs.chebyshev = ChebyshevPoly<CoordType>();
+        rhs.result = nullptr;
+        rhs.deriv2r = nullptr;
+    }
+}
+
+template <typename CoordType>
+MtpQ<CoordType>::~MtpQ()
+{
+    this->size_ = 0;
+    free(this->result);
+    free(this->deriv2r);
+}
+
+template <typename CoordType>
+MtpQ<CoordType>& MtpQ<CoordType>::operator=(const MtpQ& rhs)
+{
+    if (this->size_ != 0) {
+        this->size_ = 0;
+        free(this->result);
+        free(this->deriv2r);
+    }
+    this->size_ = rhs.size_;
+    this->switch_func2 = rhs.switch_func2;
+    this->chebyshev = rhs.chebyshev;
+    this->result = (CoordType*)malloc(sizeof(CoordType) * this->size_);
+    this->deriv2r = (CoordType*)malloc(sizeof(CoordType) * this->size_);
+    for (int ii=0; ii<this->size_; ii++) {
+        this->result[ii] = rhs.result[ii];
+        this->deriv2r[ii] = rhs.deriv2r[ii];
+    }
+}
+
+template <typename CoordType>
+MtpQ<CoordType>& MtpQ<CoordType>::operator=(MtpQ&& rhs)
+{
+    if (this != &rhs) {
+        if (this->size_ != 0) {
+            this->size_ = 0;
+            free(this->result);
+            free(this->deriv2r);
+        }
+        this->size_ = rhs.size_;
+        this->switch_func2 = rhs.switch_func2;
+        this->chebyshev = rhs.chebyshev;
+        this->result = rhs.result;
+        this->deriv2r = rhs.deriv2r;
+
+        rhs.size_ = 0;
+        rhs.switch_func2 = MtpSwitchFunc2<CoordType>();
+        rhs.chebyshev = ChebyshevPoly<CoordType>();
+        rhs.result = nullptr;
+        rhs.deriv2r = nullptr;
+    }
+}
+
+template <typename CoordType>
+void MtpQ<CoordType>::build(CoordType distance_ij)
+{
+    CoordType vv_value = this->switch_func2.get_result(distance_ij);
+    CoordType vv_deriv2r = this->switch_func2.get_deriv2r(distance_ij);
+    this->chebyshev.build(distance_ij);
+    for (int ii=0; ii<this->size_; ii++) {
+        this->result[ii] = this->chebyshev.get_result()[ii] * vv_value; 
+        this->deriv2r[ii] = (
+            this->chebyshev.get_deriv2r()[ii] * vv_value + 
+            this->chebyshev.get_result()[ii] * vv_deriv2r);
+    }
+}
+
+template <typename CoordType>
+const int MtpQ<CoordType>::size() const 
+{
+    return (const int)this->size_;
+}
+
+template <typename CoordType>
+const CoordType* MtpQ<CoordType>::get_result() const
+{
+    return (const CoordType*)this->result;
+}
+
+template <typename CoordType>
+const CoordType* MtpQ<CoordType>::get_deriv2r() const
+{
+    return (const CoordType*)this->deriv2r;
+}
+
+template <typename CoordType>
+void MtpQ<CoordType>::show() const
+{
+    printf("MtpQ.result:\n\t");
+    for (int ii=0; ii<this->size_; ii++)
+        printf("%6f, ", this->result[ii]);
+    printf("\n");
+    
+    printf("MtpQ.deriv2r:\n\t");
+    for (int ii=0; ii<this->size_; ii++)
+        printf("%6f, ", this->deriv2r[ii]);
+    printf("\n");
+}
+
 
 };  // namespace : mtp
 };  // namespace : matersdk

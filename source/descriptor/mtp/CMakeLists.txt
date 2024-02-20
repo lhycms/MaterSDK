@@ -20,6 +20,10 @@ if (TORCH_OP)
     add_library(mtpMAngularOp SHARED ${CMAKE_CURRENT_SOURCE_DIR}/src/mtpMAngularOp.cc)
     target_include_directories(mtpMAngularOp PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
     target_link_libraries(mtpMAngularOp PRIVATE ${TORCH_LIBRARIES})
+
+    add_library(mtpMRadialOp SHARED ${CMAKE_CURRENT_SOURCE_DIR}/src/mtpMRadialOp.cc)
+    target_include_directories(mtpMRadialOp PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+    target_link_libraries(mtpMRadialOp PRIVATE ${TORCH_LIBRARIES})
 endif()
 
 
@@ -40,6 +44,9 @@ if (BUILD_TEST)
         if(OpenMP_CXX_FOUND)
             target_link_libraries(test_mtpMAngularOp PRIVATE OpenMP::OpenMP_CXX)
         endif()
+
+        add_executable(test_mtpMRadialOp ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_mtpMRadialOp.cc)
+        target_link_libraries(test_mtpMRadialOp PRIVATE gtest gtest_main mtpMRadialOp ${TORCH_LIBRARIES})
     endif()
 
     gtest_discover_tests(test_mtpMRadial_de)
@@ -47,5 +54,6 @@ if (BUILD_TEST)
     gtest_discover_tests(test_level)
     if (TORCH_OP)
         gtest_discover_tests(test_mtpMAngularOp)
+        gtest_discover_tests(test_mtpMRadialOp)
     endif()
 endif()
