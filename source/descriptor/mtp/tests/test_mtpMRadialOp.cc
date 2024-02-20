@@ -53,6 +53,16 @@ TEST_F(MtpQOpTest, apply) {
     at::Tensor sum = result.sum();
     sum.backward();
     std::cout << distances_tensor.grad() << std::endl;
+
+    at::Tensor distances_tensor_ = at::zeros({3}, options);
+    distances_tensor_[0] = 3.0001;
+    distances_tensor_[1] = 3.0501;
+    distances_tensor_[2] = 3.2001;
+    distances_tensor_.requires_grad_(true);
+    at::Tensor result_ = matersdk::mtp::MtpQOp(size, rcuts_tensor, distances_tensor_)[0];
+    std::cout << ((result_[0] - result[0]) / 0.0001).sum() << std::endl;
+    std::cout << ((result_[1] - result[1]) / 0.0001).sum() << std::endl;
+    std::cout << ((result_[2] - result[2]) / 0.0001).sum() << std::endl;
 }
 
 

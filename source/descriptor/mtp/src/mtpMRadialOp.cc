@@ -91,7 +91,7 @@ torch::autograd::variable_list MtpQFunction::backward(
         double* deriv2r = deriv2r_tensor.data_ptr<double>();
         double* grad_output = grad_output_tensor.data_ptr<double>();
         double* deriv = deriv_tensor.data_ptr<double>();
-std::cout << deriv2r_tensor << std::endl;
+
         for (int ii=0; ii<(int)num_neighs; ii++) 
             for (int jj=0; jj<(int)size; jj++)
                 deriv[ii] += grad_output[ii*size + jj] * deriv2r[ii*size + jj];
