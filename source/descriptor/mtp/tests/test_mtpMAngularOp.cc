@@ -83,7 +83,7 @@ TEST_F(MtpMAngularOpTest, deriv_accuracy) {
         2);
     auto result = mtp_angular_tensor.sum();
     result.backward();
-    std::cout << "1. Derivative calculated by Autograd = " << relative_coord_tensor.grad()[0].item<float>() << std::endl;
+    std::cout << "1. Partial derivative wrt. x calculated by Autograd = " << relative_coord_tensor.grad()[0].item<float>() << std::endl;
 
     float* relative_coord = relative_coord_tensor.data_ptr<float>();
     relative_coord[0] += 0.001;
@@ -91,7 +91,7 @@ TEST_F(MtpMAngularOpTest, deriv_accuracy) {
         relative_coord_tensor,
         2);
     auto result1 = mtp_angular_tensor1.sum();
-    std::cout << "2. Derivative calculated by finite difference = " << (result1 - result).item<float>() / 0.001 << std::endl;
+    std::cout << "2. Partial derivative wrt. x calculated by finite difference = " << (result1 - result).item<float>() / 0.001 << std::endl;
 }
 
 

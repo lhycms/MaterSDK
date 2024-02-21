@@ -14,7 +14,7 @@ public:
         torch::autograd::AutogradContext* ctx,
         int64_t size,
         at::Tensor rcuts_tensor,        // rs_tensor = [rcut, rcut_smooth]
-        at::Tensor distances_tensor);    // shape = [nneigh,];
+        at::Tensor rcs_tensor);         // .shape = [nneigh, 3];
     
     static torch::autograd::variable_list backward(
         torch::autograd::AutogradContext* ctx,
