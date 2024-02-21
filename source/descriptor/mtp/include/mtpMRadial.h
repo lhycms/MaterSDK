@@ -222,7 +222,7 @@ CoordType MtpSwitchFunc2<CoordType>::get_result(CoordType distance_ij) const
     CoordType uu = (distance_ij - this->rcut_smooth) / (this->rcut - this->rcut_smooth);
 
     if (distance_ij < this->rcut_smooth)
-        result = 1;
+        result = 0;
     else if ((distance_ij>=this->rcut_smooth) && (distance_ij<this->rcut))
         result = std::pow(uu, 3) * (-6*std::pow(uu, 2) + 15*uu - 10) + 1;
     else

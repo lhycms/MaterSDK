@@ -27,7 +27,7 @@ if (TORCH_OP)
 
     add_library(mtpFModule SHARED ${CMAKE_CURRENT_SOURCE_DIR}/src/mtpFModule.cc)
     target_include_directories(mtpFModule PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-    target_link_libraries(mtpFModule PRIVATE mtpMRadialOp ${TORCH_LIBRARIES})
+    target_link_libraries(mtpFModule PRIVATE ${TORCH_LIBRARIES} mtpMRadialOp)
 endif()
 
 
@@ -44,13 +44,16 @@ if (BUILD_TEST)
     
     if (TORCH_OP)
         add_executable(test_mtpMAngularOp ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_mtpMAngularOp.cc)
-        target_link_libraries(test_mtpMAngularOp PRIVATE gtest gtest_main mtpMAngularOp ${TORCH_LIBRARIES})
+        target_link_libraries(test_mtpMAngularOp PRIVATE gtest gtest_main ${TORCH_LIBRARIES} mtpMAngularOp)
         if(OpenMP_CXX_FOUND)
             target_link_libraries(test_mtpMAngularOp PRIVATE OpenMP::OpenMP_CXX)
         endif()
 
         add_executable(test_mtpMRadialOp ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_mtpMRadialOp.cc)
-        target_link_libraries(test_mtpMRadialOp PRIVATE gtest gtest_main mtpMRadialOp ${TORCH_LIBRARIES})
+        target_link_libraries(test_mtpMRadialOp PRIVATE gtest gtest_main ${TORCH_LIBRARIES} mtpMRadialOp)
+
+        add_executable(test_mtpFModule ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_mtpFModule.cc)
+        target_link_libraries(test_mtpFModule PRIVATE gtest gtest_main ${TORCH_LIBRARIES} mtpFModule)
     endif()
 
     gtest_discover_tests(test_mtpMRadial_de)

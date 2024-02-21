@@ -36,13 +36,13 @@ protected:
         rcuts[1] = rcut_smooth;
         rcs_tensor = at::zeros({3, 3}, options);    // .shape = [nneighs, 3]
         double* rcs = rcs_tensor.data_ptr<double>();
-        rcs[0*3 + 0] = 3;
-        rcs[0*3 + 1] = 0;
-        rcs[0*3 + 2] = 0;
+        rcs[0*3 + 0] = 1.595158;    //3;
+        rcs[0*3 + 1] = -0.920965;   //0;
+        rcs[0*3 + 2] = -1.564884;   //0
         rcs[1*3 + 0] = 3.05;
         rcs[1*3 + 1] = 0;
         rcs[1*3 + 2] = 0;      
-        rcs[2*3 + 0] = 3.2;
+        rcs[2*3 + 0] = 0;           //3;
         rcs[2*3 + 1] = 0;
         rcs[2*3 + 2] = 0;
         rcs_tensor.requires_grad_(true);

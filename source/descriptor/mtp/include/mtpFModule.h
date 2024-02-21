@@ -16,9 +16,9 @@ public:
     at::Tensor forward(
         int64_t mu,
         int64_t iidx,
-        at::Tensor firstneigh_tensor,
+        at::Tensor ifirstneigh_tensor,
         at::Tensor types,
-        at::Tensor rcs_tensor);
+        at::Tensor ircs_tensor);
 
 private:
     int64_t nmus;

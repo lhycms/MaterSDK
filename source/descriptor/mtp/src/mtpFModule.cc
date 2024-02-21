@@ -19,15 +19,16 @@ MtpFModuleImpl::MtpFModuleImpl(
     int64_t ncoeffs = nmus * ntypes * ntypes;
     for (int64_t ii=0; ii<ncoeffs; ii++)
         this->cheby_coeff_list->append(at::randn({size}));
+    this->register_module("cheby_coeff_list", this->cheby_coeff_list);
 }
 
 /**
  * @brief Calculate f_{\mu}(|r_{ij}, z_i, z_j|)
  * @param iidx The index of center atoms
- * @param firstneigh_tensor The indices of neigh atoms.
+ * @param ifirstneigh_tensor The indices of neigh atoms.
  *          .shape = [nneighs,]
  * @param types The atomic types
- * @param rcs_tensor The relative coordinates of neigh atoms
+ * @param ircs_tensor The relative coordinates of neigh atoms
  *          .shape = [nneighs, 3]
  * @return at::Tensor 
  *          .shape = [nneighs,]
@@ -35,20 +36,20 @@ MtpFModuleImpl::MtpFModuleImpl(
 at::Tensor MtpFModuleImpl::forward(
     int64_t mu,
     int64_t iidx,
-    at::Tensor firstneigh_tensor,
+    at::Tensor ifirstneigh_tensor,
     at::Tensor types,
-    at::Tensor rcs_tensor)
+    at::Tensor ircs_tensor)
 {
-    at::Tensor mtp_f_tensor = at::zeros({firstneigh_tensor.sizes()[0]})
+    at::Tensor mtp_f_tensor = at::zeros({ifirstneigh_tensor.sizes()[0]})
         .requires_grad_(false);
     int64_t z_i = types[iidx].item<int64_t>();
-    int64_t* firstneigh = firstneigh_tensor.data_ptr<int64_t>();    
+    int64_t* firstneigh = ifirstneigh_tensor.data_ptr<int64_t>();    
     at::Tensor mtp_q_tensor = MtpQOp(   // .shape = [nneigh, size]
         this->size,
         this->rcuts_tensor,
-        rcs_tensor)[0];
-    
-    for (int64_t ii=0; ii<firstneigh_tensor.sizes()[0]; ii++) {
+        ircs_tensor)[0];
+std::cout << mtp_q_tensor << std::endl;
+    for (int64_t ii=0; ii<ifirstneigh_tensor.sizes()[0]; ii++) {
         int64_t z_j = types[firstneigh[ii]].item<int64_t>();
         mtp_f_tensor[ii] = at::dot(
             this->cheby_coeff_list[mu*this->ntypes*this->ntypes + z_i*this->ntypes + z_j],
