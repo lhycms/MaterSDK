@@ -125,9 +125,9 @@ torch::autograd::variable_list MtpQFunction::backward(
 torch::autograd::variable_list MtpQOp(
     int64_t size,
     at::Tensor rcuts_tensor,
-    at::Tensor distances_tensor)
+    at::Tensor rcs_tensor)
 {
-    return MtpQFunction::apply(size, rcuts_tensor, distances_tensor);
+    return MtpQFunction::apply(size, rcuts_tensor, rcs_tensor);
 }
 
 };  // class : mtp

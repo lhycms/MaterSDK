@@ -24,6 +24,10 @@ if (TORCH_OP)
     add_library(mtpMRadialOp SHARED ${CMAKE_CURRENT_SOURCE_DIR}/src/mtpMRadialOp.cc)
     target_include_directories(mtpMRadialOp PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
     target_link_libraries(mtpMRadialOp PRIVATE ${TORCH_LIBRARIES})
+
+    add_library(mtpFModule SHARED ${CMAKE_CURRENT_SOURCE_DIR}/src/mtpFModule.cc)
+    target_include_directories(mtpFModule PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+    target_link_libraries(mtpFModule PRIVATE mtpMRadialOp ${TORCH_LIBRARIES})
 endif()
 
 
