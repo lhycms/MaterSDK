@@ -34,17 +34,20 @@ protected:
         double* rcuts = rcuts_tensor.data_ptr<double>();
         rcuts[0] = rcut;
         rcuts[1] = rcut_smooth;
-        rcs_tensor = at::zeros({3, 3}, options);    // .shape = [nneighs, 3]
+        rcs_tensor = at::zeros({4, 3}, options);    // .shape = [nneighs, 3]
         double* rcs = rcs_tensor.data_ptr<double>();
-        rcs[0*3 + 0] = 1.595158;    //3;
-        rcs[0*3 + 1] = -0.920965;   //0;
-        rcs[0*3 + 2] = -1.564884;   //0
-        rcs[1*3 + 0] = 3.05;
-        rcs[1*3 + 1] = 0;
-        rcs[1*3 + 2] = 0;      
-        rcs[2*3 + 0] = 0;           //3;
+        rcs[0*3 + 0] = 0;       
+        rcs[0*3 + 1] = 0;
+        rcs[0*3 + 2] = 0;
+        rcs[1*3 + 0] = 1.595158;   
+        rcs[1*3 + 1] = -0.920965;  
+        rcs[1*3 + 2] = -1.564884;   
+        rcs[2*3 + 0] = 3.05;
         rcs[2*3 + 1] = 0;
-        rcs[2*3 + 2] = 0;
+        rcs[2*3 + 2] = 0;      
+        rcs[3*3 + 0] = 3.3;        
+        rcs[3*3 + 1] = 0;
+        rcs[3*3 + 2] = 0;
         rcs_tensor.requires_grad_(true);
     }
 
@@ -55,26 +58,31 @@ protected:
 
 TEST_F(MtpQOpTest, apply) {
     at::Tensor result = matersdk::mtp::MtpQOp(size, rcuts_tensor, rcs_tensor)[0];
-    std::cout << "Result of Q(x) = \n" << result << std::endl;
+    std::cout << "1.1. Result of Q(x) = \n" << result << std::endl;
     at::Tensor sum = result.sum();
     sum.backward();
-    std::cout << "Partial derivative wrt. x_{ij} of second neigh =\n" << rcs_tensor.grad()[1][0] << std::endl;
+    std::cout << "1.2. Partial derivative wrt. x_{ij} of third neigh =\n" << rcs_tensor.grad()[2][0] << std::endl;
+    std::cout << "1.3. rcs_tensor.grad() = \n";
+    std::cout << rcs_tensor.grad() << std::endl;
     
-    at::Tensor rcs_tensor_ = at::zeros({3, 3}, options);
-    rcs_tensor_[0][0] = 3.0000;
-    rcs_tensor_[0][1] = 0;
-    rcs_tensor_[0][2] = 0;
-    rcs_tensor_[1][0] = 3.0501;
-    rcs_tensor_[1][1] = 0;
-    rcs_tensor_[1][2] = 0;
-    rcs_tensor_[2][0] = 3.2000;
+    at::Tensor rcs_tensor_ = at::zeros({4, 3}, options);
+    rcs_tensor_[0][0] = 0;   
+    rcs_tensor_[0][1] = 0;  
+    rcs_tensor_[0][2] = 0; 
+    rcs_tensor_[1][0] = 1.595158;
+    rcs_tensor_[1][1] = -0.920965;
+    rcs_tensor_[1][2] = -1.564884;
+    rcs_tensor_[2][0] = 3.05 + 0.0001;
     rcs_tensor_[2][1] = 0;
     rcs_tensor_[2][2] = 0;
+    rcs_tensor_[3][0] = 3.3;
+    rcs_tensor_[3][1] = 0;
+    rcs_tensor_[3][2] = 0;
     rcs_tensor_.requires_grad_(true);
     at::Tensor result_ = matersdk::mtp::MtpQOp(size, rcuts_tensor, rcs_tensor_)[0];
     at::Tensor sum_ = result_.sum();
-    std::cout << "Result of Q(x+/delta{x}}) = \n" << result_ << std::endl;
-    std::cout << "Partial derivative wrt. x_{ij} of second neigh =\n" << ((sum_ - sum) / 0.0001) << std::endl;
+    std::cout << "2.1. Result of Q(x+/delta{x}}) = \n" << result_ << std::endl;
+    std::cout << "2.2. Partial derivative wrt. x_{ij} of third neigh =\n" << ((sum_ - sum) / 0.0001) << std::endl;
     
 }
 

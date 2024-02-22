@@ -18,7 +18,7 @@ MtpFModuleImpl::MtpFModuleImpl(
     this->rcuts_tensor = rcuts_tensor;
     int64_t ncoeffs = nmus * ntypes * ntypes;
     for (int64_t ii=0; ii<ncoeffs; ii++)
-        this->cheby_coeff_list->append(at::randn({size}));
+        this->cheby_coeff_list->append(at::randn({size}).requires_grad_(true));
     this->register_module("cheby_coeff_list", this->cheby_coeff_list);
 }
 
@@ -48,7 +48,6 @@ at::Tensor MtpFModuleImpl::forward(
         this->size,
         this->rcuts_tensor,
         ircs_tensor)[0];
-std::cout << mtp_q_tensor << std::endl;
     for (int64_t ii=0; ii<ifirstneigh_tensor.sizes()[0]; ii++) {
         int64_t z_j = types[firstneigh[ii]].item<int64_t>();
         mtp_f_tensor[ii] = at::dot(

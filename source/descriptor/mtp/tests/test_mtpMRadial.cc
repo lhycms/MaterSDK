@@ -115,6 +115,13 @@ TEST_F(MtpSwitchFunc1Test, assignment_operator) {
 }
 
 TEST_F(MtpSwitchFunc1Test, get_result_and_deriv2r) {
+    distance_ij = 0.0;
+    matersdk::mtp::MtpSwitchFunc1<double> msf0(rcut, rcut_smooth);
+    printf("distance_ij = %5f, switch_func1_result = %6f, switch_func1_deriv2r = %6f\n",
+        distance_ij,
+        msf0.get_result(distance_ij),
+        msf0.get_deriv2r());
+
     distance_ij = 3.0;
     matersdk::mtp::MtpSwitchFunc1<double> msf1(rcut, rcut_smooth);
     ASSERT_DOUBLE_EQ(msf1.get_result(distance_ij), -1);
@@ -159,6 +166,14 @@ TEST_F(MtpSwitchFunc2Test, assignment_operator)
 }
 
 TEST_F(MtpSwitchFunc2Test, get_result_and_deriv2r) {
+    distance_ij = 0.0;
+    matersdk::mtp::MtpSwitchFunc2<double> msf0(rcut, rcut_smooth);
+    printf("distance_ij = %5f, switch_func2_result = %6f, switch_func1_deriv2r = %6f\n", 
+        distance_ij, 
+        msf0.get_result(distance_ij),
+        msf0.get_deriv2r(distance_ij));
+    ASSERT_DOUBLE_EQ(msf0.get_result(distance_ij), 0);
+
     distance_ij = 3.0;
     matersdk::mtp::MtpSwitchFunc2<double> msf1(rcut, rcut_smooth);
     printf("distance_ij = %5f, switch_func2_result = %6f, switch_func1_deriv2r = %6f\n", 
@@ -188,7 +203,7 @@ TEST_F(MtpSwitchFunc2Test, get_result_and_deriv2r) {
 
 TEST_F(ChebyshevPolyTest, build) 
 {
-    distance_ij = 3.05;
+    distance_ij = 5;  // 3.05   // When r<r_{rcut_smooth} or r >= rcut, Chebyshev will be too much larger
     size = 8;
     matersdk::mtp::ChebyshevPoly<double> chebyshev(size, rcut, rcut_smooth);
     chebyshev.build(distance_ij);

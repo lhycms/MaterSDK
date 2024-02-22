@@ -56,8 +56,8 @@ protected:
             .dtype(torch::kInt64)
             .device(c10::kCPU);
         rcuts_tensor = at::zeros({2}, options);
-        rcuts_tensor[0] = 3.2;
-        rcuts_tensor[1] = 3.0;
+        rcuts_tensor[0] = 5.0;  // -> R_{max}
+        rcuts_tensor[1] = 3.0;  // -> R_{min}
 
         // Establish neighbor list
         num_atoms = 12;
@@ -191,10 +191,12 @@ TEST_F(MtpFModuleTest, init) {
         ircs[ii*3 + 0] = relative_coords[iidx*umax_num_neigh_atoms*3 + ii*3 + 0];
         ircs[ii*3 + 1] = relative_coords[iidx*umax_num_neigh_atoms*3 + ii*3 + 1];
         ircs[ii*3 + 2] = relative_coords[iidx*umax_num_neigh_atoms*3 + ii*3 + 2];
-        printf("[%10f, %10f, %10f]\n", ircs[ii*3 + 0], ircs[ii*3 + 1], ircs[ii*3 + 2]);
     }
+    ircs_tensor.requires_grad_(true);   // need to calculate gradients.
     at::Tensor result = mtp_f->forward(mu, iidx, ifirstneigh_tensor, types_tensor, ircs_tensor);
     std::cout << result << std::endl;
+    result.sum().backward();
+    std::cout << ircs_tensor.grad() << std::endl;
 }
 
 
