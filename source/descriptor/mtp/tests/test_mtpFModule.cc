@@ -194,9 +194,12 @@ TEST_F(MtpFModuleTest, init) {
     }
     ircs_tensor.requires_grad_(true);   // need to calculate gradients.
     at::Tensor result = mtp_f->forward(mu, iidx, ifirstneigh_tensor, types_tensor, ircs_tensor);
-    std::cout << result << std::endl;
+std::cout << "1.1. MtpQModule->forward():\n" << result << std::endl;
     result.sum().backward();
-    std::cout << ircs_tensor.grad() << std::endl;
+std::cout << "1.2. MtpQModule.sum() 's derivative wrt. xyz:\n" << ircs_tensor.grad() << std::endl;
+    ASSERT_EQ(ircs_tensor.sizes()[0], umax_num_neigh_atoms);
+    ASSERT_EQ(ircs_tensor.grad().sizes()[0], umax_num_neigh_atoms);
+    ASSERT_EQ(ircs_tensor.grad().sizes()[1], 3);
 }
 
 

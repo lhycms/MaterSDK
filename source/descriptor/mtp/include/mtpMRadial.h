@@ -376,24 +376,30 @@ template <typename CoordType>
 void ChebyshevPoly<CoordType>::build(CoordType distance_ij) 
 {
     CoordType xi = this->switch_func.get_result(distance_ij);
-    for (int ii=0; ii<this->size_; ii++) {
-        if (ii == 0) {
-            this->result[ii] = 1;
-            this->deriv2xi[ii] = 0;
-            this->deriv2r[ii] = this->deriv2xi[ii] * this->switch_func.get_deriv2r();
-        } else if (ii == 1) {
-            this->result[ii] = xi;
-            this->deriv2xi[ii] = 1;
-            this->deriv2r[ii] = this->deriv2xi[ii] * this->switch_func.get_deriv2r();
-        } else {
-            this->result[ii] = 2 * xi * this->result[ii-1] - this->result[ii-2];
-            this->deriv2xi[ii] = (
-                2 * this->result[ii-1] + 
-                2 * xi * this->deriv2xi[ii-1] - 
-                this->deriv2xi[ii-2]
-            );
-            this->deriv2r[ii] = this->deriv2xi[ii] * this->switch_func.get_deriv2r();
+    if ((distance_ij >= this->rcut_smooth) && (distance_ij < this->rcut)) { // Chebyshev Only defined on [-1, 1].
+        for (int ii=0; ii<this->size_; ii++) {
+            if (ii == 0) {
+                this->result[ii] = 1;
+                this->deriv2xi[ii] = 0;
+                this->deriv2r[ii] = this->deriv2xi[ii] * this->switch_func.get_deriv2r();
+            } else if (ii == 1) {
+                this->result[ii] = xi;
+                this->deriv2xi[ii] = 1;
+                this->deriv2r[ii] = this->deriv2xi[ii] * this->switch_func.get_deriv2r();
+            } else {
+                this->result[ii] = 2 * xi * this->result[ii-1] - this->result[ii-2];
+                this->deriv2xi[ii] = (
+                    2 * this->result[ii-1] + 
+                    2 * xi * this->deriv2xi[ii-1] - 
+                    this->deriv2xi[ii-2]
+                );
+                this->deriv2r[ii] = this->deriv2xi[ii] * this->switch_func.get_deriv2r();
+            }
         }
+    } else {
+        memset(this->result, 0, sizeof(CoordType) * this->size_);
+        memset(this->deriv2xi, 0, sizeof(CoordType) * this->size_);
+        memset(this->deriv2r, 0, sizeof(CoordType) * this->size_);
     }
 }
 

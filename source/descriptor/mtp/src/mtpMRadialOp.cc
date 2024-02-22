@@ -65,9 +65,15 @@ torch::autograd::variable_list MtpQFunction::forward(
             mtp_q.build(distance);
             for (int jj=0; jj<size; jj++) {
                 result[ii*size + jj] = mtp_q.get_result()[jj];
-                deriv2xyz[ii*size*3 + jj*3 + 0] = mtp_q.get_deriv2r()[jj] * rcs[ii*3+0] / distance;
-                deriv2xyz[ii*size*3 + jj*3 + 1] = mtp_q.get_deriv2r()[jj] * rcs[ii*3+1] / distance;
-                deriv2xyz[ii*size*3 + jj*3 + 2] = mtp_q.get_deriv2r()[jj] * rcs[ii*3+2] / distance;
+                if (distance == 0) {
+                    deriv2xyz[ii*size*3 + jj*3 + 0] = 0;
+                    deriv2xyz[ii*size*3 + jj*3 + 1] = 0;
+                    deriv2xyz[ii*size*3 + jj*3 + 2] = 0;
+                } else {
+                    deriv2xyz[ii*size*3 + jj*3 + 0] = mtp_q.get_deriv2r()[jj] * rcs[ii*3+0] / distance;
+                    deriv2xyz[ii*size*3 + jj*3 + 1] = mtp_q.get_deriv2r()[jj] * rcs[ii*3+1] / distance;
+                    deriv2xyz[ii*size*3 + jj*3 + 2] = mtp_q.get_deriv2r()[jj] * rcs[ii*3+2] / distance;
+                }
             }
         }
         
