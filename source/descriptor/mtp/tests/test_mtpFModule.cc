@@ -36,7 +36,7 @@ protected:
     int* types;
     int nghost;
     int umax_num_neigh_atoms;
-
+ 
     static void SetUpTestSuite() {
         std::cout << "MtpFModuleTest (TestSuite) is setting up...\n";
     }
