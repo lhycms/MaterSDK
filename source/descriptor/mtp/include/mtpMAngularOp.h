@@ -5,8 +5,23 @@
 namespace matersdk {
 namespace mtp {
 
+class OuterNu0Function : public torch::autograd::Function<OuterNu0Function>
+{
+public:
+    static torch::autograd::variable_list forward(
+        torch::autograd::AutogradContext* ctx,
+        at::Tensor ircs_tensor);    // .shape = [nneighs, 3]
+    
+    static torch::autograd::variable_list backward(
+        torch::autograd::AutogradContext* ctx,
+        torch::autograd::variable_list grad_outputs);
+
+};  // class : OuterNuFunction
+
+torch::autograd::variable_list OuterNu0Op(at::Tensor ircs_tensor);
+
 at::Tensor MtpMAngularOp(
-    const at::Tensor& relative_coord_tensor,
+    const at::Tensor& ircs_tensor,  // .shape = [nneighs, 3]
     int nu);
 
 }; // namespace : mtp

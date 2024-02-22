@@ -1,5 +1,6 @@
 #include <torch/torch.h>
 #include "../include/mtpMRadialOp.h"
+#include "../include/mtpMAngularOp.h"
 #include "../include/mtpFModule.h"
 
 
@@ -35,6 +36,7 @@ MtpFModuleImpl::MtpFModuleImpl(
  */
 at::Tensor MtpFModuleImpl::forward(
     int64_t mu,
+    //int64_t nu,
     int64_t iidx,
     at::Tensor ifirstneigh_tensor,
     at::Tensor types,
