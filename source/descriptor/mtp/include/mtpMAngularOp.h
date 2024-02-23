@@ -18,7 +18,7 @@ public:
 
 };  // class : OuterNuFunction
 
-torch::autograd::variable_list OuterNu0Op(at::Tensor ircs_tensor);
+torch::autograd::variable_list OuterNu0Op(const at::Tensor& ircs_tensor);
 
 at::Tensor MtpMAngularOp(
     const at::Tensor& ircs_tensor,  // .shape = [nneighs, 3]

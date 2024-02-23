@@ -27,7 +27,7 @@ if (TORCH_OP)
 
     add_library(mtpFModule SHARED ${CMAKE_CURRENT_SOURCE_DIR}/src/mtpFModule.cc)
     target_include_directories(mtpFModule PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-    target_link_libraries(mtpFModule PRIVATE ${TORCH_LIBRARIES} mtpMRadialOp)
+    target_link_libraries(mtpFModule PRIVATE ${TORCH_LIBRARIES} mtpMRadialOp mtpMAngularOp)
 endif()
 
 

@@ -41,7 +41,7 @@ torch::autograd::variable_list OuterNu0Function::backward(
 }
 
 
-torch::autograd::variable_list OuterNu0Op(at::Tensor ircs_tensor)
+torch::autograd::variable_list OuterNu0Op(const at::Tensor& ircs_tensor)
 {
     return OuterNu0Function::apply(ircs_tensor);
 }
