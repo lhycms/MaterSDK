@@ -1,6 +1,7 @@
 #ifndef MATERSDK_MTP_LEVEL_H
 #define MATERSDK_MTP_LEVEL_H
 #include <utility>
+#include <vector>
 
 
 namespace matersdk {
@@ -24,10 +25,49 @@ public:
 
     const int level() const;
 
+    std::pair<int, int> coeff_pair() const;
+
 private:
-    std::pair<int, int> coeff_pair = std::pair<int, int>(0, 0);
+    std::pair<int, int> _coeff_pair = std::pair<int, int>(0, 0);
     int _level = 0;
 };  // class : MtpMCoeffPair
+
+
+
+class MtpMCoeffPairCombs {
+public:
+    MtpMCoeffPairCombs();
+
+    MtpMCoeffPairCombs(int max_level);
+
+    MtpMCoeffPairCombs(const MtpMCoeffPairCombs& rhs);
+
+    ~MtpMCoeffPairCombs();
+
+    MtpMCoeffPairCombs& operator=(const MtpMCoeffPairCombs& rhs);
+
+    static std::vector<std::vector<MtpMCoeffPair>> get_all_schemes4lev(
+        int aim_level,
+        int start_idx_mu,
+        int start_idx_nu);
+    
+    static std::vector<std::vector<MtpMCoeffPairCombs>> find_contracted(
+        std::vector<std::vector<MtpMCoeffPair>>& coeff_pair_combs);
+
+    void _build();
+
+    const std::vector<std::vector<MtpMCoeffPair>>& coeff_pair_combs() const;
+
+    template <typename Arg>
+    decltype(auto) operator[](Arg&& arg)
+    {
+        return this->_coeff_pair_combs[std::forward(arg)];
+    }
+
+private:
+    int _max_level = 0;
+    std::vector<std::vector<MtpMCoeffPair>> _coeff_pair_combs = std::vector<std::vector<MtpMCoeffPair>>();
+};  // class : MtpMCoeff
 
 };  // namespace : mtp
 };  // namespace : matersdk

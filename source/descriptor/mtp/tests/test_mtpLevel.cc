@@ -12,11 +12,11 @@ protected:
     std::pair<int, int> coeff_pair_0;
 
     static void SetUpTestSuite() {
-        std::cout << "MtpMCoeffPairTest is setting up...\n";
+        std::cout << "MtpMCoeffPairTest (TestSuite) is setting up...\n";
     }
 
     static void TearDownTestSuite() {
-        std::cout << "MtpMCoeffPairTest is tearing down...\n";
+        std::cout << "MtpMCoeffPairTest (TestSuite) is tearing down...\n";
     }
 
     void SetUp() override {
@@ -28,6 +28,52 @@ protected:
     void TearDown() override {
     }
 };  // class : MtpMCoeffPairTest
+
+
+class MtpMCoeffPairCombsTest : public ::testing::Test
+{
+protected:
+    int max_level_1;
+    int max_level_2;
+    int aim_level_1;
+    int aim_level_2;
+
+    static void SetUpTestSuite() {
+        std::cout << "MtpMCoeffPairCombs (TestSuite) is setting up...\n";
+    }
+
+    static void TearDownTestSuite() {
+        std::cout << "MtpMCoeffPairCombs (TestSuite) is tearding down...\n";
+    }
+
+    void SetUp() override {
+        max_level_1 = 6;
+        max_level_2 = 8;
+        aim_level_1 = 6;
+        aim_level_2 = 8;
+    }
+
+    void TearDown() override {
+    }
+};  // class : MtpMCoeffPairCombsTest
+
+
+std::ostream& operator<<(
+    std::ostream& COUT, 
+    std::vector<std::vector<matersdk::mtp::MtpMCoeffPair>> coeff_pair_combs)
+{
+    int count = 0;
+    for (auto& coeff_pair_comb : coeff_pair_combs) {
+        printf("Comb#%5d:\n\t", count);
+        for (auto& coeff_pair : coeff_pair_comb) {
+            printf("[%3d, %3d], ", coeff_pair.coeff_pair().first, coeff_pair.coeff_pair().second);
+        }
+        printf("\n");
+        count++;
+    }
+    printf("MtpM Level = %3d, %5d combinations in total.", coeff_pair_combs.size(), coeff_pair_combs.size());
+    return COUT;
+}
 
 
 
@@ -69,6 +115,30 @@ TEST_F(MtpMCoeffPairTest, assignment_operator)
     ASSERT_EQ(mcp_2.level(), 8);
 }
 
+
+TEST_F(MtpMCoeffPairCombsTest, constructor_default)
+{
+    matersdk::mtp::MtpMCoeffPairCombs mcpcs;
+    //std::cout << mcpcs.coeff_pair_combs().size() << std::endl;
+    ASSERT_EQ(mcpcs.coeff_pair_combs().size(), 0);
+}
+
+TEST_F(MtpMCoeffPairCombsTest, get_all_schemes4lev)
+{
+    std::vector<std::vector<matersdk::mtp::MtpMCoeffPair>> combs_0 = 
+        matersdk::mtp::MtpMCoeffPairCombs::get_all_schemes4lev(0, 0, 0);
+    ASSERT_EQ(combs_0.size(), 1);   // Contains empty scheme.
+
+    std::vector<std::vector<matersdk::mtp::MtpMCoeffPair>> combs_1 =
+        matersdk::mtp::MtpMCoeffPairCombs::get_all_schemes4lev(aim_level_1, 0, 0);
+    //std::cout << combs_1 << std::endl;
+    ASSERT_EQ(combs_1.size(), 5);
+
+    std::vector<std::vector<matersdk::mtp::MtpMCoeffPair>> combs_2 = 
+        matersdk::mtp::MtpMCoeffPairCombs::get_all_schemes4lev(aim_level_2, 0, 0);
+    std::cout << combs_2 << std::endl;
+    ASSERT_EQ(combs_2.size(), 9);
+}
 
 
 int main(int argc, char** argv) {
