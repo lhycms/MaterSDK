@@ -123,6 +123,17 @@ TEST_F(MtpMCoeffPairCombsTest, constructor_default)
     ASSERT_EQ(mcpcs.coeff_pair_combs().size(), 0);
 }
 
+TEST_F(MtpMCoeffPairCombsTest, constructor_1)
+{
+    matersdk::mtp::MtpMCoeffPairCombs mcpcs_1(aim_level_1);
+    //mcpcs_1.show();
+    ASSERT_EQ(mcpcs_1.coeff_pair_combs().size(), 5);
+
+    matersdk::mtp::MtpMCoeffPairCombs mcpcs_2(aim_level_2);
+    //mcpcs_2.show();
+    ASSERT_EQ(mcpcs_2.coeff_pair_combs().size(), 9);
+}
+
 TEST_F(MtpMCoeffPairCombsTest, get_all_schemes4lev)
 {
     std::vector<std::vector<matersdk::mtp::MtpMCoeffPair>> combs_0 = 
@@ -136,8 +147,25 @@ TEST_F(MtpMCoeffPairCombsTest, get_all_schemes4lev)
 
     std::vector<std::vector<matersdk::mtp::MtpMCoeffPair>> combs_2 = 
         matersdk::mtp::MtpMCoeffPairCombs::get_all_schemes4lev(aim_level_2, 0, 0);
-    std::cout << combs_2 << std::endl;
+//std::cout << combs_2 << std::endl;
     ASSERT_EQ(combs_2.size(), 9);
+}
+
+TEST_F(MtpMCoeffPairCombsTest, get_contracted_combs)
+{
+    std::vector<std::vector<matersdk::mtp::MtpMCoeffPair>> coeff_pair_combs_6 = 
+        matersdk::mtp::MtpMCoeffPairCombs::get_all_schemes4lev(aim_level_1, 0, 0);
+    std::vector<std::vector<matersdk::mtp::MtpMCoeffPair>> contracted_coeff_pair_combs_6 = 
+        matersdk::mtp::MtpMCoeffPairCombs::get_contracted_combs(coeff_pair_combs_6);
+    //std::cout << contracted_coeff_pair_combs_6 << std::endl;
+    ASSERT_EQ(contracted_coeff_pair_combs_6.size(), 3);
+
+    std::vector<std::vector<matersdk::mtp::MtpMCoeffPair>> coeff_pair_combs_8 = 
+        matersdk::mtp::MtpMCoeffPairCombs::get_all_schemes4lev(aim_level_2, 0, 0);
+    std::vector<std::vector<matersdk::mtp::MtpMCoeffPair>> contracted_coeff_pair_combs_8 = 
+        matersdk::mtp::MtpMCoeffPairCombs::get_contracted_combs(coeff_pair_combs_8);
+    //std::cout << contracted_coeff_pair_combs_8 << std::endl;
+    ASSERT_EQ(contracted_coeff_pair_combs_8.size(), 4);
 }
 
 

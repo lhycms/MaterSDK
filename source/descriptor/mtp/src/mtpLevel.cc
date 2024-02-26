@@ -126,22 +126,25 @@ std::vector<std::vector<MtpMCoeffPair>> MtpMCoeffPairCombs::get_all_schemes4lev(
     return coeff_pair_combs_now;
 }
 
-std::vector<std::vector<MtpMCoeffPairCombs>> MtpMCoeffPairCombs::find_contracted(
-    std::vector<std::vector<MtpMCoeffPair>>& coeff_pair_combs)
+std::vector<std::vector<MtpMCoeffPair>> MtpMCoeffPairCombs::get_contracted_combs(
+    const std::vector<std::vector<MtpMCoeffPair>>& coeff_pair_combs)
 {
-    std::vector<std::vector<MtpMCoeffPairCombs>> coeff_pair_combs_contracted;
+    std::vector<std::vector<MtpMCoeffPair>> coeff_pair_combs_contracted;
     coeff_pair_combs_contracted.clear();
     for (int ii=0; ii<coeff_pair_combs.size(); ii++) {
         std::vector<MtpMCoeffPair> tmp_coeff_pair_comb = coeff_pair_combs[ii];
-        if ((tmp_coeff_pair_comb.size() == 1) and (tmp_coeff_pair_comb[0].coeff_pair().second != 0))
+        if (tmp_coeff_pair_comb.size() == 0)
+            continue;
+        else if ((tmp_coeff_pair_comb.size() == 1) and (tmp_coeff_pair_comb[0].coeff_pair().second != 0))
             continue;
         else if ((tmp_coeff_pair_comb.size() == 1) and (tmp_coeff_pair_comb[0].coeff_pair().second == 0))
             coeff_pair_combs_contracted.push_back(tmp_coeff_pair_comb);
         else {
             int nu_no0 = tmp_coeff_pair_comb[0].coeff_pair().second;
             int tot_nu_but_no0 = 0;
-            for (int jj=1; jj<tmp_coeff_pair_comb.size(); jj++)
+            for (int jj=1; jj<tmp_coeff_pair_comb.size(); jj++) {
                 tot_nu_but_no0 += tmp_coeff_pair_comb[jj].coeff_pair().second;
+            }
             if (tot_nu_but_no0 == nu_no0) 
                 coeff_pair_combs_contracted.push_back(tmp_coeff_pair_comb);
         }
@@ -151,12 +154,31 @@ std::vector<std::vector<MtpMCoeffPairCombs>> MtpMCoeffPairCombs::find_contracted
 
 void MtpMCoeffPairCombs::_build() 
 {
-    // To be doing!
+    this->_coeff_pair_combs.clear();
+    for (int ii=0; ii<=this->_max_level; ii++) {
+        std::vector<std::vector<MtpMCoeffPair>> tmp_combs = get_all_schemes4lev(ii, 0, 0);
+        std::vector<std::vector<MtpMCoeffPair>> tmp_contracted_combs = get_contracted_combs(tmp_combs);
+        for (std::vector<MtpMCoeffPair> tmp_contracted_comb : tmp_contracted_combs)
+            this->_coeff_pair_combs.push_back(tmp_contracted_comb);
+    }
 }
 
 const std::vector<std::vector<MtpMCoeffPair>>& MtpMCoeffPairCombs::coeff_pair_combs() const
 {
     return this->_coeff_pair_combs;
+}
+
+void MtpMCoeffPairCombs::show() const {
+    int count = 0;
+    for (auto& tmp_coeff_pair_comb : this->_coeff_pair_combs) {
+        printf("Comb#%5d:\n\t", count);
+        for (auto& tmp_coeff_pair : tmp_coeff_pair_comb) {
+            printf("[%3d, %3d], ", tmp_coeff_pair.coeff_pair().first, tmp_coeff_pair.coeff_pair().second);
+        }
+        printf("\n");
+        count++;
+    }
+    printf("Max_Level = %3d\n", this->_max_level);
 }
 
 };  // namespace : mtp

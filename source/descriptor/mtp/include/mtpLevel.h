@@ -51,8 +51,8 @@ public:
         int start_idx_mu,
         int start_idx_nu);
     
-    static std::vector<std::vector<MtpMCoeffPairCombs>> find_contracted(
-        std::vector<std::vector<MtpMCoeffPair>>& coeff_pair_combs);
+    static std::vector<std::vector<MtpMCoeffPair>> get_contracted_combs(
+        const std::vector<std::vector<MtpMCoeffPair>>& coeff_pair_combs);
 
     void _build();
 
@@ -63,6 +63,8 @@ public:
     {
         return this->_coeff_pair_combs[std::forward(arg)];
     }
+
+    void show() const;
 
 private:
     int _max_level = 0;
