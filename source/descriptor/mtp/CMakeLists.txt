@@ -10,6 +10,8 @@ file(MAKE_DIRECTORY ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
 
 
 # 5. compile
+add_library(mtpLevel SHARED ${CMAKE_CURRENT_SOURCE_DIR}/src/mtpLevel.cc)
+
 if (TORCH_OP)    
     execute_process(COMMAND python3 -c "import torch;print(torch.__path__[0])" OUTPUT_VARIABLE TORCH_PATH)
     string(REPLACE "\n" "/share/cmake" TORCH_CMAKE_PREFIX_PATH ${TORCH_PATH})
@@ -41,6 +43,9 @@ if (BUILD_TEST)
 
     add_executable(test_level ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_level.cc)
     target_link_libraries(test_level PRIVATE gtest gtest_main)
+
+    add_executable(test_mtpLevel ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_mtpLevel.cc)
+    target_link_libraries(test_mtpLevel PRIVATE gtest gtest_main mtpLevel)
     
     if (TORCH_OP)
         add_executable(test_mtpMAngularOp ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_mtpMAngularOp.cc)

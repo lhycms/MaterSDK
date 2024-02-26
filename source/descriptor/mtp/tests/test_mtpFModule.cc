@@ -196,10 +196,10 @@ TEST_F(MtpFModuleTest, init) {
     ircs_tensor.requires_grad_(true);   // need to calculate gradients.
     at::Tensor imtp_m_tensor = mtp_f->forward(
         mu,
-        nu, 
-        iidx, 
-        ifirstneigh_tensor, 
-        types_tensor, 
+        nu,
+        iidx,
+        ifirstneigh_tensor,
+        types_tensor,
         ircs_tensor);
     std::cout << imtp_m_tensor << std::endl;
 //std::cout << "1.1. MtpQModule->forward():\n" << result << std::endl;
