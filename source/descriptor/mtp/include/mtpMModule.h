@@ -1,13 +1,13 @@
-#ifndef MATERSDK_MTPF_MODULE_H
-#define MATERSDK_MTPF_MODULE_H
+#ifndef MATERSDK_MTPM_MODULE_H
+#define MATERSDK_MTPM_MODULE_H
 #include <torch/torch.h>
 
 namespace matersdk {
 namespace mtp {
-class MtpFModuleImpl : public torch::nn::Module
+class MtpMModuleImpl : public torch::nn::Module
 {
 public:
-    MtpFModuleImpl(
+    MtpMModuleImpl(
         int64_t nmus,
         int64_t ntypes,
         int64_t size,
@@ -27,9 +27,9 @@ private:
     int64_t size;
     at::Tensor rcuts_tensor;
     torch::nn::ParameterList cheby_coeff_list;
-};  // class : MtpFModuleImpl
+};  // class : MtpMModuleImpl
 
-TORCH_MODULE(MtpFModule);
+TORCH_MODULE(MtpMModule);
 
 };  // namespace : matersdk
 };  // namespace : mtp

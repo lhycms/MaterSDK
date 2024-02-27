@@ -130,7 +130,7 @@ TEST_F(MtpMCoeffPairCombsTest, constructor_1)
     ASSERT_EQ(mcpcs_1.coeff_pair_combs().size(), 5);
 
     matersdk::mtp::MtpMCoeffPairCombs mcpcs_2(aim_level_2);
-    //mcpcs_2.show();
+    mcpcs_2.show();
     ASSERT_EQ(mcpcs_2.coeff_pair_combs().size(), 9);
 }
 

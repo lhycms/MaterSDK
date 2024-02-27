@@ -2,13 +2,13 @@
 #include <torch/torch.h>
 #include "../include/mtpMRadialOp.h"
 #include "../include/mtpMAngularOp.h"
-#include "../include/mtpFModule.h"
+#include "../include/mtpMModule.h"
 
 
 namespace matersdk {
 namespace mtp {
 
-MtpFModuleImpl::MtpFModuleImpl(
+MtpMModuleImpl::MtpMModuleImpl(
     int64_t nmus,
     int64_t ntypes,
     int64_t size,
@@ -35,7 +35,7 @@ MtpFModuleImpl::MtpFModuleImpl(
  * @return at::Tensor
  *          .shape = [nneighs,]
  */
-at::Tensor MtpFModuleImpl::forward(
+at::Tensor MtpMModuleImpl::forward(
     int64_t mu,
     int64_t nu,
     int64_t iidx,

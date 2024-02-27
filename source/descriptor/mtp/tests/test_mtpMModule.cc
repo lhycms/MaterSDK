@@ -2,7 +2,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <cmath>
-#include "../include/mtpFModule.h"
+#include "../include/mtpMModule.h"
 #include "../../../nblist/include/structure.h"
 #include "../../../nblist/include/neighborList.h"
 
@@ -164,7 +164,7 @@ protected:
 
 
 TEST_F(MtpFModuleTest, init) {
-    matersdk::mtp::MtpFModule mtp_f(
+    matersdk::mtp::MtpMModule mtp_f(
         nmus,
         ntypes,
         size,
