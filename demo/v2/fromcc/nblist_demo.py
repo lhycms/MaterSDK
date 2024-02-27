@@ -37,7 +37,7 @@ info = nblist.find_info4mlff(
     sort
 )
 end = time.time()
-#print("Consuming time in seconds: ", end-start)
+print("Consuming time in seconds: ", end-start)
 
 inum:int = info[0]
 ilist:np.array = info[1]
@@ -82,7 +82,7 @@ umax_num_neigh_atoms_lst_tensor.unsqueeze_(0)
 
 
 time1 = time.time()
-for _ in range(300):
+for _ in range(3000):
     tilde_r, tilde_r_deriv = envMatrixOp(
         ilist_tensor,
         numneigh_tensor,
@@ -93,6 +93,6 @@ for _ in range(300):
         rcut,
         rcut_smooth)
 time2 = time.time()  
-print("Consuming time in seconds: ", time2 - time1)
-print(tilde_r.size())
-print(tilde_r_deriv.size())
+print("Consuming time in seconds (for envMatrixOp): ", time2 - time1)
+#print(tilde_r)
+#print(tilde_r_deriv.size())
