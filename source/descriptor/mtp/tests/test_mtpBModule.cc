@@ -190,8 +190,11 @@ TEST_F(MtpBModuleTest, init)
         ntypes,
         size,
         rcuts_tensor);
+    mtp_b_module->to(torch::kFloat64);
 //for (const auto& pair : mtp_b_module->named_parameters())
     //std::cout << pair.key() << " : " << pair.value() << std::endl;
+    auto result = mtp_b_module->forward(iidx, ifirstneigh_tensor, types_tensor, ircs_tensor);
+    std::cout << result << std::endl;
 }
 
 

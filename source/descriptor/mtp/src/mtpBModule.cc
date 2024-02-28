@@ -33,24 +33,55 @@ MtpBModuleImpl::MtpBModuleImpl(
 at::Tensor MtpBModuleImpl::forward(
     int64_t iidx,
     at::Tensor& ifirstneigh_tensor,
-    at::Tensor& types,
+    at::Tensor& types_tensor,
     at::Tensor& ircs_tensor)
 {
-    /*
     c10::TensorOptions options = c10::TensorOptions()
-        .dtype(irc_tensor.scalar_type())
-        .dtype(irc_tensor.device());
+        .dtype(ircs_tensor.scalar_type())
+        .device(ircs_tensor.device());
     int64_t nbs = this->_coeff_pair_combs.size();
     at::Tensor imtp_b_tensor = at::zeros({nbs}, options);
+this->_coeff_pair_combs.show();
     for (int ii=0; ii<nbs; ii++) {
-        std::vector<MtpMCoeffPair> tmp_coeff_pair_comb = this->_coeff_pair_combs[ii];
-        at::Tensor imtp_b_tensor_ii = torch::tensor(1, options);
+        std::vector<MtpMCoeffPair> tmp_coeff_pair_comb = this->_coeff_pair_combs.coeff_pair_combs()[ii];
+        at::Tensor imtp_b_tensor_ii = torch::tensor(1, options);    // Be used to loop specific comb.
         for (int jj=0; jj<tmp_coeff_pair_comb.size(); jj++) {
+            int64_t tmp_mu = tmp_coeff_pair_comb[jj].coeff_pair().first;
+            int64_t tmp_nu = tmp_coeff_pair_comb[jj].coeff_pair().second;
+            at::Tensor tmp_mtp_m_tensor = this->_mtp_m_list[0]->as<MtpMModule>()->forward(
+                tmp_mu, 
+                tmp_nu, 
+                iidx, 
+                ifirstneigh_tensor, 
+                types_tensor, 
+                ircs_tensor);
 
+            int64_t dim1 = imtp_b_tensor_ii.dim();
+            int64_t dim2 = tmp_mtp_m_tensor.dim();
+printf("%3d, %3d: %3ld, %3ld:\n\t", ii, jj, tmp_mu, tmp_nu);
+std::cout << imtp_b_tensor_ii.sizes() << ", " << tmp_mtp_m_tensor.sizes() << std::endl;
+            if (dim1 >= dim2) {
+                std::vector<int64_t> dims2;
+                dims2.resize(dim2, 0);
+                std::vector<int64_t> dims1;
+                dims1.resize(dim1, 0);
+                for (int kk=0; kk<dim1; kk++) {
+                    dims2[kk] = kk;
+                    dims1[kk] = dim1 - dim2 + kk;
+                }
+                imtp_b_tensor_ii = at::tensordot(
+                    imtp_b_tensor_ii, tmp_mtp_m_tensor,
+                    dims1, dims2);
+            } 
+            else {
+                assert(dim1 == 0);
+                imtp_b_tensor_ii = imtp_b_tensor * tmp_mtp_m_tensor;
+            }
+            //printf("[%3d, %3d]:\t", ii, jj);
+            //std::cout << imtp_b_tensor_ii.sizes() << std::endl;
         }
     }
-    return imtp_b_tensor;
-    */
+    //return imtp_b_tensor;
     return at::Tensor();
 }
 

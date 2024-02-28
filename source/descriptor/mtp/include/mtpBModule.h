@@ -20,7 +20,7 @@ public:
     at::Tensor forward(
         int64_t iidx,
         at::Tensor& ifirstneigh_tensor,
-        at::Tensor& types,
+        at::Tensor& types_tensor,
         at::Tensor& ircs_tensor);
 
 private:
