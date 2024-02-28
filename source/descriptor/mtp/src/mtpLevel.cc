@@ -2,6 +2,8 @@
 #include <cassert>
 #include <algorithm>
 #include <unordered_map>
+#include <set>
+#include <cmath>
 #include "../include/mtpLevel.h"
 
 
@@ -209,6 +211,21 @@ const std::vector<std::vector<MtpMCoeffPair>>& MtpMCoeffPairCombs::coeff_pair_co
 const int MtpMCoeffPairCombs::size() const
 {
     return this->_coeff_pair_combs.size();
+}
+
+const int MtpMCoeffPairCombs::nmus() const 
+{
+    return (int)(std::ceil((this->_max_level - 2) / 4)) + 1;
+}
+
+const int MtpMCoeffPairCombs::nmus_check() const 
+{
+    std::set<int> mus_set;
+    mus_set.clear();
+    for (int ii=0; ii<this->_coeff_pair_combs.size(); ii++)
+        for (int jj=0; jj<this->_coeff_pair_combs[ii].size(); jj++)
+            mus_set.insert(this->_coeff_pair_combs[ii][jj].coeff_pair().first);
+    return mus_set.size();    
 }
 
 void MtpMCoeffPairCombs::show() const {

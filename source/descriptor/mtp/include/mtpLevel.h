@@ -67,6 +67,10 @@ public:
 
     const int size() const;
 
+    const int nmus() const;
+
+    const int nmus_check() const;
+
     template <typename Arg>
     decltype(auto) operator[](Arg&& arg)
     {

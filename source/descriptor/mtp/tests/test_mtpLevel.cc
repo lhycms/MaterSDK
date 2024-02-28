@@ -36,6 +36,8 @@ class MtpMCoeffPairCombsTest : public ::testing::Test
 protected:
     int max_level_6;
     int max_level_8;
+    int max_level_14;
+    int max_level_28;
 
     int aim_level_0;
     int aim_level_1;
@@ -54,6 +56,9 @@ protected:
     void SetUp() override {
         max_level_6 = 6;
         max_level_8 = 8;
+        max_level_14 = 14;
+        max_level_28 = 28;
+
         aim_level_0 = 0;
         aim_level_1 = 1;
         aim_level_6 = 6;
@@ -294,6 +299,20 @@ TEST_F(MtpMCoeffPairCombsTest, size)
         coeff_pair_combs_8.coeff_pair_combs().size());
 }
 
+TEST_F(MtpMCoeffPairCombsTest, nmus)
+{
+    matersdk::mtp::MtpMCoeffPairCombs coeff_pair_combs_6(max_level_6);
+    ASSERT_EQ(coeff_pair_combs_6.nmus(), coeff_pair_combs_6.nmus_check());
+
+    matersdk::mtp::MtpMCoeffPairCombs coeff_pair_combs_8(max_level_8);
+    ASSERT_EQ(coeff_pair_combs_8.nmus(), coeff_pair_combs_8.nmus_check());
+
+    matersdk::mtp::MtpMCoeffPairCombs coeff_pair_combs_14(max_level_14);
+    ASSERT_EQ(coeff_pair_combs_14.nmus(), coeff_pair_combs_14.nmus_check());
+
+    matersdk::mtp::MtpMCoeffPairCombs coeff_pair_combs_28(max_level_28);
+    ASSERT_EQ(coeff_pair_combs_28.nmus(), coeff_pair_combs_28.nmus_check());
+}
 
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);

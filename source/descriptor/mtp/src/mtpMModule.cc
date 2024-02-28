@@ -12,7 +12,7 @@ MtpMModuleImpl::MtpMModuleImpl(
     int64_t nmus,
     int64_t ntypes,
     int64_t size,
-    at::Tensor rcuts_tensor)
+    at::Tensor& rcuts_tensor)
 {
     this->size = size;
     this->nmus = nmus;
@@ -39,9 +39,9 @@ at::Tensor MtpMModuleImpl::forward(
     int64_t mu,
     int64_t nu,
     int64_t iidx,
-    at::Tensor ifirstneigh_tensor,
-    at::Tensor types,
-    at::Tensor ircs_tensor)
+    at::Tensor& ifirstneigh_tensor,
+    at::Tensor& types,
+    at::Tensor& ircs_tensor)
 {
     c10::TensorOptions options = c10::TensorOptions()
         .dtype(ircs_tensor.scalar_type())
@@ -67,7 +67,7 @@ at::Tensor MtpMModuleImpl::forward(
             this->cheby_coeff_list[mu*this->ntypes*this->ntypes + z_i*this->ntypes + z_j],
             imtp_q_tensor[ii]) * imtp_angular_tensor[ii];
     }
-    return imtp_m_tensor;
+    return imtp_m_tensor.sum(0);    // [19, 3, 3, 3] -> [3, 3, 3]
 }
 
 };  // namespace : mtp
