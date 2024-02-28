@@ -58,14 +58,12 @@ this->_coeff_pair_combs.show();
 
             int64_t dim1 = imtp_b_tensor_ii.dim();
             int64_t dim2 = tmp_mtp_m_tensor.dim();
-printf("%3d, %3d: %3ld, %3ld:\n\t", ii, jj, tmp_mu, tmp_nu);
-std::cout << imtp_b_tensor_ii.sizes() << ", " << tmp_mtp_m_tensor.sizes() << std::endl;
             if (dim1 >= dim2) {
                 std::vector<int64_t> dims2;
                 dims2.resize(dim2, 0);
                 std::vector<int64_t> dims1;
                 dims1.resize(dim1, 0);
-                for (int kk=0; kk<dim1; kk++) {
+                for (int kk=1; kk<dim1; kk++) {
                     dims2[kk] = kk;
                     dims1[kk] = dim1 - dim2 + kk;
                 }
@@ -75,11 +73,11 @@ std::cout << imtp_b_tensor_ii.sizes() << ", " << tmp_mtp_m_tensor.sizes() << std
             } 
             else {
                 assert(dim1 == 0);
-                imtp_b_tensor_ii = imtp_b_tensor * tmp_mtp_m_tensor;
+                imtp_b_tensor_ii = imtp_b_tensor_ii * tmp_mtp_m_tensor; // scalar tensor * tensor
             }
-            //printf("[%3d, %3d]:\t", ii, jj);
-            //std::cout << imtp_b_tensor_ii.sizes() << std::endl;
         }
+printf("%3d:\t", ii);
+std::cout << imtp_b_tensor_ii << std::endl;
     }
     //return imtp_b_tensor;
     return at::Tensor();
