@@ -33,6 +33,11 @@ private:
 };  // class : MtpMCoeffPair
 
 
+class CoeffPairSortFunction {
+public:
+    bool operator()(const MtpMCoeffPair& cp1, const MtpMCoeffPair& cp2);
+};  // class : CoeffPairSortFunction
+
 
 class MtpMCoeffPairCombs {
 public:
@@ -56,7 +61,11 @@ public:
 
     void _build();
 
+    const int max_level() const;
+
     const std::vector<std::vector<MtpMCoeffPair>>& coeff_pair_combs() const;
+
+    const int size() const;
 
     template <typename Arg>
     decltype(auto) operator[](Arg&& arg)
@@ -70,6 +79,7 @@ private:
     int _max_level = 0;
     std::vector<std::vector<MtpMCoeffPair>> _coeff_pair_combs = std::vector<std::vector<MtpMCoeffPair>>();
 };  // class : MtpMCoeff
+
 
 };  // namespace : mtp
 };  // namespace : matersdk

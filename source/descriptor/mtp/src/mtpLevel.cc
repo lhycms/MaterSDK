@@ -1,5 +1,7 @@
 #include <iterator>
 #include <cassert>
+#include <algorithm>
+#include <unordered_map>
 #include "../include/mtpLevel.h"
 
 
@@ -59,6 +61,14 @@ std::pair<int, int> MtpMCoeffPair::coeff_pair() const
 }
 
 
+bool CoeffPairSortFunction::operator()(
+    const MtpMCoeffPair& cp1,
+    const MtpMCoeffPair& cp2) 
+{
+    return (cp1.coeff_pair().second > cp2.coeff_pair().second);
+}
+
+
 MtpMCoeffPairCombs::MtpMCoeffPairCombs() {
     this->_max_level = 0;
     this->_coeff_pair_combs = std::vector<std::vector<MtpMCoeffPair>>();
@@ -107,16 +117,19 @@ std::vector<std::vector<MtpMCoeffPair>> MtpMCoeffPairCombs::get_all_schemes4lev(
         coeff_pair_combs_now.resize(1);
         coeff_pair_combs_now[0] = std::vector<MtpMCoeffPair>();
     } else {
-        for (int tmp_mu=start_idx_mu; tmp_mu<aim_level; tmp_mu++) {
-            for (int tmp_nu=start_idx_nu; tmp_nu<aim_level; tmp_nu++) {
+        for (int tmp_mu=0; tmp_mu<aim_level; tmp_mu++) {
+            for (int tmp_nu=0; tmp_nu<aim_level; tmp_nu++) {
+                if ((2+4*tmp_mu+tmp_nu) < (2+4*start_idx_mu+start_idx_nu))
+                    continue;
                 if ((aim_level - (2+4*tmp_mu+tmp_nu)) >= 0) {
-                    std::vector<std::vector<MtpMCoeffPair>> coeff_pair_combs_before = 
+                    std::vector<std::vector<MtpMCoeffPair>> coeff_pair_combs_before =
                         MtpMCoeffPairCombs::get_all_schemes4lev(
                             aim_level - (2+4*tmp_mu+tmp_nu),
                             tmp_mu,
                             tmp_nu);
                     for (auto& tmp_coeff_pair_comb : coeff_pair_combs_before) {
                         tmp_coeff_pair_comb.push_back(MtpMCoeffPair(tmp_mu, tmp_nu));
+                        std::sort(tmp_coeff_pair_comb.begin(), tmp_coeff_pair_comb.end(), CoeffPairSortFunction());
                         coeff_pair_combs_now.push_back(tmp_coeff_pair_comb);
                     }
                 }
@@ -135,17 +148,37 @@ std::vector<std::vector<MtpMCoeffPair>> MtpMCoeffPairCombs::get_contracted_combs
         std::vector<MtpMCoeffPair> tmp_coeff_pair_comb = coeff_pair_combs[ii];
         if (tmp_coeff_pair_comb.size() == 0)
             continue;
-        else if ((tmp_coeff_pair_comb.size() == 1) and (tmp_coeff_pair_comb[0].coeff_pair().second != 0))
-            continue;
-        else if ((tmp_coeff_pair_comb.size() == 1) and (tmp_coeff_pair_comb[0].coeff_pair().second == 0))
-            coeff_pair_combs_contracted.push_back(tmp_coeff_pair_comb);
+        else if (tmp_coeff_pair_comb.size() == 1) {
+            if (tmp_coeff_pair_comb[0].coeff_pair().second != 0) 
+                continue;
+            else 
+                coeff_pair_combs_contracted.push_back(tmp_coeff_pair_comb);
+        }
         else {
+            bool mark1 = true;  // Whether contract the largest tensor.
+            bool mark2 = true;  // Whether can be tensor contracted pairly.
+
+            // Case 1. Contract the largest tensor
             int nu_no0 = tmp_coeff_pair_comb[0].coeff_pair().second;
             int tot_nu_but_no0 = 0;
             for (int jj=1; jj<tmp_coeff_pair_comb.size(); jj++) {
                 tot_nu_but_no0 += tmp_coeff_pair_comb[jj].coeff_pair().second;
             }
-            if (tot_nu_but_no0 == nu_no0) 
+            if (tot_nu_but_no0 != nu_no0) 
+                mark1 = false;
+            
+            // Case 2. Contract tensors pairly
+            std::unordered_map<int, int> nuCounts;
+            for (const MtpMCoeffPair& tmp_cp : tmp_coeff_pair_comb)
+                nuCounts[tmp_cp.coeff_pair().second]++;
+            for (std::pair<int, int> tmp_nu2counts : nuCounts) {
+                if (tmp_nu2counts.first == 0)
+                    continue;
+                if (tmp_nu2counts.second % 2 != 0)
+                    mark2 = false;
+            }
+
+            if (mark1 || mark2)
                 coeff_pair_combs_contracted.push_back(tmp_coeff_pair_comb);
         }
     }
@@ -163,9 +196,19 @@ void MtpMCoeffPairCombs::_build()
     }
 }
 
+const int MtpMCoeffPairCombs::max_level() const 
+{
+    return this->_max_level;
+}
+
 const std::vector<std::vector<MtpMCoeffPair>>& MtpMCoeffPairCombs::coeff_pair_combs() const
 {
     return this->_coeff_pair_combs;
+}
+
+const int MtpMCoeffPairCombs::size() const
+{
+    return this->_coeff_pair_combs.size();
 }
 
 void MtpMCoeffPairCombs::show() const {

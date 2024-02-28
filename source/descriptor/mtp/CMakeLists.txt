@@ -46,7 +46,10 @@ if (BUILD_TEST)
 
     add_executable(test_mtpLevel ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_mtpLevel.cc)
     target_link_libraries(test_mtpLevel PRIVATE gtest gtest_main mtpLevel)
-    
+
+    # Not a real test.
+    add_executable(test_mlip_level ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_mlip_level.cc)
+
     if (TORCH_OP)
         add_executable(test_mtpMAngularOp ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_mtpMAngularOp.cc)
         target_link_libraries(test_mtpMAngularOp PRIVATE gtest gtest_main ${TORCH_LIBRARIES} mtpMAngularOp)
@@ -64,6 +67,7 @@ if (BUILD_TEST)
     gtest_discover_tests(test_mtpMRadial_de)
     gtest_discover_tests(test_mtpMRadial)
     gtest_discover_tests(test_level)
+    gtest_discover_tests(test_mtpLevel)
     if (TORCH_OP)
         gtest_discover_tests(test_mtpMAngularOp)
         gtest_discover_tests(test_mtpMRadialOp)
