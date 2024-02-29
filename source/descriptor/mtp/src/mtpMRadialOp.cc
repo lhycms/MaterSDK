@@ -11,8 +11,8 @@ namespace mtp {
 torch::autograd::variable_list MtpQFunction::forward(
     torch::autograd::AutogradContext* ctx,
     int64_t size,
-    at::Tensor rcuts_tensor,
-    at::Tensor rcs_tensor)
+    const at::Tensor& rcuts_tensor,
+    const at::Tensor& rcs_tensor)
 {
     c10::TensorOptions options = c10::TensorOptions()
         .dtype(rcs_tensor.scalar_type())
@@ -136,8 +136,8 @@ torch::autograd::variable_list MtpQFunction::backward(
 
 torch::autograd::variable_list MtpQOp(
     int64_t size,
-    at::Tensor rcuts_tensor,
-    at::Tensor rcs_tensor)
+    const at::Tensor& rcuts_tensor,
+    const at::Tensor& rcs_tensor)
 {
     return MtpQFunction::apply(size, rcuts_tensor, rcs_tensor);
 }

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <cmath>
+#include <chrono>
 #include "../include/mtpBModule.h"
 #include "../../../nblist/include/structure.h"
 #include "../../../nblist/include/neighborList.h"
@@ -38,10 +39,10 @@ protected:
     matersdk::Structure<double> structure;
     matersdk::NeighborList<double> neighbor_list;
 
-    int64_t iidx;
-    at::Tensor ifirstneigh_tensor;
+    at::Tensor ilist_tensor;
+    at::Tensor firstneigh_tensor;
     at::Tensor types_tensor;
-    at::Tensor ircs_tensor;
+    at::Tensor rcs_tensor;
 
     static void SetUpTestSuite()
     {
@@ -159,26 +160,36 @@ protected:
             umax_num_neigh_atoms);
 
         // Key input for `module->forward` function
-        iidx = 0;
-        ifirstneigh_tensor = at::zeros({umax_num_neigh_atoms}, int_options);
+        ilist_tensor = at::zeros({1, inum}, int_options);
+        firstneigh_tensor = at::zeros({1, inum, umax_num_neigh_atoms}, int_options);
         types_tensor = at::zeros({inum}, int_options);
-        ircs_tensor = at::zeros({umax_num_neigh_atoms, 3}, options);
-        int64_t* ifirstneigh_ptr = ifirstneigh_tensor.data_ptr<int64_t>();
+        rcs_tensor = at::zeros({1, inum, umax_num_neigh_atoms, 3}, options);
+        int64_t* ilist_ptr = ilist_tensor.data_ptr<int64_t>();
+        int64_t* firstneigh_ptr = firstneigh_tensor.data_ptr<int64_t>();
         int64_t* types_ptr = types_tensor.data_ptr<int64_t>();
-        double* ircs_ptr = ircs_tensor.data_ptr<double>();
-        for (int ii=0; ii<umax_num_neigh_atoms; ii++)
-            ifirstneigh_ptr[ii] = (int64_t)firstneigh[iidx*umax_num_neigh_atoms+ii];
+        double* rcs_ptr = rcs_tensor.data_ptr<double>();
         for (int ii=0; ii<inum; ii++)
-            types_ptr[ii] = (int64_t)types[ii];
-        for (int ii=0; ii<umax_num_neigh_atoms; ii++) {
-            ircs_ptr[ii*3 + 0] = rcs[iidx*umax_num_neigh_atoms*3 + ii*3 + 0];
-            ircs_ptr[ii*3 + 1] = rcs[iidx*umax_num_neigh_atoms*3 + ii*3 + 1];
-            ircs_ptr[ii*3 + 2] = rcs[iidx*umax_num_neigh_atoms*3 + ii*3 + 2];
+            ilist_ptr[ii] = ilist[ii];
+        for (int ii=0; ii<inum; ii++) {
+            for (int jj=0; jj<umax_num_neigh_atoms; jj++) {
+                firstneigh_ptr[ii*umax_num_neigh_atoms + jj] = firstneigh[ii*umax_num_neigh_atoms + jj];
+                rcs_ptr[ii*umax_num_neigh_atoms*3 + jj*3 + 0] = rcs[ii*umax_num_neigh_atoms*3 + jj*3 + 0];
+                rcs_ptr[ii*umax_num_neigh_atoms*3 + jj*3 + 1] = rcs[ii*umax_num_neigh_atoms*3 + jj*3 + 1];
+                rcs_ptr[ii*umax_num_neigh_atoms*3 + jj*3 + 2] = rcs[ii*umax_num_neigh_atoms*3 + jj*3 + 2];
+            }
         }
-        ircs_tensor.requires_grad_(true);
+        for (int ii=0; ii<inum; ii++)
+            types_ptr[ii] = types[ii];
+
+        rcs_tensor.requires_grad_(true);
     }
 
     void TearDown() override {
+        free(ilist);
+        free(numneigh);
+        free(firstneigh);
+        free(rcs);
+        free(types);
     }
 };  // class : MtpBModuleTest
 
@@ -193,8 +204,27 @@ TEST_F(MtpBModuleTest, init)
     mtp_b_module->to(torch::kFloat64);
 //for (const auto& pair : mtp_b_module->named_parameters())
     //std::cout << pair.key() << " : " << pair.value() << std::endl;
-    auto result = mtp_b_module->forward(iidx, ifirstneigh_tensor, types_tensor, ircs_tensor);
-    std::cout << result << std::endl;
+    auto time1 = std::chrono::high_resolution_clock::now();
+    auto mtp_b_tensor = mtp_b_module->forward(
+        ilist_tensor, 
+        firstneigh_tensor, 
+        rcs_tensor,
+        types_tensor);
+    auto time2 = std::chrono::high_resolution_clock::now();
+    auto time2_time1 = std::chrono::duration_cast<std::chrono::milliseconds>(time2 - time1);
+//std::cout << "Inference cost time : " << time2_time1.count() << " ms.\n";
+//std::cout << mtp_b_tensor << std::endl;
+    mtp_b_tensor.sum().backward();
+//std::cout << rcs_tensor.grad().sizes() << std::endl;
+
+    ASSERT_EQ(max_level, 8);
+    ASSERT_EQ(mtp_b_tensor.sizes()[0], 1);
+    ASSERT_EQ(mtp_b_tensor.sizes()[1], inum);
+    ASSERT_EQ(mtp_b_tensor.sizes()[2], 9);
+    ASSERT_EQ(rcs_tensor.grad().sizes()[0], 1);
+    ASSERT_EQ(rcs_tensor.grad().sizes()[1], inum);
+    ASSERT_EQ(rcs_tensor.grad().sizes()[2], umax_num_neigh_atoms);
+    ASSERT_EQ(rcs_tensor.grad().sizes()[3], 3);
 }
 
 

@@ -13,8 +13,8 @@ public:
     static torch::autograd::variable_list forward(
         torch::autograd::AutogradContext* ctx,
         int64_t size,
-        at::Tensor rcuts_tensor,        // rs_tensor = [rcut, rcut_smooth]
-        at::Tensor rcs_tensor);         // .shape = [nneigh, 3];
+        const at::Tensor& rcuts_tensor,        // rs_tensor = [rcut, rcut_smooth]
+        const at::Tensor& rcs_tensor);         // .shape = [nneigh, 3];
     
     static torch::autograd::variable_list backward(
         torch::autograd::AutogradContext* ctx,
@@ -24,8 +24,8 @@ public:
 
 torch::autograd::variable_list MtpQOp(
     int64_t size,
-    at::Tensor rcuts_tensor,
-    at::Tensor distances_tensor);
+    const at::Tensor& rcuts_tensor,
+    const at::Tensor& distances_tensor);
 
 };  // namespace : mtp
 };  // namespace : matersdk

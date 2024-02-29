@@ -69,6 +69,7 @@ if (BUILD_TEST)
 
         add_executable(test_mtpBModule ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_mtpBModule.cc)
         target_link_libraries(test_mtpBModule PRIVATE gtest gtest_main ${TORCH_LIBRARIES} mtpBModule)
+        target_compile_options(test_mtpBModule PRIVATE -g)
     endif()
 
     gtest_discover_tests(test_mtpMRadial_de)

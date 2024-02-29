@@ -17,9 +17,9 @@ public:
         int64_t mu,
         int64_t nu,
         int64_t iidx,
-        at::Tensor& ifirstneigh_tensor,
-        at::Tensor& types,
-        at::Tensor& ircs_tensor);
+        const at::Tensor& ifirstneigh_tensor,
+        const at::Tensor& types,
+        const at::Tensor& ircs_tensor);
 
 private:
     int64_t nmus;
