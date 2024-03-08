@@ -4,6 +4,32 @@
 #include "../include/basis.h"
 
 
+class SwitchFunctionTest : public ::testing::Test
+{
+protected:
+    double rmax;
+    double rmin;
+    double distance_ij;
+
+    static void SetUpTestSuite() {
+        std::cout << "SwitchFunctionTest (TestSuite) is setting up...\n";
+    }
+
+    static void TearDownTestSutie() {
+        std::cout << "SwitchFunctionTest (TestSuite) is tearing down...\n";
+    }
+
+    void SetUp() override {
+        rmax = 5.0;
+        rmin = 2.0;
+        distance_ij = 3.14;
+    }
+
+    void TearDown() override {
+    }
+};  // class : SwitchFunctionTest
+
+
 class RB_ChebyshevTest : public ::testing::Test
 {
 protected:
@@ -29,6 +55,35 @@ protected:
     void TearDown() override {
     }
 };  // class : RB_ChebyshevTest
+
+
+
+
+TEST_F(SwitchFunctionTest, init)
+{
+    matersdk::mtpr::SwitchFunction<double> swf(rmax, rmin);
+    distance_ij = rmin;
+    ASSERT_DOUBLE_EQ(swf.value(distance_ij), 1);
+    ASSERT_DOUBLE_EQ(swf.der2r(distance_ij), 0);
+
+    distance_ij = rmax;
+    ASSERT_DOUBLE_EQ(swf.value(distance_ij), 0);
+    ASSERT_DOUBLE_EQ(swf.der2r(distance_ij), 0);
+}
+
+TEST_F(SwitchFunctionTest, der_accuracy)
+{
+    distance_ij = 3.14;
+    matersdk::mtpr::SwitchFunction<double> swf(rmax, rmin);
+
+    double der2r = swf.der2r(distance_ij);
+    double value1 = swf.value(distance_ij);
+    double value2 = swf.value(distance_ij + 0.0001);
+    double der2r_ = (value2 - value1) / 0.0001;
+
+std::cout << "Custom code method: Deriv wrt. r = " << der2r << std::endl;
+std::cout << "Finite difference method: Deriv wrt. r = " << der2r_ << std::endl;
+}
 
 
 TEST_F(RB_ChebyshevTest, build) 

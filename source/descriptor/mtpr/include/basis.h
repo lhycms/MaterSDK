@@ -5,9 +5,25 @@
 #include <cassert>
 #include <stdio.h>
 #include <iostream>
+#include <cmath>
 
 namespace matersdk {
 namespace mtpr {
+
+template <typename CoordType>
+class SwitchFunction {
+public:
+    SwitchFunction(CoordType rmax, CoordType rmin);
+
+    CoordType value(CoordType distance_ij);
+
+    CoordType der2r(CoordType distance_ij);
+
+private:
+    CoordType _rmax = 0;
+    CoordType _rmin = 0;
+};  // class : SwitchFunction
+
 
 template <typename CoordType>
 class RB_Chebyshev {
@@ -51,6 +67,46 @@ private:
     CoordType* _ders2uu = nullptr;
     CoordType* _ders2r = nullptr;
 };  // class : RB_ChebyShev
+
+
+
+
+template <typename CoordType>
+SwitchFunction<CoordType>::SwitchFunction(CoordType rmax, CoordType rmin)
+{
+    this->_rmax = rmax;
+    this->_rmin = rmin;
+}
+
+template <typename CoordType>
+CoordType SwitchFunction<CoordType>::value(CoordType distance_ij)
+{
+    assert( (distance_ij>=this->_rmin) && (distance_ij<=this->_rmax) );
+    CoordType uu = (distance_ij - this->_rmin) / (this->_rmax - this->_rmin);
+    
+    if (distance_ij < this->_rmin) {
+        return 0;
+    } else if ( (distance_ij>=this->_rmin) && (distance_ij<this->_rmax) ) {
+        return std::pow(uu, 3) * (-6*std::pow(uu, 2) + 15*uu - 10) + 1;
+    } else {
+        return 0;
+    }
+}
+
+template <typename CoordType>
+CoordType SwitchFunction<CoordType>::der2r(CoordType distance_ij)
+{
+    assert( (distance_ij>=this->_rmin) && (distance_ij<=this->_rmax) );
+    CoordType uu = (distance_ij - this->_rmin) / (this->_rmax - this->_rmin);
+
+    if (distance_ij < this->_rmin) {
+        return 0;
+    } else if ( (distance_ij>=this->_rmin) && (distance_ij<this->_rmax) ) {
+        return 1 / (this->_rmax - this->_rmin) * (-30*std::pow(uu, 4) + 60*std::pow(uu, 3) - 30*std::pow(uu, 2));
+    } else {
+        return 0;
+    }
+}
 
 
 template <typename CoordType>
