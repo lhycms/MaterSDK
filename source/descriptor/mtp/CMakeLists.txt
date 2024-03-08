@@ -12,6 +12,8 @@ file(MAKE_DIRECTORY ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
 # 5. compile
 add_library(mtpLevel SHARED ${CMAKE_CURRENT_SOURCE_DIR}/src/mtpLevel.cc)
 
+#add_library(mtpParam SHARED ${CMAKE_CURRENT_SOURCE_DIR}/src/mtpParam.cc)
+
 if (TORCH_OP)    
     execute_process(COMMAND python3 -c "import torch;print(torch.__path__[0])" OUTPUT_VARIABLE TORCH_PATH)
     string(REPLACE "\n" "/share/cmake" TORCH_CMAKE_PREFIX_PATH ${TORCH_PATH})
@@ -51,6 +53,9 @@ if (BUILD_TEST)
     add_executable(test_mtpLevel ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_mtpLevel.cc)
     target_link_libraries(test_mtpLevel PRIVATE gtest gtest_main mtpLevel)
 
+    #add_executable(test_mtpParam ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_mtpParam.cc)
+    #target_link_libraries(test_mtpParam PRIVATE gtest gtest_main mtpParam)
+
     # Not a real test.
     add_executable(test_mlip_level ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_mlip_level.cc)
 
@@ -69,7 +74,7 @@ if (BUILD_TEST)
 
         add_executable(test_mtpBModule ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_mtpBModule.cc)
         target_link_libraries(test_mtpBModule PRIVATE gtest gtest_main ${TORCH_LIBRARIES} mtpBModule)
-        target_compile_options(test_mtpBModule PRIVATE -g)
+        #target_compile_options(test_mtpBModule PRIVATE -g)
     endif()
 
     gtest_discover_tests(test_mtpMRadial_de)

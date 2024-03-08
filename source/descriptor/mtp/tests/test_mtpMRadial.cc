@@ -203,7 +203,9 @@ TEST_F(MtpSwitchFunc2Test, get_result_and_deriv2r) {
 
 TEST_F(ChebyshevPolyTest, build) 
 {
-    distance_ij = 3.05;  // 3.05   // When r<r_{rcut_smooth} or r >= rcut, Chebyshev will be too much larger
+    rcut = 5.0;
+    rcut_smooth = 2.0;
+    distance_ij = 3.14;  // 3.05   // When r<r_{rcut_smooth} or r >= rcut, Chebyshev will be too much larger
     size = 8;
     matersdk::mtp::ChebyshevPoly<double> chebyshev(size, rcut, rcut_smooth);
     chebyshev.build(distance_ij);

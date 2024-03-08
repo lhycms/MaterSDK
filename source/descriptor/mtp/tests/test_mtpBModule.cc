@@ -213,9 +213,9 @@ TEST_F(MtpBModuleTest, init)
     auto time2 = std::chrono::high_resolution_clock::now();
     auto time2_time1 = std::chrono::duration_cast<std::chrono::milliseconds>(time2 - time1);
 //std::cout << "Inference cost time : " << time2_time1.count() << " ms.\n";
-//std::cout << mtp_b_tensor << std::endl;
+std::cout << "mtp_b_tensor.sizes() = " << mtp_b_tensor.sizes() << std::endl;
     mtp_b_tensor.sum().backward();
-//std::cout << rcs_tensor.grad().sizes() << std::endl;
+std::cout << "mtp_b_tensor_grad.sizes() = " << rcs_tensor.grad().sizes() << std::endl;
 
     ASSERT_EQ(max_level, 8);
     ASSERT_EQ(mtp_b_tensor.sizes()[0], 1);

@@ -23,6 +23,8 @@
  *          int (long)
  * @param sort_py
  *          bool 
+ * @param is_cart_coord_py
+ *          bool 
  * @return PyObject* 
  */
 PyObject* find_info4mlff(
@@ -32,7 +34,8 @@ PyObject* find_info4mlff(
         PyObject* rcut_py,
         PyObject* pbc_xyz_py,
         PyObject* umax_num_neigh_atoms_py,
-        PyObject* sort_py)
+        PyObject* sort_py,
+        PyObject* is_cart_coord_py)
 {   
     import_array();
 
@@ -73,8 +76,9 @@ PyObject* find_info4mlff(
         frac_coords[ii][2] = frac_coords_ptr[ii*3 + 2];
     }
     
-    // Step 1.3. You must init it with fractional coordinates
-    matersdk::Structure<double> structure(num_atoms, lattice, atomic_numbers, frac_coords, false);
+    // Step 1.3. You must init it with fractional/cartesian coordinates
+    bool is_cart_coord = (PyObject_IsTrue(is_cart_coord_py));
+    matersdk::Structure<double> structure(num_atoms, lattice, atomic_numbers, frac_coords, is_cart_coord);
 
     // Step 2. Init matersdk::NeighborList<double>
     // Step 2.1. 

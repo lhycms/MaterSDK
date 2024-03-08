@@ -9,5 +9,6 @@ PyObject* find_info4mlff(
         PyObject* rcut_py,
         PyObject* pbc_xyz_py,
         PyObject* umax_num_neigh_atoms,
-        PyObject* sort_py);
+        PyObject* sort_py,
+        PyObject* is_cart_coord_py);
         
