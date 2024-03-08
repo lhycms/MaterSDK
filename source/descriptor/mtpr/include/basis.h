@@ -13,9 +13,11 @@ namespace mtpr {
 template <typename CoordType>
 class SwitchFunction {
 public:
+    SwitchFunction() {};
+
     SwitchFunction(CoordType rmax, CoordType rmin);
 
-    CoordType value(CoordType distance_ij);
+    CoordType val(CoordType distance_ij);
 
     CoordType der2r(CoordType distance_ij);
 
@@ -28,6 +30,8 @@ private:
 template <typename CoordType>
 class RB_Chebyshev {
 public:
+    RB_Chebyshev();
+
     RB_Chebyshev(
         int size,
         CoordType rmax,
@@ -69,6 +73,45 @@ private:
 };  // class : RB_ChebyShev
 
 
+template <typename CoordType>
+class RQ_Chebyshev {
+public:
+    RQ_Chebyshev();
+
+    RQ_Chebyshev(
+        int size,
+        CoordType rmax,
+        CoordType rmin);
+
+    RQ_Chebyshev(const RQ_Chebyshev& rhs);
+
+    RQ_Chebyshev(RQ_Chebyshev&& rhs);
+
+    RQ_Chebyshev& operator=(const RQ_Chebyshev& rhs);
+
+    RQ_Chebyshev& operator=(RQ_Chebyshev&& rhs);
+
+    void build(CoordType distance_ij);
+
+    ~RQ_Chebyshev();
+
+    const int size() const;
+
+    const CoordType* vals() const;
+
+    const CoordType* ders2r() const;
+
+    void show() const;
+
+private:
+    int _size = 0;
+    CoordType _rmax = 0;
+    CoordType _rmin = 0;
+    SwitchFunction<CoordType> _switch_func;
+    RB_Chebyshev<CoordType>* _rb_ptr = nullptr;
+    CoordType* _vals = nullptr;
+    CoordType* _ders2r = nullptr;
+};  // class : RQ_Chebyshev
 
 
 template <typename CoordType>
@@ -79,7 +122,7 @@ SwitchFunction<CoordType>::SwitchFunction(CoordType rmax, CoordType rmin)
 }
 
 template <typename CoordType>
-CoordType SwitchFunction<CoordType>::value(CoordType distance_ij)
+CoordType SwitchFunction<CoordType>::val(CoordType distance_ij)
 {
     assert( (distance_ij>=this->_rmin) && (distance_ij<=this->_rmax) );
     CoordType uu = (distance_ij - this->_rmin) / (this->_rmax - this->_rmin);
@@ -108,6 +151,17 @@ CoordType SwitchFunction<CoordType>::der2r(CoordType distance_ij)
     }
 }
 
+
+template <typename CoordType>
+RB_Chebyshev<CoordType>::RB_Chebyshev()
+{
+    this->_size = 0;
+    this->_rmax = 0;
+    this->_rmin = 0;
+    this->_vals = nullptr;
+    this->_ders2uu = nullptr;
+    this->_ders2r = nullptr;
+}
 
 template <typename CoordType>
 RB_Chebyshev<CoordType>::RB_Chebyshev(
@@ -294,21 +348,207 @@ const CoordType* RB_Chebyshev<CoordType>::ders2r() const
 template <typename CoordType>
 void RB_Chebyshev<CoordType>::show() const 
 {
-    printf("1. Chebyshev vals :\n\t");
+    printf("1. Radial basis vals :\n\t");
     for (int ii=0; ii<this->_size; ii++) 
         printf("%10lf, ", this->_vals[ii]);
     printf("\n");
 
-    printf("2. Chebyshev ders2uu : \n\t");
+    printf("2. Radial basis ders2uu : \n\t");
     for (int ii=0; ii<this->_size; ii++)
         printf("%10lf, ", this->_ders2uu[ii]);
     printf("\n");
 
-    printf("3. Chebyshev ders2r : \n\t");
+    printf("3. Radial basis ders2r : \n\t");
     for (int ii=0; ii<this->_size; ii++)
         printf("%10lf, ", this->_ders2r[ii]);
     printf("\n");
 }
+
+template <typename CoordType>
+RQ_Chebyshev<CoordType>::RQ_Chebyshev()
+{
+    this->_size = 0;
+    this->_rmax = 0;
+    this->_rmin = 0;
+    this->_rb_ptr = nullptr;
+    this->_vals = nullptr;
+    this->_ders2r = nullptr;
+}
+
+template <typename CoordType>
+RQ_Chebyshev<CoordType>::RQ_Chebyshev(
+    int size,
+    CoordType rmax,
+    CoordType rmin)
+{
+    this->_size = size;
+    this->_rmax = rmax;
+    this->_rmin = rmin;
+    this->_switch_func = SwitchFunction<CoordType>(rmax, rmin);
+    this->_rb_ptr = new RB_Chebyshev<CoordType>(size, rmax, rmin);
+    this->_vals = (CoordType*)malloc(sizeof(CoordType) * this->_size);
+    memset(this->_vals, 0, sizeof(CoordType) * this->_size);
+    this->_ders2r = (CoordType*)malloc(sizeof(CoordType) * this->_size);
+    memset(this->_ders2r, 0, sizeof(CoordType) * this->_size);
+}
+
+template <typename CoordType>
+RQ_Chebyshev<CoordType>::RQ_Chebyshev(const RQ_Chebyshev& rhs)
+{
+    this->_size = rhs._size;
+    this->_rmax = rhs._rmax;
+    this->_rmin = rhs._rmin;
+    this->_switch_func = rhs._switch_func;
+    this->_rb_ptr = new RB_Chebyshev<CoordType>();
+    *(this->_rb_ptr) = *(rhs._rb_ptr);
+    if (this->_size != 0) {
+        this->_vals = (CoordType*)malloc(sizeof(CoordType) * this->_size);
+        this->_ders2r = (CoordType*)malloc(sizeof(CoordType) * this->_size);
+        for (int ii=0; ii<this->_size; ii++) {
+            this->_vals[ii] = rhs._vals[ii];
+            this->_ders2r[ii] = rhs._ders2r[ii];
+        }
+    } else {
+        this->_vals = nullptr;
+        this->_ders2r = nullptr;
+    }
+}
+
+template <typename CoordType>
+RQ_Chebyshev<CoordType>::RQ_Chebyshev(RQ_Chebyshev&& rhs)
+{
+    if (this != &rhs) {
+        this->_size = rhs._size;
+        this->_rmax = rhs._rmax;
+        this->_rmin = rhs._rmin;
+        this->_switch_func = rhs._switch_func;
+        this->_rb_ptr = rhs._rb_ptr;
+        this->_vals = rhs._vals;
+        this->_ders2r = rhs._ders2r;
+
+        rhs._size = 0;
+        rhs._rmax = 0;
+        rhs._rmin = 0;
+        rhs._rb_ptr = nullptr;
+        rhs._vals = nullptr;
+        rhs._ders2r = nullptr;
+    }
+}
+
+template <typename CoordType>
+RQ_Chebyshev<CoordType>& RQ_Chebyshev<CoordType>::operator=(const RQ_Chebyshev& rhs)
+{
+    if (this->_size != 0) {
+        delete this->_rb_ptr;
+        free(this->_vals);
+        free(this->_ders2r);
+        this->_size = 0;
+        this->_rmax = 0;
+        this->_rmin = 0;
+    }
+
+    this->_size = rhs._size;
+    this->_rmax = rhs._rmax;
+    this->_rmin = rhs._rmin;
+    this->_switch_func = rhs._switch_func;
+    this->_rb_ptr = new RB_Chebyshev<CoordType>();
+    *(this->_rb_ptr) = *(rhs._rb_ptr);
+    if (rhs._size != 0) {
+        this->vals = (CoordType*)malloc(sizeof(CoordType) * this->_size);
+        this->ders2r = (CoordType*)malloc(sizeof(CoordType) * this->_size);
+        for (int ii=0; ii<this->_size; ii++) {
+            this->_vals[ii] = rhs._vals[ii];
+            this->_ders2r[ii] = rhs._ders2r[ii];
+        }
+    } else {
+        this->_vals = nullptr;
+        this->_ders2r = nullptr;
+    }
+}
+
+template <typename CoordType>
+RQ_Chebyshev<CoordType>& RQ_Chebyshev<CoordType>::operator=(RQ_Chebyshev&& rhs)
+{
+    if (this != &rhs) {
+        if (this->_size != 0) {
+            delete this->_rb_ptr;
+            free(this->_vals);
+            free(this->ders2r);
+            this->_size = 0;
+            this->_rmax = 0;
+            this->_rmin = 0;
+        } 
+
+        this->_size = rhs._size;
+        this->_rmax = rhs._rmax;
+        this->_rmin = rhs._rmin;
+        this->_switch_func = rhs._switch_func;
+        this->_rb_ptr = rhs._rb_ptr;
+        this->_vals = rhs._vals;
+        this->_ders2r = rhs._ders2r;
+
+        this->_size = 0;
+        this->_rmax = 0;
+        this->_rmin = 0;
+        this->_rb_ptr = nullptr;
+        this->_vals = nullptr;
+        this->_ders2r = nullptr;
+    }
+}
+
+template <typename CoordType>
+void RQ_Chebyshev<CoordType>::build(CoordType distance_ij)
+{
+    assert( (distance_ij >= this->_rmin) && (distance_ij <= this->_rmax) );
+    this->_rb_ptr->build(distance_ij);
+
+    for (int ii=0; ii<this->_size; ii++) {
+        this->_vals[ii] = this->_switch_func.val(distance_ij) * this->_rb_ptr->vals()[ii];
+        this->_ders2r[ii] = (
+            this->_switch_func.der2r(distance_ij) * this->_rb_ptr->vals()[ii] 
+            + this->_switch_func.val(distance_ij) * this->_rb_ptr->ders2r()[ii]);
+    }
+}
+
+template <typename CoordType>
+RQ_Chebyshev<CoordType>::~RQ_Chebyshev()
+{
+    delete this->_rb_ptr;
+    free(this->_vals);
+    free(this->_ders2r);
+}
+
+template <typename CoordType>
+const int RQ_Chebyshev<CoordType>::size() const 
+{
+    return this->_size;
+}
+
+template <typename CoordType>
+const CoordType* RQ_Chebyshev<CoordType>::vals() const
+{
+    return this->_vals;
+}
+
+template <typename CoordType>
+const CoordType* RQ_Chebyshev<CoordType>::ders2r() const
+{
+    return this->_ders2r;
+}
+
+template <typename CoordType>
+void RQ_Chebyshev<CoordType>::show() const
+{
+    printf("1. Radial Q vals:\n\t");
+    for (int ii=0; ii<this->_size; ii++)
+        printf("%10lf, ", this->_vals[ii]);
+    printf("\n");
+    printf("2. Radial Q ders2r:\n\t");
+    for (int ii=0; ii<this->_size; ii++)
+        printf("%10lf, ", this->_ders2r[ii]);
+    printf("\n");
+}
+
 
 };  // namespace : mtpr
 };  // namespace : matersdk
