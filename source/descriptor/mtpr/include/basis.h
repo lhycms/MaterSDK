@@ -97,6 +97,10 @@ public:
 
     const int size() const;
 
+    const CoordType rmax() const;
+
+    const CoordType rmin() const;
+
     const CoordType* vals() const;
 
     const CoordType* ders2r() const;
@@ -454,8 +458,8 @@ RQ_Chebyshev<CoordType>& RQ_Chebyshev<CoordType>::operator=(const RQ_Chebyshev& 
     this->_rb_ptr = new RB_Chebyshev<CoordType>();
     *(this->_rb_ptr) = *(rhs._rb_ptr);
     if (rhs._size != 0) {
-        this->vals = (CoordType*)malloc(sizeof(CoordType) * this->_size);
-        this->ders2r = (CoordType*)malloc(sizeof(CoordType) * this->_size);
+        this->_vals = (CoordType*)malloc(sizeof(CoordType) * this->_size);
+        this->_ders2r = (CoordType*)malloc(sizeof(CoordType) * this->_size);
         for (int ii=0; ii<this->_size; ii++) {
             this->_vals[ii] = rhs._vals[ii];
             this->_ders2r[ii] = rhs._ders2r[ii];
@@ -473,7 +477,7 @@ RQ_Chebyshev<CoordType>& RQ_Chebyshev<CoordType>::operator=(RQ_Chebyshev&& rhs)
         if (this->_size != 0) {
             delete this->_rb_ptr;
             free(this->_vals);
-            free(this->ders2r);
+            free(this->_ders2r);
             this->_size = 0;
             this->_rmax = 0;
             this->_rmin = 0;
@@ -487,12 +491,12 @@ RQ_Chebyshev<CoordType>& RQ_Chebyshev<CoordType>::operator=(RQ_Chebyshev&& rhs)
         this->_vals = rhs._vals;
         this->_ders2r = rhs._ders2r;
 
-        this->_size = 0;
-        this->_rmax = 0;
-        this->_rmin = 0;
-        this->_rb_ptr = nullptr;
-        this->_vals = nullptr;
-        this->_ders2r = nullptr;
+        rhs._size = 0;
+        rhs._rmax = 0;
+        rhs._rmin = 0;
+        rhs._rb_ptr = nullptr;
+        rhs._vals = nullptr;
+        rhs._ders2r = nullptr;
     }
 }
 
@@ -522,6 +526,18 @@ template <typename CoordType>
 const int RQ_Chebyshev<CoordType>::size() const 
 {
     return this->_size;
+}
+
+template <typename CoordType>
+const CoordType RQ_Chebyshev<CoordType>::rmax() const
+{
+    return this->_rmax;
+}
+
+template <typename CoordType>
+const CoordType RQ_Chebyshev<CoordType>::rmin() const
+{
+    return this->_rmin;
 }
 
 template <typename CoordType>

@@ -237,6 +237,69 @@ printf("\n");
     delete rq2_ptr;
 }
 
+TEST_F(RQ_ChebyshevTest, copy_constructor) {
+    matersdk::mtpr::RQ_Chebyshev<double> rq1(size, rmax, rmin);
+    rq1.build(distance_ij);
+    matersdk::mtpr::RQ_Chebyshev<double> rq2(rq1);
+
+    ASSERT_EQ(rq1.size(), rq2.size());
+    ASSERT_DOUBLE_EQ(rq1.rmax(), rq2.rmax());
+    ASSERT_DOUBLE_EQ(rq1.rmin(), rq2.rmin());
+    for (int ii=0; ii<rq1.size(); ii++) {
+        ASSERT_DOUBLE_EQ(rq1.vals()[ii], rq2.vals()[ii]);
+        ASSERT_DOUBLE_EQ(rq1.ders2r()[ii], rq2.ders2r()[ii]);
+    }
+}
+
+TEST_F(RQ_ChebyshevTest, assignment_operator) {
+    matersdk::mtpr::RQ_Chebyshev<double> rq1(size, rmax, rmin);
+    rq1.build(distance_ij);
+    matersdk::mtpr::RQ_Chebyshev<double> rq2(size, rmax, rmin+0.01);
+    rq2.build(distance_ij);
+    rq2 = rq1;
+
+    ASSERT_EQ(rq1.size(), rq2.size());
+    ASSERT_DOUBLE_EQ(rq1.rmax(), rq2.rmax());
+    ASSERT_DOUBLE_EQ(rq1.rmin(), rq2.rmin());
+    for (int ii=0; ii<rq1.size(); ii++) {
+        ASSERT_DOUBLE_EQ(rq1.vals()[ii], rq2.vals()[ii]);
+        ASSERT_DOUBLE_EQ(rq1.ders2r()[ii], rq2.ders2r()[ii]);
+    }
+}
+
+TEST_F(RQ_ChebyshevTest, copy_constructor_move) {
+    matersdk::mtpr::RQ_Chebyshev<double> rq1(size, rmax, rmin);
+    rq1.build(distance_ij);
+    matersdk::mtpr::RQ_Chebyshev<double> rq2(std::move(rq1));
+    
+    ASSERT_EQ(rq1.size(), 0);
+    ASSERT_DOUBLE_EQ(rq1.rmax(), 0);
+    ASSERT_DOUBLE_EQ(rq1.rmin(), 0);
+    ASSERT_EQ(rq1.vals(), nullptr);
+    ASSERT_EQ(rq1.ders2r(), nullptr);
+
+    ASSERT_EQ(rq2.size(), size);
+    ASSERT_DOUBLE_EQ(rq2.rmax(), rmax);
+    ASSERT_DOUBLE_EQ(rq2.rmin(), rmin);
+}
+
+TEST_F(RQ_ChebyshevTest, assignment_operator_move) {
+    matersdk::mtpr::RQ_Chebyshev<double> rq1(size, rmax, rmin);
+    rq1.build(distance_ij);
+    matersdk::mtpr::RQ_Chebyshev<double> rq2(size, rmax, rmin+0.01);
+    rq2.build(distance_ij);
+    rq2 = std::move(rq1);
+
+    ASSERT_EQ(rq1.size(), 0);
+    ASSERT_DOUBLE_EQ(rq1.rmax(), 0);
+    ASSERT_DOUBLE_EQ(rq1.rmin(), 0);
+    ASSERT_EQ(rq1.vals(), nullptr);
+    ASSERT_EQ(rq1.ders2r(), nullptr);
+
+    ASSERT_EQ(rq2.size(), size);
+    ASSERT_DOUBLE_EQ(rq2.rmax(), rmax);
+    ASSERT_DOUBLE_EQ(rq2.rmin(), rmin);
+}
 
 
 int main(int argc, char** argv) {
