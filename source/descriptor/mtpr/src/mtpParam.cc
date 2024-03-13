@@ -1,13 +1,24 @@
-#include <fstream>
 #include <iostream>
+#include <fstream>
 #include <stdio.h>
+#include <string>
+#include <cstdlib>
 #include "../include/mtpParam.h"
 
 
 namespace matersdk {
 namespace mtpr {
 
-MtpParam::MtpParam() {}
+MtpParam::MtpParam()
+{
+    this->_alpha_moments_count = 0;
+    this->_alpha_index_basic_count = 0;
+    this->_alpha_index_basic = nullptr;
+    this->_alpha_index_times_count = 0;
+    this->_alpha_index_times = nullptr;
+    this->_alpha_scalar_moments = 0;
+    this->_alpha_moment_mapping = nullptr;
+}
 
 MtpParam::MtpParam(const std::string& filename)
 {
@@ -16,251 +27,295 @@ MtpParam::MtpParam(const std::string& filename)
 
 void MtpParam::_load(const std::string& filename)
 {
-    this->_alpha_count = 0;
-    
-    std::ifstream ifs(filename);
-    if ( !ifs.is_open() ) 
-        MtpError((std::string)"Cannot open " + filename);
-
+    std::ifstream ifs;
+    ifs.open(filename);
+    if ( !ifs.is_open() ) {
+        MtpError((std::string)"Cannot open file " + filename);
+    }
     char tmpline[1000];
     std::string tmpstr;
 
-    ifs.getline(tmpline, 1000);
-    int len = (int)((std::string)tmpline).length();
-    if (tmpline[len-1] == '\r') // Ensures compatibility between Linux and Windows line endings
-        tmpline[len-1] = '\0';
-    if ((std::string)tmpline != "MTP") 
-        MtpError("Can read only MTP potentials");
-
-
-    // version reading block
-    ifs.getline(tmpline, 1000);
-    len = (int)((std::string)tmpline).length();
-    if (tmpline[len-1] == '\r')
-        tmpline[len-1] = '\0';
-    if (((std::string)tmpline) != "version = 1.1.0")
-        MtpError("MTP file must have version 1.1.0");
-
-    // name/description reading block
-    ifs >> tmpstr; 
-    if (tmpstr == "potential_name") // optional
-    {
-        ifs.ignore(2);
-        ifs >> this->pot_desc;
-        ifs >> tmpstr;
-    }
-
-    if (tmpstr == "scaling")    // optional
-    {
-        ifs.ignore(2);
-        ifs >> this->scaling;
-        ifs >> tmpstr;
-    }
-
-    if (tmpstr == "species_count")
-    {
-        ifs.ignore(2);
-        ifs >> this->species_count;
-        ifs >> tmpstr;
-    }
-    else
-        species_count = 0;
+    for (int ii=0; ii<10; ii++) 
+        ifs.ignore(5000, '\n');
     
-    if (tmpstr == "potential_tag")
-    {
-        std::getline(ifs, tmpstr);
-        ifs >> tmpstr;
-    }
-
-    if (tmpstr != "radial_basis_type")
-        MtpError("Error reading .mtp file " + filename);
-    ifs.ignore(2);
-    ifs >> this->rbasis_type;
-
-    if (rbasis_type == "BChebyshev") {
-        //p_RadialBasis = new Basis_Chebyshev(ifs);
-    }
-    else if (rbasis_type == "BChebyshev_repuls") {
-        //p_RadialBasis = new Basis_Chebyshev_repuls(ifs);
-    }
-    else if (rbasis_type == "RBChebyshev") {
-        //p_RadialBasis = new RB_Chebyshev(ifs);
-    }
-    else if (rbasis_type == "RBChebyshev_repuls") {
-        //p_RadialBasis = new RB_Chebyshev_repuls(ifs);
-    }
-    else if (rbasis_type == "RBShapeev") {
-        //p_RadialBasis = new Basis_Shapeev(ifs);
-        //Warning("Non-linear MTP is not fully compatible with RBShapeev");
-    }
-    else if (rbasis_type == "RBTaylor") {
-        //p_RadialBasis = new Basis_Taylor(ifs);
-    }
-    else
-        MtpError("Wrong radial basis type");
-
-    // We do not need double scaling
-    //if (p_RadialBasis->scaling != 1.0) {
-    //    scaling *= p_RadialBasis->scaling;
-    //    p_RadialBasis->scaling = 1.0;
-    //}
-
-    ifs >> tmpstr;
-    if (tmpstr == "magnetic_basis_type") {
-        ifs.ignore(2);
-        ifs >> this->mbasis_type;
-        if (mbasis_type == "BChebyshev") {
-            //p_MagneticBasis = new Basis_Chebyshev(ifs);
-        }
-        else if (mbasis_type == "BChebyshev_repuls") {
-            //p_MagneticBasis = new Basis_Chebyshev_repuls(ifs);
-        }
-        else if (mbasis_type == "RBChebyshev") {
-            //p_MagneticBasis = new RB_Chebyshev(ifs);
-        }
-        else if (mbasis_type == "RBChebyshev_repuls") {
-            //p_MagneticBasis = new RB_Chebyshev_repuls(ifs);
-        }
-        else if (mbasis_type == "RBShapeev") {
-            //p_MagneticBasis = new Basis_Shapeev(ifs);
-        }
-        else if (mbasis_type == "RBTaylor") {
-            //p_MagneticBasis = new Basis_Taylor(ifs);
-        }
-        else if (mbasis_type == "") {
-            ;
-        }
-        else
-            MtpError("Wrong magnetic basis type");
-
-        //mbasis_size = p_MagneticBasis->size;
-
-        // We do not need double scaling
-        /*if (p_MagneticBasis->scaling != 1.0) {
-            scaling *= p_MagneticBasis->scaling;
-            p_MagneticBasis->scaling = 1.0;
-        }*/
-        ifs >> tmpstr;
-    }
-
-    ifs.getline(tmpline, 1000);  // min_dist
-    ifs.getline(tmpline, 1000);  // max_dist
-    ifs.getline(tmpline, 1000);  // radial_basis_size
-    ifs >> tmpstr; // radial_funcs_count
-    if (tmpstr != "radial_funcs_count") 
-        MtpError("Error reading .mtp file");
-    ifs.ignore(2);
-    ifs >> this->radial_func_count;
-
-    // Radial coeffs initialization
-    //int pairs_count = species_count * species_count;
-    //int mbasis_size2 = mbasis_size * mbasis_size;
-    
+    // alpha_moments_count
     ifs >> tmpstr;
     if (tmpstr != "alpha_moments_count")
-        MtpError("Error reading .mtp file "+filename);
+        MtpError("Cannot read alpha_moment_counts.");
     ifs.ignore(2);
     ifs >> this->_alpha_moments_count;
-    if (ifs.fail())
-        MtpError("Error reading .mtp file "+filename);
-
+    if (ifs.fail()) 
+        MtpError("Cannot read alpha_moment_counts.");
+    
+    // alpha_index_basic_count
     ifs >> tmpstr;
     if (tmpstr != "alpha_index_basic_count")
-        MtpError("Error reading .mtp file.");
+        MtpError("Cannot read alpha_index_basic_count.");
     ifs.ignore(2);
     ifs >> this->_alpha_index_basic_count;
     if (ifs.fail())
-        MtpError("Error reading .mtp file "+filename);
+        MtpError("Cannot read alpha_index_basic_count.");
     
+    // alpha_index_basic
+    this->_alpha_index_basic = (int (*)[4])malloc(4*sizeof(int)*this->_alpha_index_basic_count);
     ifs >> tmpstr;
     if (tmpstr != "alpha_index_basic")
-        MtpError("Error reading .mtp file "+filename);
+        MtpError("Cannot read alpha_index_basic.");
     ifs.ignore(4);
-    this->_alpha_index_basic = new int[this->_alpha_index_basic_count][4];
-    if (this->_alpha_index_basic == nullptr)
-        MtpError("Memory allocation error");
-    
-    int radial_func_max = -1;
-    for (int i=0; i<this->_alpha_index_basic_count; i++) 
-    {
+    for (int ii=0; ii<this->_alpha_index_basic_count; ii++) {
         char tmpch;
         ifs.ignore(1000, '{');
-        ifs >> this->_alpha_index_basic[i][0] >> tmpch 
-            >> this->_alpha_index_basic[i][1] >> tmpch 
-            >> this->_alpha_index_basic[i][2] >> tmpch
-            >> this->_alpha_index_basic[i][3];
+        ifs >> this->_alpha_index_basic[ii][0] >> tmpch
+            >> this->_alpha_index_basic[ii][1] >> tmpch
+            >> this->_alpha_index_basic[ii][2] >> tmpch
+            >> this->_alpha_index_basic[ii][3];
         if (ifs.fail())
-            MtpError("Error reading .mtp file "+filename);
-        
-        if (this->_alpha_index_basic[i][0] > radial_func_max)
-            radial_func_max = this->_alpha_index_basic[i][0];
+            MtpError("Cannot read alpha_index_basic.");
     }
-
-    if (radial_func_max != radial_func_count-1)
-        MtpError("Wrong number of radial functions specified in "+filename);
-
     ifs.ignore(1000, '\n');
+
+    // alpha_index_times_count
     ifs >> tmpstr;
-    if (tmpstr != "alpha_index_times_count")
-        MtpError("Error reading .mtp file "+filename);
+    if (tmpstr != "alpha_index_times_count") 
+        MtpError("Cannot read alpha_index_times_count.");
     ifs.ignore(2);
     ifs >> this->_alpha_index_times_count;
     if (ifs.fail())
-        MtpError("Error reading .mtp file "+filename);
-    
+        MtpError("Cannot read alpha_index_times_count.");
+
+    // alpha_index_times
+    if (this->_alpha_index_times_count != 0)
+        this->_alpha_index_times = (int (*)[4])malloc(4*sizeof(int) * this->_alpha_index_times_count);
     ifs >> tmpstr;
     if (tmpstr != "alpha_index_times")
-        MtpError("Error reading .mtp file "+filename);
+        MtpError("Cannot read alpha_index_times.");
     ifs.ignore(4);
-
-    this->_alpha_index_times = new int[this->_alpha_index_times_count][4];
-    if (this->_alpha_index_times == nullptr)
-        MtpError("Memory allocation error "+filename);
-    
-    for (int i=0; i<this->_alpha_index_times_count; i++)
-    {
-        char tmpch;
-        ifs.ignore(1000, '{');
-        ifs >> this->_alpha_index_times[i][0] >> tmpch
-            >> this->_alpha_index_times[i][1] >> tmpch
-            >> this->_alpha_index_times[i][2] >> tmpch
-            >> this->_alpha_index_times[i][3];
-        if (ifs.fail())
-            MtpError("Error reading .mtp file "+filename);
-    }
-
+    if (this->_alpha_index_times_count != 0)
+        for (int ii=0; ii<this->_alpha_index_times_count; ii++) {
+            char tmpch;
+            ifs.ignore(1000, '{');
+            ifs >> this->_alpha_index_times[ii][0] >> tmpch
+                >> this->_alpha_index_times[ii][1] >> tmpch
+                >> this->_alpha_index_times[ii][2] >> tmpch
+                >> this->_alpha_index_times[ii][3];
+            if (ifs.fail())
+                MtpError("Cannot read alpha_index_times.");
+        }
     ifs.ignore(1000, '\n');
 
+    // alpha_scalar_moments
     ifs >> tmpstr;
     if (tmpstr != "alpha_scalar_moments")
-        MtpError("Error reading .mtp file "+filename);
+        MtpError("Cannot read alpha_scalar_moments.");
     ifs.ignore(2);
     ifs >> this->_alpha_scalar_moments;
-    if (this->_alpha_scalar_moments < 0)
-        MtpError("Error reading .mtp file "+filename);
+    if (ifs.fail())
+        MtpError("Cannot read alpha_scalar_moments.");
     
-    this->_alpha_moment_mapping = new int[this->_alpha_scalar_moments];
-    if (this->_alpha_moment_mapping == nullptr)
-        MtpError("Memory allocation error");
-
+    // alpha_moment_mapping
+    this->_alpha_moment_mapping = (int*)malloc(sizeof(int) * this->_alpha_scalar_moments);
     ifs >> tmpstr;
     if (tmpstr != "alpha_moment_mapping")
-        MtpError("Error reading .mtp file "+filename);
+        MtpError("Cannot read alpha_moment_mapping.")
     ifs.ignore(4);
-    for (int i=0; i<this->_alpha_scalar_moments; i++)
-    {
-        char tmpch = ' ';
-        ifs >> this->_alpha_moment_mapping[i] >> tmpch;
+    for (int ii=0; ii<this->_alpha_scalar_moments; ii++) {
+        char tmpch;
+        ifs >> this->_alpha_moment_mapping[ii] >> tmpch;
         if (ifs.fail())
-            MtpError("Error reading .mtp file "+filename);
+            MtpError("Cannot read alpha_moment_mapping.");
     }
-    ifs.ignore(1000, '\n');
+
+    ifs.close();
 }
 
-MtpParam::~MtpParam() {
-    delete this->_alpha_index_basic;
-    delete this->_alpha_index_times;
-    delete this->_alpha_moment_mapping;
+MtpParam::MtpParam(const MtpParam& rhs)
+{
+    this->_alpha_moments_count = rhs._alpha_moments_count;
+    this->_alpha_index_basic_count = rhs._alpha_index_basic_count;
+    this->_alpha_index_basic = (int (*)[4])malloc(4*sizeof(int)*this->_alpha_index_basic_count);
+    for (int ii=0; ii<this->_alpha_index_basic_count; ii++)
+    {
+        this->_alpha_index_basic[ii][0] = rhs._alpha_index_basic[ii][0];
+        this->_alpha_index_basic[ii][1] = rhs._alpha_index_basic[ii][1];
+        this->_alpha_index_basic[ii][2] = rhs._alpha_index_basic[ii][2];
+        this->_alpha_index_basic[ii][3] = rhs._alpha_index_basic[ii][3];
+    }
+    this->_alpha_index_times_count = rhs._alpha_index_times_count;
+    this->_alpha_index_times = (int (*)[4])malloc(4*sizeof(int)*this->_alpha_index_times_count);
+    for (int ii=0; ii<this->_alpha_index_times_count; ii++)
+    {
+        this->_alpha_index_times[ii][0] = rhs._alpha_index_times[ii][0];
+        this->_alpha_index_times[ii][1] = rhs._alpha_index_times[ii][1];
+        this->_alpha_index_times[ii][2] = rhs._alpha_index_times[ii][2];
+        this->_alpha_index_times[ii][3] = rhs._alpha_index_times[ii][3];
+    }
+    this->_alpha_scalar_moments = rhs._alpha_scalar_moments;
+    this->_alpha_moment_mapping = (int*)malloc(sizeof(int) * this->_alpha_scalar_moments);
+    for (int ii=0; ii<this->_alpha_scalar_moments; ii++)
+        this->_alpha_moment_mapping[ii] = rhs._alpha_moment_mapping[ii];
+}
+
+MtpParam::MtpParam(MtpParam&& rhs)
+{
+    this->_alpha_moments_count = rhs._alpha_moments_count;
+    this->_alpha_index_basic_count = rhs._alpha_index_basic_count;
+    this->_alpha_index_basic = rhs._alpha_index_basic;
+    this->_alpha_index_times_count = rhs._alpha_index_times_count;
+    this->_alpha_index_times = rhs._alpha_index_times;
+    this->_alpha_scalar_moments = rhs._alpha_scalar_moments;
+    this->_alpha_moment_mapping = rhs._alpha_moment_mapping;
+
+
+    rhs._alpha_moments_count = 0;
+    rhs._alpha_index_basic_count = 0;
+    rhs._alpha_index_basic = nullptr;
+    rhs._alpha_index_times_count = 0;
+    rhs._alpha_index_times = nullptr;
+    rhs._alpha_scalar_moments = 0;
+    rhs._alpha_moment_mapping = nullptr;
+}
+
+MtpParam& MtpParam::operator=(const MtpParam& rhs)
+{
+    this->_alpha_moments_count = 0;
+    if (this->_alpha_index_basic_count != 0) {
+        free(this->_alpha_index_basic);
+        this->_alpha_index_basic_count = 0;
+    }
+    if (this->_alpha_index_times_count != 0) {
+        free(this->_alpha_index_times);
+        this->_alpha_index_times_count = 0;
+    }
+    if (this->_alpha_scalar_moments != 0) {
+        free(this->_alpha_moment_mapping);
+        this->_alpha_scalar_moments = 0;
+    }
+
+    this->_alpha_moments_count = rhs._alpha_moments_count;
+    this->_alpha_index_basic_count = rhs._alpha_index_basic_count;
+    if (this->_alpha_index_basic_count != 0) {
+        this->_alpha_index_basic = (int (*)[4])malloc(4*sizeof(int)*this->_alpha_index_basic_count);
+        for (int ii=0; ii<this->_alpha_index_basic_count; ii++) {
+            this->_alpha_index_basic[ii][0] = rhs._alpha_index_basic[ii][0];
+            this->_alpha_index_basic[ii][1] = rhs._alpha_index_basic[ii][1];
+            this->_alpha_index_basic[ii][2] = rhs._alpha_index_basic[ii][2];
+            this->_alpha_index_basic[ii][3] = rhs._alpha_index_basic[ii][3];
+        }
+    }
+    this->_alpha_index_times_count = rhs._alpha_index_times_count;
+    if (this->_alpha_index_times_count != 0) {
+        this->_alpha_index_times = (int (*)[4])malloc(4*sizeof(int)*this->_alpha_index_times_count);
+        for (int ii=0; ii<this->_alpha_index_times_count; ii++) {
+            this->_alpha_index_times[ii][0] = rhs._alpha_index_times[ii][0];
+            this->_alpha_index_times[ii][1] = rhs._alpha_index_times[ii][1];
+            this->_alpha_index_times[ii][2] = rhs._alpha_index_times[ii][2];
+            this->_alpha_index_times[ii][3] = rhs._alpha_index_times[ii][3];
+        }
+    }
+    this->_alpha_scalar_moments = rhs._alpha_scalar_moments;
+    if (this->_alpha_scalar_moments != 0) {
+        this->_alpha_moment_mapping = (int*)malloc(sizeof(int) * this->_alpha_scalar_moments);
+        for (int ii=0; ii<this->_alpha_scalar_moments; ii++)
+            this->_alpha_moment_mapping[ii] = rhs._alpha_moment_mapping[ii];
+    }
+
+    return *this;
+}
+
+MtpParam& MtpParam::operator=(MtpParam&& rhs)
+{
+    if (this != &rhs) {
+        this->_alpha_moments_count = 0;
+        if (this->_alpha_index_basic_count != 0) {
+            free(this->_alpha_index_basic);
+            this->_alpha_index_basic_count = 0;
+        }
+        if (this->_alpha_index_times_count != 0) {
+            free(this->_alpha_index_times);
+            this->_alpha_index_times_count = 0;
+        }
+        if (this->_alpha_scalar_moments != 0) {
+            free(this->_alpha_moment_mapping);
+            this->_alpha_scalar_moments = 0;
+        }
+
+        this->_alpha_moments_count = rhs._alpha_moments_count;
+        this->_alpha_index_basic_count = rhs._alpha_index_basic_count;
+        this->_alpha_index_basic = rhs._alpha_index_basic;
+        this->_alpha_index_times_count = rhs._alpha_index_times_count;
+        this->_alpha_index_times = rhs._alpha_index_basic;
+        this->_alpha_scalar_moments = rhs._alpha_scalar_moments;
+        this->_alpha_moment_mapping = rhs._alpha_moment_mapping;
+
+        rhs._alpha_moments_count = 0;
+        rhs._alpha_index_basic_count = 0;
+        rhs._alpha_index_basic = nullptr;
+        rhs._alpha_index_times_count = 0;
+        rhs._alpha_index_times = nullptr;
+        rhs._alpha_scalar_moments = 0;
+        rhs._alpha_moment_mapping = nullptr;
+    }
+
+}
+
+MtpParam::~MtpParam()
+{
+    free(this->_alpha_index_basic);
+    free(this->_alpha_index_times);
+    free(this->_alpha_moment_mapping);
+}
+
+void MtpParam::show() const
+{
+    printf("1. alpha_moments_count = %10d\n", this->_alpha_moments_count);
+    printf("2. alpha_index_basic_count = %10d\n", this->_alpha_index_basic_count);
+    printf("3. alpha_index_basic:\n");
+    for (int ii=0; ii<this->_alpha_index_basic_count; ii++)
+        printf("\t[%5d, %5d, %5d, %5d]\n", this->_alpha_index_basic[ii][0], this->_alpha_index_basic[ii][1], this->_alpha_index_basic[ii][2], this->_alpha_index_basic[ii][3]);
+    printf("4. alpha_index_times_count = %10d\n", this->_alpha_index_times_count);
+    printf("5. alpha_index_times:\n");
+    for (int ii=0; ii<this->_alpha_index_times_count; ii++)
+        printf("\t[%5d, %5d, %5d, %5d]\n", this->_alpha_index_times[ii][0], this->_alpha_index_times[ii][1], this->_alpha_index_times[ii][2], this->_alpha_index_times[ii][3]);
+    printf("6. alpha_scalar_moments = %10d\n", this->_alpha_scalar_moments);
+    printf("7. alpha_moment_mapping:\n\t");
+    for (int ii=0; ii<this->_alpha_scalar_moments; ii++)
+        printf("%5d, ", this->_alpha_moment_mapping[ii]);
+    printf("\n");
+}
+
+const int MtpParam::alpha_moments_count() const
+{
+    return this->_alpha_moments_count;
+}
+
+const int MtpParam::alpha_index_basic_count() const
+{
+    return this->_alpha_index_basic_count;
+}
+
+const int (*MtpParam::alpha_index_basic() const)[4]
+{
+    return this->_alpha_index_basic;
+}
+
+const int MtpParam::alpha_index_times_count() const
+{
+    return this->_alpha_index_times_count;
+}
+
+const int (*MtpParam::alpha_index_times() const)[4]
+{
+    return this->_alpha_index_times;
+}
+
+const int MtpParam::alpha_scalar_moments() const 
+{
+    return this->_alpha_scalar_moments;
+}
+
+const int *MtpParam::alpha_moment_mapping() const
+{
+    return this->_alpha_moment_mapping;
 }
 
 };  // namespace : mtpr
