@@ -95,6 +95,13 @@ ASSERT_EQ(mtp_param.alpha_index_times(), nullptr);
 //mtp_param.show();
 }
 
+TEST_F(MtpParamTest, nmus) {
+    matersdk::mtpr::MtpParam mtp_param;
+    mtp_param._load(filenames[8]);
+//printf("Number of mus given MTP whose level is 18 = %d\n", mtp_param.nmus());
+    ASSERT_EQ(mtp_param.nmus(), 5);
+}
+
 TEST_F(MtpParamTest, copy_constructor)
 {
     matersdk::mtpr::MtpParam mp1(filenames[0]);

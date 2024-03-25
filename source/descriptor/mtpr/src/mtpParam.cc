@@ -318,5 +318,14 @@ const int *MtpParam::alpha_moment_mapping() const
     return this->_alpha_moment_mapping;
 }
 
+const int MtpParam::nmus() const {
+    int max_mu = 0;
+    for (int ii=0; ii<this->_alpha_index_basic_count; ii++) {
+        if (this->_alpha_index_basic[ii][0] > max_mu)
+            max_mu = this->_alpha_index_basic[ii][0];
+    }
+    return max_mu + 1;
+}
+
 };  // namespace : mtpr
 };  // namespace : matersdk

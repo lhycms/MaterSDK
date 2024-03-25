@@ -1,5 +1,5 @@
-#ifndef MATERSDK_MTP_PARAM_H
-#define MATERSDK_MTP_PARAM_H
+#ifndef MATERSDK_MTPR_MTP_PARAM_H
+#define MATERSDK_MTPR_MTP_PARAM_H
 #include <string>
 #include <vector>
 
@@ -55,6 +55,8 @@ public:
     const int alpha_scalar_moments() const;
 
     const int *alpha_moment_mapping() const;
+
+    const int nmus() const;
 
 private:
     int _alpha_moments_count = 0;
