@@ -69,6 +69,47 @@ private:
     //int _alpha_count = 0;   // Basis function count. _alpha_count = _alpha_scalar_moments + 1
 };  // class MtpParam
 
+
+class AlphaIndexTimes {
+public:
+    AlphaIndexTimes();
+
+    AlphaIndexTimes(
+        int alpha_index_times_count,
+        int (*alpha_index_times)[4]);
+    
+    AlphaIndexTimes(const AlphaIndexTimes &rhs);
+
+    AlphaIndexTimes(AlphaIndexTimes &&rhs);
+
+    AlphaIndexTimes& operator=(const AlphaIndexTimes &rhs);
+
+    AlphaIndexTimes& operator=(AlphaIndexTimes &&rhs);
+
+    ~AlphaIndexTimes();
+
+    void show() const;
+
+    const int alpha_index_times_count() const;
+
+    const int (*alpha_index_times() const)[4];
+
+private:
+    int _alpha_index_times_count = 0;
+    int (*_alpha_index_times)[4] = nullptr;
+};  // class : AlphaIndexTimes
+
+std::set<int> find_mus4nonbasic_mom(
+    const int mom_idx,
+    const int alpha_moments_count,
+    const int alpha_index_basic_count,
+    const int (*alpha_index_basic)[4],
+    const int alpha_index_times_count,
+    const int (*alpha_index_times)[4],
+    const int alpha_scalar_moments,
+    const int *alpha_moment_mapping);
+
+
 };  // namespace : mtpr
 };  // namespace : matersdk
 

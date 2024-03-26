@@ -20,5 +20,9 @@ target_link_libraries(test_basis gtest gtest_main)
 add_executable(test_mtpParam ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_mtpParam.cc)
 target_link_libraries(test_mtpParam mtpParam gtest gtest_main)
 
+add_executable(test_mtpBasis ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_mtpBasis.cc)
+target_link_libraries(test_mtpBasis mtpParam gtest gtest_main)
+
 gtest_discover_tests(test_basis)
 gtest_discover_tests(test_mtpParam)
+gtest_discover_tests(test_mtpBasis)

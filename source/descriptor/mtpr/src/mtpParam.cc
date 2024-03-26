@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string>
 #include <cstdlib>
+#include <set>
 #include "../include/mtpParam.h"
 
 
@@ -326,6 +327,163 @@ const int MtpParam::nmus() const {
     }
     return max_mu + 1;
 }
+
+
+
+
+AlphaIndexTimes::AlphaIndexTimes()
+{
+    this->_alpha_index_times_count = 0;
+    this->_alpha_index_times = nullptr;
+}
+
+AlphaIndexTimes::AlphaIndexTimes(
+    int alpha_index_times_count,
+    int (*alpha_index_times)[4])
+{
+    this->_alpha_index_times_count = alpha_index_times_count;
+    this->_alpha_index_times = (int (*)[4])malloc(sizeof(int) * this->_alpha_index_times_count * 4);
+    for (int ii=0; ii<this->_alpha_index_times_count; ii++)
+        for (int jj=0; jj<4; jj++)
+            this->_alpha_index_times[ii][jj] = alpha_index_times[ii][jj];
+}
+
+AlphaIndexTimes::AlphaIndexTimes(const AlphaIndexTimes &rhs)
+{
+    this->_alpha_index_times_count = rhs._alpha_index_times_count;
+    this->_alpha_index_times = (int (*)[4])malloc(sizeof(int) * this->_alpha_index_times_count * 4);
+    for (int ii=0; ii<this->_alpha_index_times_count; ii++)
+        for (int jj=0; jj<4; jj++)
+            this->_alpha_index_times[ii][jj] = rhs._alpha_index_times[ii][jj];
+}
+
+AlphaIndexTimes::AlphaIndexTimes(AlphaIndexTimes &&rhs)
+{
+    if (this != &rhs) {
+        this->_alpha_index_times_count = rhs._alpha_index_times_count;
+        this->_alpha_index_times = rhs._alpha_index_times;
+
+        rhs._alpha_index_times_count = 0;
+        rhs._alpha_index_times = nullptr;
+    }
+}
+
+AlphaIndexTimes& AlphaIndexTimes::operator=(const AlphaIndexTimes &rhs)
+{
+    if (rhs._alpha_index_times_count != 0) {
+        free(this->_alpha_index_times);
+        this->_alpha_index_times_count = 0;
+    }
+
+    this->_alpha_index_times_count = rhs._alpha_index_times_count;
+    this->_alpha_index_times = (int (*)[4])malloc(sizeof(int) * this->_alpha_index_times_count * 4);
+    for (int ii=0; ii<this->_alpha_index_times_count; ii++)
+        for (int jj=0; jj<4; jj++)
+            this->_alpha_index_times[ii][jj] = rhs._alpha_index_times[ii][jj];
+    
+    return *this;
+}
+
+AlphaIndexTimes& AlphaIndexTimes::operator=(AlphaIndexTimes &&rhs)
+{
+    if (this != &rhs)
+    {
+        if (rhs._alpha_index_times_count != 0) {
+            free(this->_alpha_index_times);
+            this->_alpha_index_times_count = 0;
+        }
+        this->_alpha_index_times_count = rhs._alpha_index_times_count;
+        this->_alpha_index_times = rhs._alpha_index_times;
+
+        rhs._alpha_index_times_count = 0;
+        rhs._alpha_index_times = nullptr;
+    }
+}
+
+AlphaIndexTimes::~AlphaIndexTimes()
+{
+    free(this->_alpha_index_times);
+    this->_alpha_index_times_count = 0;
+}
+
+void AlphaIndexTimes::show() const
+{
+    printf("1. alpha_index_basic_count = %5d\n", this->_alpha_index_times_count);
+    printf("2. alpha_index_basic:\n");
+    for (int ii=0; ii<this->_alpha_index_times_count; ii++)
+        printf(
+            "\t%4d : {%4d, %4d, %4d, %4d}\n", 
+            ii,
+            this->_alpha_index_times[ii][0],
+            this->_alpha_index_times[ii][1],
+            this->_alpha_index_times[ii][2],
+            this->_alpha_index_times[ii][3]);
+}
+
+const int AlphaIndexTimes::alpha_index_times_count() const
+{
+    return this->_alpha_index_times_count;
+}
+
+const int (*AlphaIndexTimes::alpha_index_times() const)[4]
+{
+    return this->_alpha_index_times;
+}
+
+
+std::set<int> find_mus4nonbasic_mom(
+    const int mom_idx,
+    const int alpha_moments_count,
+    const int alpha_index_basic_count,
+    const int (*alpha_index_basic)[4],
+    const int alpha_index_times_count,
+    const int (*alpha_index_times)[4],
+    const int alpha_scalar_moments,
+    const int *alpha_moment_mapping)
+{
+    std::set<int> mus_lst;
+    mus_lst.clear();
+
+    if (mom_idx < alpha_index_basic_count) {
+        mus_lst.insert(alpha_index_basic[mom_idx][0]);
+    }
+    else {
+        for (int ii=0; ii<alpha_index_times_count; ii++)
+        {
+            if (alpha_index_times[ii][3] == mom_idx) {
+                int sub_mom_idx1 = alpha_index_times[ii][0];
+                int sub_mom_idx2 = alpha_index_times[ii][1];
+//printf("*** %d, %d\n", sub_mom_idx1, sub_mom_idx2);
+                std::set<int> sub_mus1_lst = find_mus4mom(
+                    sub_mom_idx1,
+                    alpha_moments_count,
+                    alpha_index_basic_count,
+                    alpha_index_basic,
+                    alpha_index_times_count,
+                    alpha_index_times,
+                    alpha_scalar_moments,
+                    alpha_moment_mapping);
+                std::set<int> sub_mus2_lst = find_mus4mom(
+                    sub_mom_idx2,
+                    alpha_moments_count,
+                    alpha_index_basic_count,
+                    alpha_index_basic,
+                    alpha_index_times_count,
+                    alpha_index_times,
+                    alpha_scalar_moments,
+                    alpha_moment_mapping);
+                
+                for (auto& tmp_mu : sub_mus1_lst)
+                    mus_lst.insert(tmp_mu);
+                for (auto& tmp_mu : sub_mus2_lst)
+                    mus_lst.insert(tmp_mu);
+            }
+        }
+    }
+
+    return mus_lst;
+}
+
 
 };  // namespace : mtpr
 };  // namespace : matersdk

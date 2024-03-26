@@ -2,6 +2,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <vector>
+#include <set>
 #include "../include/mtpParam.h"
 
 
@@ -28,6 +29,7 @@ class MtpParamTest : public ::testing::Test
 protected:
     std::string filename;
     std::vector<std::string> filenames;
+    int mom_idx;
 
     static void SetUpTestSuite() {
         std::cout << "MtpParamTest (TestSuite) is setting up...\n";
@@ -173,6 +175,97 @@ TEST_F(MtpParamTest, assignment_operator_move)
     //ASSERT_EQ(mp1.alpha_index_basic(), nullptr);
     //ASSERT_EQ(mp1.alpha_index_times(), nullptr);
     //ASSERT_EQ(mp1.alpha_moment_mapping(), nullptr);
+}
+
+
+TEST_F(MtpParamTest, AlphaIndexBasic_copy_constrcutor)
+{
+    matersdk::mtpr::MtpParam mp;
+    mp._load(filenames[4]);  // mtp_level = 10
+    
+    matersdk::mtpr::AlphaIndexTimes at1(
+        (int)mp.alpha_index_times_count(), 
+        (int(*)[4])mp.alpha_index_times());
+//at1.show();
+    matersdk::mtpr::AlphaIndexTimes at2(at1);
+
+    ASSERT_EQ(at1.alpha_index_times_count(), at2.alpha_index_times_count());
+    for (int ii=0; ii<at1.alpha_index_times_count(); ii++)
+        for (int jj=0; jj<4; jj++)
+            ASSERT_EQ(at1.alpha_index_times()[ii][jj], at2.alpha_index_times()[ii][jj]);
+}
+
+TEST_F(MtpParamTest, AlphaIndexBasic_copy_constructor_move)
+{
+    matersdk::mtpr::MtpParam mp;
+    mp._load(filenames[4]); // mtp_level = 10
+
+    matersdk::mtpr::AlphaIndexTimes at1(
+        (int)mp.alpha_index_times_count(),
+        (int(*)[4])mp.alpha_index_times());
+    matersdk::mtpr::AlphaIndexTimes at2(std::move(at1));
+
+    ASSERT_EQ(at1.alpha_index_times_count(), 0);
+    ASSERT_EQ(at1.alpha_index_times(), nullptr);
+}
+
+TEST_F(MtpParamTest, AlphaIndexBasic_assignment_operator)
+{
+    matersdk::mtpr::MtpParam mp;
+    mp._load(filenames[4]); // mtp_level = 10
+    matersdk::mtpr::AlphaIndexTimes at1(
+        (int)mp.alpha_index_times_count(),
+        (int(*)[4])mp.alpha_index_times());
+    
+    mp._load(filenames[5]); // mtp_level = 12
+    matersdk::mtpr::AlphaIndexTimes at2(
+        (int)mp.alpha_index_times_count(),
+        (int(*)[4])mp.alpha_index_times());
+    
+    at2 = at1;
+    ASSERT_EQ(at1.alpha_index_times_count(), at2.alpha_index_times_count());
+    for (int ii=0; ii<at1.alpha_index_times_count(); ii++)
+        for (int jj=0; jj<4; jj++)
+            ASSERT_EQ(at1.alpha_index_times()[ii][jj], at2.alpha_index_times()[ii][jj]);
+}
+
+TEST_F(MtpParamTest, AlphaIndexTimes_assignment_operator_move)
+{
+    matersdk::mtpr::MtpParam mp;
+    mp._load(filenames[4]); // mtp_level = 10
+    matersdk::mtpr::AlphaIndexTimes at1(
+        (int)mp.alpha_index_times_count(),
+        (int(*)[4])mp.alpha_index_times());
+
+    mp._load(filenames[5]); // mtp_level = 12
+    matersdk::mtpr::AlphaIndexTimes at2(
+        (int)mp.alpha_index_times_count(),
+        (int(*)[4])mp.alpha_index_times());
+    
+    at2 = std::move(at1);
+    ASSERT_EQ(at1.alpha_index_times_count(), 0);
+    ASSERT_EQ(at1.alpha_index_times(), nullptr);
+}
+
+TEST_F(MtpParamTest, find_mus4nonbasic_mom)
+{
+    matersdk::mtpr::MtpParam mtp_param;
+    mtp_param._load(filenames[4]);  // mtp_level = 10
+    mom_idx = 36;
+
+    std::set<int> mus_lst = matersdk::mtpr::find_mus4nonbasic_mom(
+        mom_idx,
+        mtp_param.alpha_moments_count(),
+        mtp_param.alpha_index_basic_count(),
+        mtp_param.alpha_index_basic(),
+        mtp_param.alpha_index_times_count(),
+        mtp_param.alpha_index_times(),
+        mtp_param.alpha_scalar_moments(),
+        mtp_param.alpha_moment_mapping());
+    
+    for (auto &v : mus_lst)
+        printf("%d, ", v);
+    printf("\n");
 }
 
 
