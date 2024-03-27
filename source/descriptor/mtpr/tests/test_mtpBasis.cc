@@ -206,6 +206,7 @@ TEST_F(MtpBasisTest, find_val_der)
         mtp_param.alpha_index_times(),
         mtp_param.alpha_scalar_moments(),
         mtp_param.alpha_moment_mapping(),
+        mtp_param.mus4moms_lst(),
         nmus,
         inum,
         ilist,

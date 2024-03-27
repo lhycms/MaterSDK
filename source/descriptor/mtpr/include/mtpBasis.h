@@ -28,6 +28,7 @@ public:
         const int (*alpha_index_times)[4],
         const int alpha_scalar_moments,
         const int *alpha_moment_mapping,
+        const std::vector<std::set<int>> &mus4moms_lst,
         int nmus,
         int inum,
         int *ilist,
@@ -56,6 +57,7 @@ void MtpBasis<CoordType>::find_val_der(
     const int (*alpha_index_times)[4],
     const int alpha_scalar_moments,
     const int *alpha_moment_mapping,
+    const std::vector<std::set<int>> &mus4moms_lst,
     int nmus,
     int inum,
     int *ilist,
@@ -187,14 +189,20 @@ void MtpBasis<CoordType>::find_val_der(
 
             mom_vals[alpha_index_times[i][3]] += val2 * val0 * val1;
             for (int xi=0; xi<chebyshev_size; xi++) {
-                int idx0 = (type_central*ntypes + type_outer)*nmus*chebyshev_size + alpha_index_times[i][0]*chebyshev_size + xi;
-                int idx1 = (type_central*ntypes + type_outer)*nmus*chebyshev_size + alpha_index_times[i][1]*chebyshev_size + xi;
-                mom_ders2coeffs[alpha_index_times[i][3]*num_coeffs + idx0] += val2 
-                    * mom_ders2coeffs[alpha_index_times[i][0]*num_coeffs + idx0]
-                    * val1;
-                mom_ders2coeffs[alpha_index_times[i][3]*num_coeffs + idx1] += val2 
-                    * val0
-                    * mom_ders2coeffs[alpha_index_times[i][1]*num_coeffs + idx1];
+                const std::set<int> &sub0_mus = mus4moms_lst[alpha_index_times[i][0]];
+                const std::set<int> &sub1_mus = mus4moms_lst[alpha_index_times[i][1]];
+                for (auto& mu0 : sub0_mus) {
+                    int idx0 = (type_central*ntypes + type_outer)*nmus*chebyshev_size + mu0*chebyshev_size + xi;
+                    mom_ders2coeffs[alpha_index_times[i][3]*num_coeffs + idx0] += val2
+                        * mom_ders2coeffs[alpha_index_times[i][0]*num_coeffs + idx0]
+                        * val1;
+                }
+                for (auto& mu1 : sub1_mus) {
+                    int idx1 = (type_central*ntypes + type_outer)*nmus*chebyshev_size + mu1*chebyshev_size + xi;
+                    mom_ders2coeffs[alpha_index_times[i][3]*num_coeffs + idx1] += val2
+                        * val0
+                        * mom_ders2coeffs[alpha_index_times[i][1]*num_coeffs + idx1];
+                }
             }
             mom_ders[alpha_index_times[i][3]][0] += val2 * 
                     ( mom_ders[alpha_index_times[i][0]][0] * val1
