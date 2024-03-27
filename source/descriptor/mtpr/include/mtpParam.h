@@ -43,7 +43,7 @@ public:
 
     std::set<int> _get_mus4all_mom(int mom_idx);
 
-    void _get_mus4all_mom_dp(int num_moms);
+    std::vector<std::set<int>> _get_mus4all_mom_dp(int num_moms);
 
     void show() const;
 
@@ -61,7 +61,11 @@ public:
 
     const int *alpha_moment_mapping() const;
 
-    const std::vector<std::set<int>> mus4moms_lst() const;
+    const int max_num_mus4mom() const;
+
+    const int *num_mus4moms() const;
+
+    const int *mus4moms_ptr() const;
 
     const int nmus() const;
 
@@ -73,7 +77,9 @@ private:
     int (*_alpha_index_times)[4] = nullptr;
     int _alpha_scalar_moments = 0;
     int *_alpha_moment_mapping = nullptr;
-    std::vector<std::set<int>> _mus4moms_lst;
+    int _max_num_mus4mom = 0;
+    int *_num_mus4moms = nullptr;
+    int *_mus4moms_ptr = nullptr;
     //int _alpha_count = 0;
 };  // class MtpParam
 

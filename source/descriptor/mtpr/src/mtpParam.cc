@@ -4,6 +4,7 @@
 #include <string>
 #include <cstdlib>
 #include <set>
+#include <cstring>
 #include "../include/mtpParam.h"
 
 
@@ -128,9 +129,28 @@ void MtpParam::_load(const std::string& filename)
 
     ifs.close();
 
-    this->_get_mus4all_mom_dp(this->_alpha_moments_count);
     //for (int ii=0; ii<this->_alpha_moments_count; ii++)
         //this->_mus4moms_lst.push_back( this->_get_mus4all_mom(ii) );
+    std::vector<std::set<int>> mus4moms_lst = this->_get_mus4all_mom_dp(this->_alpha_moments_count);
+    this->_max_num_mus4mom = 0;
+    for (int ii=0; ii<this->_alpha_moments_count; ii++)
+        if (mus4moms_lst[ii].size() > this->_max_num_mus4mom)
+            this->_max_num_mus4mom = mus4moms_lst[ii].size();
+
+    this->_mus4moms_ptr = (int*)malloc(sizeof(int) * this->_alpha_moments_count * this->_max_num_mus4mom);
+    this->_num_mus4moms = (int*)malloc(sizeof(int) * this->_alpha_moments_count);
+    memset(this->_mus4moms_ptr, -1, sizeof(int) * this->_alpha_moments_count * this->_max_num_mus4mom);
+    for (int ii=0; ii<this->_alpha_moments_count; ii++) {
+        // Error:
+        //memcpy(
+        //    &(this->_mus4moms_ptr[this->_max_num_mus4mom * ii]),
+        //    &(mus4moms_lst[ii]),
+        //    sizeof(int) * mus4moms_lst[ii].size());
+        this->_num_mus4moms[ii] = mus4moms_lst[ii].size();
+        int count = 0;
+        for (auto &v : mus4moms_lst[ii])
+            this->_mus4moms_ptr[ii*this->_max_num_mus4mom+(count++)] = v;
+    }
 }
 
 MtpParam::MtpParam(const MtpParam& rhs)
@@ -297,12 +317,13 @@ std::set<int> MtpParam::_get_mus4all_mom(int mom_idx)
     return mus_lst;
 }
 
-void MtpParam::_get_mus4all_mom_dp(int num_moms)
+std::vector<std::set<int>> MtpParam::_get_mus4all_mom_dp(int num_moms)
 {
     if (num_moms > this->_alpha_moments_count)
         MtpError("num_moms is larger then alpha_moments_count.");
+    std::vector<std::set<int>> mus4moms_lst;
+    mus4moms_lst.clear();
     std::set<int> mus_lst;
-    this->_mus4moms_lst.clear();
 
     for (int ii=0; ii<num_moms; ii++)
     {
@@ -317,8 +338,8 @@ void MtpParam::_get_mus4all_mom_dp(int num_moms)
                     int sub_mom1_idx = this->_alpha_index_times[jj][0]; //
                     int sub_mom2_idx = this->_alpha_index_times[jj][1];
 //printf("\t*** %d, %d\n", sub_mom1_idx, sub_mom2_idx);
-                    std::set<int> sub_mus1_lst = this->_mus4moms_lst[sub_mom1_idx];
-                    std::set<int> sub_mus2_lst = this->_mus4moms_lst[sub_mom2_idx];
+                    std::set<int> sub_mus1_lst = mus4moms_lst[sub_mom1_idx];
+                    std::set<int> sub_mus2_lst = mus4moms_lst[sub_mom2_idx];
 
                     for (auto& v : sub_mus1_lst)
                         mus_lst.insert(v);
@@ -327,8 +348,9 @@ void MtpParam::_get_mus4all_mom_dp(int num_moms)
                 }
             }
         }
-        this->_mus4moms_lst.push_back(mus_lst);
+        mus4moms_lst.push_back(mus_lst);
     }
+    return mus4moms_lst;
 }
 
 void MtpParam::show() const
@@ -346,12 +368,13 @@ void MtpParam::show() const
     printf("7. alpha_moment_mapping:\n\t");
     for (int ii=0; ii<this->_alpha_scalar_moments; ii++)
         printf("%5d, ", this->_alpha_moment_mapping[ii]);
-    printf("8. mu4fmoms_lst:\n");
+    printf("\n");
+    printf("8. mu4fmoms_ptr:\n");
     for (int ii=0; ii<this->_alpha_moments_count; ii++) {
-        printf("\t mom_idx = %5d :\t", ii);
+        printf("\t mom_idx#%5d has %5d distinct mus:\t", ii, this->_num_mus4moms[ii]);
         printf("[");
-        for (auto& v : this->_mus4moms_lst[ii])
-            printf("%4d, ", v);
+        for (int jj=0; jj<this->_max_num_mus4mom; jj++)
+            printf("%4d, ", this->_mus4moms_ptr[ii*this->_max_num_mus4mom+jj]);
         printf("]\n");
     }
     printf("\n");
@@ -392,10 +415,21 @@ const int *MtpParam::alpha_moment_mapping() const
     return this->_alpha_moment_mapping;
 }
 
-const std::vector<std::set<int>> MtpParam::mus4moms_lst() const
+const int MtpParam::max_num_mus4mom() const
 {
-    return this->_mus4moms_lst;
+    return this->_max_num_mus4mom;
 }
+
+const int *MtpParam::num_mus4moms() const
+{
+    return this->_num_mus4moms;
+}
+
+const int *MtpParam::mus4moms_ptr() const
+{
+    return this->_mus4moms_ptr;
+}
+
 
 const int MtpParam::nmus() const {
     int max_mu = 0;

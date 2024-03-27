@@ -28,7 +28,9 @@ public:
         const int (*alpha_index_times)[4],
         const int alpha_scalar_moments,
         const int *alpha_moment_mapping,
-        const std::vector<std::set<int>> &mus4moms_lst,
+        const int max_num_mus4mom,
+        const int* num_mus4moms,
+        const int* mus4moms_ptr,
         int nmus,
         int inum,
         int *ilist,
@@ -57,7 +59,9 @@ void MtpBasis<CoordType>::find_val_der(
     const int (*alpha_index_times)[4],
     const int alpha_scalar_moments,
     const int *alpha_moment_mapping,
-    const std::vector<std::set<int>> &mus4moms_lst,
+    const int max_num_mus4mom,
+    const int *num_mus4moms,
+    const int *mus4moms_ptr,
     int nmus,
     int inum,
     int *ilist,
@@ -72,14 +76,14 @@ void MtpBasis<CoordType>::find_val_der(
 {
     // Step 1.
     memset(mtp_basis_val, 0, sizeof(CoordType) * inum * alpha_scalar_moments);
-    memset(mtp_basis_der, 0, sizeof(CoordType) * inum * alpha_scalar_moments * 3);
+    memset(mtp_basis_der, 0, sizeof(CoordType) * inum * alpha_scalar_moments * umax_num_neigh_atoms * 3);
     memset(mtp_basis_der2coeffs, 0, sizeof(CoordType) * inum * alpha_scalar_moments * ntypes * ntypes * nmus * chebyshev_size);
 
     CoordType *mom_vals = (CoordType*)malloc(sizeof(CoordType) * alpha_moments_count);
-    CoordType (*mom_ders)[3] = (CoordType (*)[3])malloc(sizeof(CoordType) * alpha_moments_count * 3);
+    CoordType (*mom_ders)[3] = (CoordType (*)[3])malloc(sizeof(CoordType) * alpha_moments_count * umax_num_neigh_atoms * 3);
     CoordType *mom_ders2coeffs = (CoordType*)malloc(sizeof(CoordType) * alpha_moments_count * ntypes * ntypes * nmus * chebyshev_size);
     memset(mom_vals, 0, sizeof(CoordType) * alpha_moments_count);
-    memset(mom_ders, 0, sizeof(CoordType) * alpha_moments_count * 3);
+    memset(mom_ders, 0, sizeof(CoordType) * alpha_moments_count * umax_num_neigh_atoms * 3);
     memset(mom_ders2coeffs, 0 , sizeof(CoordType) * alpha_moments_count * ntypes * ntypes * nmus * chebyshev_size);
 
     int max_alpha_index_basic = 0;
@@ -109,7 +113,7 @@ void MtpBasis<CoordType>::find_val_der(
     for (int ii=0; ii<inum; ii++) 
     {
         memset(mom_vals, 0, sizeof(CoordType) * alpha_moments_count);
-        memset(mom_ders, 0, sizeof(CoordType) * alpha_moments_count * 3);
+        memset(mom_ders, 0, sizeof(CoordType) * alpha_moments_count * umax_num_neigh_atoms * 3);
         memset(mom_ders2coeffs, 0 , sizeof(CoordType) * alpha_moments_count * num_coeffs);
 
         type_central = types[ilist[ii]];
@@ -126,7 +130,8 @@ void MtpBasis<CoordType>::find_val_der(
             distance_ij = std::sqrt( std::pow(NeighbVect[0], 2) + 
                                      std::pow(NeighbVect[1], 2) + 
                                      std::pow(NeighbVect[2], 2) );
-            
+            p_RadialBasis->build(distance_ij);
+
             auto_dist_powers_[0] = 1;
             for (int a=0; a<3; a++)
                 auto_coords_powers_[0][a] = 1;
@@ -150,13 +155,13 @@ void MtpBasis<CoordType>::find_val_der(
                     int idx = (type_central*ntypes + type_outer)*nmus*chebyshev_size + mu*chebyshev_size + xi;
                     mom_vals[i] += coeffs[idx] * p_RadialBasis->vals()[xi] * powk * mult0;
                     mom_ders2coeffs[i*num_coeffs + idx] += p_RadialBasis->vals()[xi] * powk * mult0;
-                    mom_ders[i][0] += NeighbVect[0] / distance_ij * 
+                    mom_ders[i*umax_num_neigh_atoms+jj][0] += NeighbVect[0] / distance_ij * 
                                     ( coeffs[idx] * p_RadialBasis->ders2r()[xi] * powk * mult0 
                                     - coeffs[idx] * p_RadialBasis->vals()[xi] * k * powk / distance_ij * mult0 );
-                    mom_ders[i][1] += NeighbVect[1] / distance_ij * 
+                    mom_ders[i*umax_num_neigh_atoms+jj][1] += NeighbVect[1] / distance_ij * 
                                     ( coeffs[idx] * p_RadialBasis->ders2r()[xi] * powk * mult0
                                     - coeffs[idx] * p_RadialBasis->vals()[xi] * k * powk / distance_ij * mult0 );
-                    mom_ders[i][2] += NeighbVect[2] / distance_ij *
+                    mom_ders[i*umax_num_neigh_atoms+jj][2] += NeighbVect[2] / distance_ij *
                                     ( coeffs[idx] * p_RadialBasis->ders2r()[xi] * powk * mult0
                                     - coeffs[idx] * p_RadialBasis->vals()[xi] * k * powk / distance_ij * mult0 );
                     if (alpha_index_basic[i][1] != 0) {
@@ -189,16 +194,18 @@ void MtpBasis<CoordType>::find_val_der(
 
             mom_vals[alpha_index_times[i][3]] += val2 * val0 * val1;
             for (int xi=0; xi<chebyshev_size; xi++) {
-                const std::set<int> &sub0_mus = mus4moms_lst[alpha_index_times[i][0]];
-                const std::set<int> &sub1_mus = mus4moms_lst[alpha_index_times[i][1]];
-                for (auto& mu0 : sub0_mus) {
-                    int idx0 = (type_central*ntypes + type_outer)*nmus*chebyshev_size + mu0*chebyshev_size + xi;
+                for (int q=0; q<num_mus4moms[alpha_index_times[i][0]]; q++) {
+                    int idx0 = (type_central*ntypes + type_outer)*nmus*chebyshev_size 
+                             + mus4moms_ptr[alpha_index_times[i][0]*max_num_mus4mom + q]*chebyshev_size 
+                             + xi;
                     mom_ders2coeffs[alpha_index_times[i][3]*num_coeffs + idx0] += val2
                         * mom_ders2coeffs[alpha_index_times[i][0]*num_coeffs + idx0]
                         * val1;
                 }
-                for (auto& mu1 : sub1_mus) {
-                    int idx1 = (type_central*ntypes + type_outer)*nmus*chebyshev_size + mu1*chebyshev_size + xi;
+                for (int q=0; q<num_mus4moms[alpha_index_times[i][1]]; q++) {
+                    int idx1 = (type_central*ntypes + type_outer)*nmus*chebyshev_size 
+                             + mus4moms_ptr[alpha_index_times[i][1]*max_num_mus4mom + q]*chebyshev_size 
+                             + xi;
                     mom_ders2coeffs[alpha_index_times[i][3]*num_coeffs + idx1] += val2
                         * val0
                         * mom_ders2coeffs[alpha_index_times[i][1]*num_coeffs + idx1];

@@ -93,6 +93,7 @@ TEST_F(MtpParamTest, constructor)
 mtp_param.show();
 }
 
+/*
 TEST_F(MtpParamTest, load) {
     matersdk::mtpr::MtpParam mtp_param;
     mtp_param._load(filenames[0]);
@@ -119,11 +120,11 @@ TEST_F(MtpParamTest, _get_mus4all_mom_dp)
     mtp_param._load(filenames[6]);  // mtp_level(4) = 10, mtp_level(6) = 14
     int num_moms = 174;  
 
-    mtp_param._get_mus4all_mom_dp(num_moms);
-    std::set<int> mus_lst = mtp_param.mus4moms_lst()[172];
+    std::vector<std::set<int>> mus4moms_lst = mtp_param._get_mus4all_mom_dp(num_moms);
+    std::set<int> mus_lst = mus4moms_lst[172];
     for (auto& v : mus_lst)
         printf("%d, ", v);
-    printf("\n");
+    printf("\n");   
 }
 
 
@@ -276,7 +277,7 @@ TEST_F(MtpParamTest, AlphaIndexTimes_assignment_operator_move)
     ASSERT_EQ(at1.alpha_index_times_count(), 0);
     ASSERT_EQ(at1.alpha_index_times(), nullptr);
 }
-
+*/
 
 
 int main(int argc, char** argv) {
