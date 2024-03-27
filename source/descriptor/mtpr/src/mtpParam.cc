@@ -127,6 +127,10 @@ void MtpParam::_load(const std::string& filename)
     }
 
     ifs.close();
+
+    this->_get_mus4all_mom_dp(this->_alpha_moments_count);
+    //for (int ii=0; ii<this->_alpha_moments_count; ii++)
+        //this->_mus4moms_lst.push_back( this->_get_mus4all_mom(ii) );
 }
 
 MtpParam::MtpParam(const MtpParam& rhs)
@@ -266,13 +270,74 @@ MtpParam::~MtpParam()
     free(this->_alpha_moment_mapping);
 }
 
+std::set<int> MtpParam::_get_mus4all_mom(int mom_idx)
+{
+    std::set<int> mus_lst;
+    mus_lst.clear();
+
+    if (mom_idx < this->_alpha_index_basic_count) {
+        mus_lst.insert(this->_alpha_index_basic[mom_idx][0]);
+    } else {
+        for (int ii=0; ii<this->_alpha_index_times_count; ii++)
+        {
+            if (this->_alpha_index_times[ii][3] == mom_idx) {
+                int sub_mom1_idx = this->_alpha_index_times[ii][0];
+                int sub_mom2_idx = this->_alpha_index_times[ii][1];
+//printf("*** %d, %d\n", sub_mom1_idx, sub_mom2_idx);
+                std::set<int> sub_mus1_lst = this->_get_mus4all_mom(sub_mom1_idx);
+                std::set<int> sub_mus2_lst = this->_get_mus4all_mom(sub_mom2_idx);
+
+                for (auto& tmp_mu : sub_mus1_lst)
+                    mus_lst.insert(tmp_mu);
+                for (auto& tmp_mu : sub_mus2_lst)
+                    mus_lst.insert(tmp_mu);
+            }
+        }
+    }
+    return mus_lst;
+}
+
+void MtpParam::_get_mus4all_mom_dp(int num_moms)
+{
+    if (num_moms > this->_alpha_moments_count)
+        MtpError("num_moms is larger then alpha_moments_count.");
+    std::set<int> mus_lst;
+    this->_mus4moms_lst.clear();
+
+    for (int ii=0; ii<num_moms; ii++)
+    {
+//printf("mom_idx = %d:\n", ii);
+        mus_lst.clear();
+        if (ii < this->_alpha_index_basic_count) {
+            mus_lst.insert(this->_alpha_index_basic[ii][0]);
+        } else {
+            for (int jj=0; jj<this->_alpha_index_times_count; jj++)
+            {
+                if (ii == this->_alpha_index_times[jj][3]) {
+                    int sub_mom1_idx = this->_alpha_index_times[jj][0]; //
+                    int sub_mom2_idx = this->_alpha_index_times[jj][1];
+//printf("\t*** %d, %d\n", sub_mom1_idx, sub_mom2_idx);
+                    std::set<int> sub_mus1_lst = this->_mus4moms_lst[sub_mom1_idx];
+                    std::set<int> sub_mus2_lst = this->_mus4moms_lst[sub_mom2_idx];
+
+                    for (auto& v : sub_mus1_lst)
+                        mus_lst.insert(v);
+                    for (auto& v : sub_mus2_lst)
+                        mus_lst.insert(v);
+                }
+            }
+        }
+        this->_mus4moms_lst.push_back(mus_lst);
+    }
+}
+
 void MtpParam::show() const
 {
     printf("1. alpha_moments_count = %10d\n", this->_alpha_moments_count);
     printf("2. alpha_index_basic_count = %10d\n", this->_alpha_index_basic_count);
     printf("3. alpha_index_basic:\n");
     for (int ii=0; ii<this->_alpha_index_basic_count; ii++)
-        printf("\t[%5d, %5d, %5d, %5d]\n", this->_alpha_index_basic[ii][0], this->_alpha_index_basic[ii][1], this->_alpha_index_basic[ii][2], this->_alpha_index_basic[ii][3]);
+        printf("\t%5d: [%5d, %5d, %5d, %5d]\n", ii, this->_alpha_index_basic[ii][0], this->_alpha_index_basic[ii][1], this->_alpha_index_basic[ii][2], this->_alpha_index_basic[ii][3]);
     printf("4. alpha_index_times_count = %10d\n", this->_alpha_index_times_count);
     printf("5. alpha_index_times:\n");
     for (int ii=0; ii<this->_alpha_index_times_count; ii++)
@@ -281,6 +346,14 @@ void MtpParam::show() const
     printf("7. alpha_moment_mapping:\n\t");
     for (int ii=0; ii<this->_alpha_scalar_moments; ii++)
         printf("%5d, ", this->_alpha_moment_mapping[ii]);
+    printf("8. mu4fmoms_lst:\n");
+    for (int ii=0; ii<this->_alpha_moments_count; ii++) {
+        printf("\t mom_idx = %5d :\t", ii);
+        printf("[");
+        for (auto& v : this->_mus4moms_lst[ii])
+            printf("%4d, ", v);
+        printf("]\n");
+    }
     printf("\n");
 }
 
@@ -317,6 +390,11 @@ const int MtpParam::alpha_scalar_moments() const
 const int *MtpParam::alpha_moment_mapping() const
 {
     return this->_alpha_moment_mapping;
+}
+
+const std::vector<std::set<int>> MtpParam::mus4moms_lst() const
+{
+    return this->_mus4moms_lst;
 }
 
 const int MtpParam::nmus() const {
@@ -429,61 +507,6 @@ const int (*AlphaIndexTimes::alpha_index_times() const)[4]
 {
     return this->_alpha_index_times;
 }
-
-
-std::set<int> find_mus4nonbasic_mom(
-    const int mom_idx,
-    const int alpha_moments_count,
-    const int alpha_index_basic_count,
-    const int (*alpha_index_basic)[4],
-    const int alpha_index_times_count,
-    const int (*alpha_index_times)[4],
-    const int alpha_scalar_moments,
-    const int *alpha_moment_mapping)
-{
-    std::set<int> mus_lst;
-    mus_lst.clear();
-
-    if (mom_idx < alpha_index_basic_count) {
-        mus_lst.insert(alpha_index_basic[mom_idx][0]);
-    }
-    else {
-        for (int ii=0; ii<alpha_index_times_count; ii++)
-        {
-            if (alpha_index_times[ii][3] == mom_idx) {
-                int sub_mom_idx1 = alpha_index_times[ii][0];
-                int sub_mom_idx2 = alpha_index_times[ii][1];
-//printf("*** %d, %d\n", sub_mom_idx1, sub_mom_idx2);
-                std::set<int> sub_mus1_lst = find_mus4mom(
-                    sub_mom_idx1,
-                    alpha_moments_count,
-                    alpha_index_basic_count,
-                    alpha_index_basic,
-                    alpha_index_times_count,
-                    alpha_index_times,
-                    alpha_scalar_moments,
-                    alpha_moment_mapping);
-                std::set<int> sub_mus2_lst = find_mus4mom(
-                    sub_mom_idx2,
-                    alpha_moments_count,
-                    alpha_index_basic_count,
-                    alpha_index_basic,
-                    alpha_index_times_count,
-                    alpha_index_times,
-                    alpha_scalar_moments,
-                    alpha_moment_mapping);
-                
-                for (auto& tmp_mu : sub_mus1_lst)
-                    mus_lst.insert(tmp_mu);
-                for (auto& tmp_mu : sub_mus2_lst)
-                    mus_lst.insert(tmp_mu);
-            }
-        }
-    }
-
-    return mus_lst;
-}
-
 
 };  // namespace : mtpr
 };  // namespace : matersdk

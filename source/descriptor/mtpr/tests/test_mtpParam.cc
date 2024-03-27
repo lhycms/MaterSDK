@@ -84,10 +84,13 @@ TEST_F(MtpExceptionTest, MtpError_test) {
 
 TEST_F(MtpParamTest, constructor)
 {
-    for (const auto& f : filenames) {
-        matersdk::mtpr::MtpParam mtp_param(f);
+    //for (const auto& f : filenames) {
+        //matersdk::mtpr::MtpParam mtp_param(f);
 //mtp_param.show();
-    }
+    //}
+
+    matersdk::mtpr::MtpParam mtp_param(filenames[6]);
+mtp_param.show();
 }
 
 TEST_F(MtpParamTest, load) {
@@ -96,6 +99,33 @@ TEST_F(MtpParamTest, load) {
 ASSERT_EQ(mtp_param.alpha_index_times(), nullptr);
 //mtp_param.show();
 }
+
+TEST_F(MtpParamTest, _get_mus4all_mom)
+{
+    matersdk::mtpr::MtpParam mtp_param;
+    mtp_param._load(filenames[6]);   // mtp_level(4) = 10, mtp_level(6) = 14
+    int mom_idx = 172;
+
+    std::set<int> mus_lst = mtp_param._get_mus4all_mom(mom_idx);
+    for (auto& v : mus_lst)
+        printf("%d, ", v);
+    printf("\n");
+}
+
+
+TEST_F(MtpParamTest, _get_mus4all_mom_dp)
+{
+    matersdk::mtpr::MtpParam mtp_param;
+    mtp_param._load(filenames[6]);  // mtp_level(4) = 10, mtp_level(6) = 14
+    int num_moms = 174;  
+
+    mtp_param._get_mus4all_mom_dp(num_moms);
+    std::set<int> mus_lst = mtp_param.mus4moms_lst()[172];
+    for (auto& v : mus_lst)
+        printf("%d, ", v);
+    printf("\n");
+}
+
 
 TEST_F(MtpParamTest, nmus) {
     matersdk::mtpr::MtpParam mtp_param;
@@ -247,26 +277,6 @@ TEST_F(MtpParamTest, AlphaIndexTimes_assignment_operator_move)
     ASSERT_EQ(at1.alpha_index_times(), nullptr);
 }
 
-TEST_F(MtpParamTest, find_mus4nonbasic_mom)
-{
-    matersdk::mtpr::MtpParam mtp_param;
-    mtp_param._load(filenames[4]);  // mtp_level = 10
-    mom_idx = 36;
-
-    std::set<int> mus_lst = matersdk::mtpr::find_mus4nonbasic_mom(
-        mom_idx,
-        mtp_param.alpha_moments_count(),
-        mtp_param.alpha_index_basic_count(),
-        mtp_param.alpha_index_basic(),
-        mtp_param.alpha_index_times_count(),
-        mtp_param.alpha_index_times(),
-        mtp_param.alpha_scalar_moments(),
-        mtp_param.alpha_moment_mapping());
-    
-    for (auto &v : mus_lst)
-        printf("%d, ", v);
-    printf("\n");
-}
 
 
 int main(int argc, char** argv) {

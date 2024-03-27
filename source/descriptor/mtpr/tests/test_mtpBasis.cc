@@ -192,6 +192,7 @@ protected:
 
 TEST_F(MtpBasisTest, find_val_der)
 {
+    for (int ii=0; ii<1000; ii++)
     matersdk::mtpr::MtpBasis<double>::find_val_der(
         mtp_basis_val,
         mtp_basis_der,

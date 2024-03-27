@@ -2,6 +2,7 @@
 #define MATERSDK_MTPR_MTP_PARAM_H
 #include <string>
 #include <vector>
+#include <set>
 
 namespace matersdk {
 namespace mtpr {
@@ -14,7 +15,7 @@ public:
 
     virtual const char* what() const {
         return this->message.c_str();
-    } 
+    }
 };  // class : MtpException
 
 #define MtpError(str) throw MtpException((std::string)"ERROR: " + str + \
@@ -40,6 +41,10 @@ public:
 
     ~MtpParam();
 
+    std::set<int> _get_mus4all_mom(int mom_idx);
+
+    void _get_mus4all_mom_dp(int num_moms);
+
     void show() const;
 
     const int alpha_moments_count() const;
@@ -56,6 +61,8 @@ public:
 
     const int *alpha_moment_mapping() const;
 
+    const std::vector<std::set<int>> mus4moms_lst() const;
+
     const int nmus() const;
 
 private:
@@ -66,7 +73,8 @@ private:
     int (*_alpha_index_times)[4] = nullptr;
     int _alpha_scalar_moments = 0;
     int *_alpha_moment_mapping = nullptr;
-    //int _alpha_count = 0;   // Basis function count. _alpha_count = _alpha_scalar_moments + 1
+    std::vector<std::set<int>> _mus4moms_lst;
+    //int _alpha_count = 0;
 };  // class MtpParam
 
 
@@ -98,16 +106,6 @@ private:
     int _alpha_index_times_count = 0;
     int (*_alpha_index_times)[4] = nullptr;
 };  // class : AlphaIndexTimes
-
-std::set<int> find_mus4nonbasic_mom(
-    const int mom_idx,
-    const int alpha_moments_count,
-    const int alpha_index_basic_count,
-    const int (*alpha_index_basic)[4],
-    const int alpha_index_times_count,
-    const int (*alpha_index_times)[4],
-    const int alpha_scalar_moments,
-    const int *alpha_moment_mapping);
 
 
 };  // namespace : mtpr
