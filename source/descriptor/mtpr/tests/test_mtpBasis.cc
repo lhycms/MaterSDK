@@ -72,6 +72,7 @@ protected:
             "/data/home/liuhanyu/hyliu/code/matersdk/source/descriptor/mtpr/MTP_templates/28.almtp"
         };
         mtp_param._load(filenames[3]);
+mtp_param.show();
 
         inum = 12;
         ntypes = 2;
@@ -79,12 +80,13 @@ protected:
         nmus = mtp_param.nmus();
         rmax = 5.0;
         rmin = 2.0;
+        umax_num_neigh_atoms = 20;
         mtp_basis_val = (double*)malloc(sizeof(double) * inum * mtp_param.alpha_scalar_moments());
-        mtp_basis_der = (double (*)[3])malloc(sizeof(double) * inum * mtp_param.alpha_scalar_moments() * 3);
+        mtp_basis_der = (double (*)[3])malloc(sizeof(double) * inum * mtp_param.alpha_scalar_moments() * umax_num_neigh_atoms * 3);
         mtp_basis_der2coeffs = (double*)malloc(sizeof(double) * inum * mtp_param.alpha_scalar_moments() * ntypes * ntypes * mtp_param.nmus() * chebyshev_size);
         coeffs = (double*)malloc(sizeof(double) * ntypes * ntypes * mtp_param.nmus() * chebyshev_size);
         for (int ii=0; ii<ntypes*ntypes*mtp_param.nmus()*chebyshev_size; ii++)
-            coeffs[ii] = 100;
+            coeffs[ii] = 1;
 
         // Establish neighbor list
         num_atoms = 12;
@@ -192,8 +194,9 @@ protected:
 };  // class : MtpBasisTest
 
 
+
 TEST_F(MtpBasisTest, find_val_der)
-{
+{    
     //for (int ii=0; ii<1000; ii++)
     matersdk::mtpr::MtpBasis<double>::find_val_der(
         mtp_basis_val,
@@ -224,53 +227,11 @@ TEST_F(MtpBasisTest, find_val_der)
         rmin);
     double val0 = mtp_basis_val[8];
 
-    printf("[");
-    for (int ii=0; ii<mtp_param.alpha_scalar_moments(); ii++) {
-        printf("%6lf, ", mtp_basis_val[ii]);
-    }
-    printf("]\n");
-
-
-    for (int ii=0; ii<mtp_param.alpha_scalar_moments(); ii++) {
-        printf("[");
-        for (int jj=0; jj<3; jj++) {
-            printf("%6lf, ", mtp_basis_der[ii][jj]);
-        }
-        printf("]\n");
-    }
-
-
-    //rcs[*umax_num_neigh_atoms*3 + j]
-    matersdk::mtpr::MtpBasis<double>::find_val_der(
-        mtp_basis_val,
-        mtp_basis_der,
-        mtp_basis_der2coeffs,
-        chebyshev_size,
-        coeffs,
-        mtp_param.alpha_moments_count(),
-        mtp_param.alpha_index_basic_count(),
-        mtp_param.alpha_index_basic(),
-        mtp_param.alpha_index_times_count(),
-        mtp_param.alpha_index_times(),
-        mtp_param.alpha_scalar_moments(),
-        mtp_param.alpha_moment_mapping(),
-        mtp_param.max_num_mus4mom(),
-        mtp_param.num_mus4moms(),
-        mtp_param.mus4moms_ptr(),
-        nmus,
-        inum,
-        ilist,
-        numneigh,
-        firstneigh,
-        (double (*)[3])rcs,
-        types,
-        ntypes,
-        umax_num_neigh_atoms,
-        rmax,
-        rmin);
-    double val1 = mtp_basis_val[8];
-    double der = (val1 - val0) / 0.0001;
-    std::cout << val1 << ", " << val0 << std::endl;
+//printf("[");
+//for (int ii=0; ii<mtp_param.alpha_scalar_moments(); ii++) {
+//    printf("%6lf, ", mtp_basis_val[ii]);
+//}
+//printf("]\n");
 }
 
 

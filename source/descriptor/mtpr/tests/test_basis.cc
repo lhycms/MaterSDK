@@ -134,11 +134,17 @@ TEST_F(RB_ChebyshevTest, der_accuracy)
     matersdk::mtpr::RB_Chebyshev<double>* rb2_ptr = new matersdk::mtpr::RB_Chebyshev<double>(size, rmax, rmin);
     rb2_ptr->build(distance_ij_);
 
-printf("Custom code method: deriv of RB_Chebyshev wrt. r:\n\t");
+printf("0. Value of RB_Chebyshev:\n");
+for (int ii=0; ii<rb1_ptr->size(); ii++) {
+    printf("%10lf, ", rb1_ptr->vals()[ii]);
+}
+printf("\n");
+
+printf("1. Custom code method: deriv of RB_Chebyshev wrt. r:\n\t");
 for (int ii=0; ii<rb1_ptr->size(); ii++)
     printf("%10lf, ", rb1_ptr->ders2r()[ii]);
 printf("\n");
-printf("Finite difference method: deriv of RB_Chebyshev wrt. r:\n\t");
+printf("2. Finite difference method: deriv of RB_Chebyshev wrt. r:\n\t");
 for (int ii=0; ii<rb2_ptr->size(); ii++) {
     double tmp_der2r = (rb2_ptr->vals()[ii] - rb1_ptr->vals()[ii]) / 0.0001;
     printf("%10lf, ", tmp_der2r);
@@ -219,6 +225,12 @@ TEST_F(RQ_ChebyshevTest, der_accuracy) {
 //rq1_ptr->show();
     matersdk::mtpr::RQ_Chebyshev<double>* rq2_ptr = new matersdk::mtpr::RQ_Chebyshev<double>(size, rmax, rmin);
     rq2_ptr->build(distance_ij + 0.001);
+
+printf("0. Value of RQ_Chebyshev:\n");
+for (int ii=0; ii<rq1_ptr->size(); ii++) {
+    printf("%10lf, ", rq1_ptr->vals()[ii]);
+}
+printf("\n");
 
 printf("1. Custom code method: deriv of Radial Q wrt. r:\n\t");
 for (int ii=0; ii<rq1_ptr->size(); ii++) {

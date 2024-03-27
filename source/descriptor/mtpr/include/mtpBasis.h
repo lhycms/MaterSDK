@@ -100,7 +100,6 @@ void MtpBasis<CoordType>::find_val_der(
     auto_coords_powers_ = (CoordType (*)[3])malloc(sizeof(CoordType) * max_alpha_index_basic * 3);
     memset(auto_dist_powers_, 0, sizeof(CoordType) * max_alpha_index_basic);
     memset(auto_coords_powers_, 0, sizeof(CoordType) * max_alpha_index_basic * 3);
-
     CoordType NeighbVect[3];
     CoordType distance_ij;
     int type_central;
@@ -155,34 +154,35 @@ void MtpBasis<CoordType>::find_val_der(
                     int idx = (type_central*ntypes + type_outer)*nmus*chebyshev_size + mu*chebyshev_size + xi;
                     mom_vals[i] += coeffs[idx] * p_RadialBasis->vals()[xi] * powk * mult0;
                     mom_ders2coeffs[i*num_coeffs + idx] += p_RadialBasis->vals()[xi] * powk * mult0;
-                    mom_ders[i*umax_num_neigh_atoms+jj][0] += NeighbVect[0] / distance_ij * 
+                    mom_ders[i*umax_num_neigh_atoms + jj][0] += NeighbVect[0] / distance_ij * 
                                     ( coeffs[idx] * p_RadialBasis->ders2r()[xi] * powk * mult0 
                                     - coeffs[idx] * p_RadialBasis->vals()[xi] * k * powk / distance_ij * mult0 );
-                    mom_ders[i*umax_num_neigh_atoms+jj][1] += NeighbVect[1] / distance_ij * 
+                    mom_ders[i*umax_num_neigh_atoms + jj][1] += NeighbVect[1] / distance_ij * 
                                     ( coeffs[idx] * p_RadialBasis->ders2r()[xi] * powk * mult0
                                     - coeffs[idx] * p_RadialBasis->vals()[xi] * k * powk / distance_ij * mult0 );
-                    mom_ders[i*umax_num_neigh_atoms+jj][2] += NeighbVect[2] / distance_ij *
+                    mom_ders[i*umax_num_neigh_atoms + jj][2] += NeighbVect[2] / distance_ij *
                                     ( coeffs[idx] * p_RadialBasis->ders2r()[xi] * powk * mult0
                                     - coeffs[idx] * p_RadialBasis->vals()[xi] * k * powk / distance_ij * mult0 );
                     if (alpha_index_basic[i][1] != 0) {
-                        mom_ders[i][0] += coeffs[idx] * p_RadialBasis->vals()[xi] * powk * alpha_index_basic[i][1]
+                        mom_ders[i*umax_num_neigh_atoms + jj][0] += coeffs[idx] * p_RadialBasis->vals()[xi] * powk * alpha_index_basic[i][1]
                                         * auto_coords_powers_[alpha_index_basic[i][1] - 1][0]
                                         * pow1
                                         * pow2;
                     }
                     if (alpha_index_basic[i][2] != 0) {
-                        mom_ders[i][1] += coeffs[idx] * p_RadialBasis->vals()[xi] * powk * alpha_index_basic[i][2]
+                        mom_ders[i*umax_num_neigh_atoms + jj][1] += coeffs[idx] * p_RadialBasis->vals()[xi] * powk * alpha_index_basic[i][2]
                                         * pow0
                                         * auto_coords_powers_[alpha_index_basic[i][2] - 1][1]
                                         * pow2;
                     }
                     if (alpha_index_basic[i][3] != 0) {
-                        mom_ders[i][2] += coeffs[idx] * p_RadialBasis->vals()[xi] * powk * alpha_index_basic[i][3]
+                        mom_ders[i*umax_num_neigh_atoms + jj][2] += coeffs[idx] * p_RadialBasis->vals()[xi] * powk * alpha_index_basic[i][3]
                                         * pow0
                                         * pow1
                                         * auto_coords_powers_[alpha_index_basic[i][3] - 1][2];
                     }
                 }
+//printf("%d, %10lf\n", i, mom_vals[i]);
             }
         }
 
@@ -211,25 +211,35 @@ void MtpBasis<CoordType>::find_val_der(
                         * mom_ders2coeffs[alpha_index_times[i][1]*num_coeffs + idx1];
                 }
             }
-            mom_ders[alpha_index_times[i][3]][0] += val2 * 
-                    ( mom_ders[alpha_index_times[i][0]][0] * val1
-                    + val0 * mom_ders[alpha_index_times[i][1]][0] );
-            mom_ders[alpha_index_times[i][3]][1] += val2 * 
-                    ( mom_ders[alpha_index_times[i][0]][1] * val1
-                    + val0 * mom_ders[alpha_index_times[i][1]][1] );
-            mom_ders[alpha_index_times[i][3]][2] += val2 * 
-                    ( mom_ders[alpha_index_times[i][0]][2] * val1
-                    + val0 * mom_ders[alpha_index_times[i][2]][2] );
+
+            for (int jj=0; jj<numneigh[ii]; jj++)
+            {
+                mom_ders[alpha_index_times[i][3]*umax_num_neigh_atoms + jj][0] += val2 * 
+                        ( mom_ders[alpha_index_times[i][0]*umax_num_neigh_atoms + jj][0] * val1
+                        + val0 * mom_ders[alpha_index_times[i][1]*umax_num_neigh_atoms + jj][0] );
+                mom_ders[alpha_index_times[i][3]*umax_num_neigh_atoms + jj][1] += val2 * 
+                        ( mom_ders[alpha_index_times[i][0]*umax_num_neigh_atoms + jj][1] * val1
+                        + val0 * mom_ders[alpha_index_times[i][1]*umax_num_neigh_atoms + jj][1] );
+                mom_ders[alpha_index_times[i][3]*umax_num_neigh_atoms + jj][2] += val2 * 
+                        ( mom_ders[alpha_index_times[i][0]*umax_num_neigh_atoms + jj][2] * val1
+                        + val0 * mom_ders[alpha_index_times[i][2]*umax_num_neigh_atoms + jj][2] );
+            }
         }
 
         for (int i=0; i<alpha_scalar_moments; i++) 
         {
             mtp_basis_val[ii*alpha_scalar_moments + i] = mom_vals[alpha_moment_mapping[i]];
-            for (int a=0; a<3; a++)
-                mtp_basis_der[ii*alpha_scalar_moments + i][a] = mom_ders[alpha_moment_mapping[i]][a];
+            for (int jj=0; jj<numneigh[ii]; jj++)
+                for (int a=0; a<3; a++)
+                    mtp_basis_der[ii*alpha_scalar_moments*umax_num_neigh_atoms + i*umax_num_neigh_atoms + jj][a] = mom_ders[alpha_moment_mapping[i]*umax_num_neigh_atoms + jj][a];
             for (int idx=0; idx<num_coeffs; idx++)
                 mtp_basis_der2coeffs[(ii*alpha_scalar_moments + i)*num_coeffs + idx] = mom_ders2coeffs[alpha_moment_mapping[i]*num_coeffs + idx];
         }
+
+        printf("\t*** [");
+        for (int i=0; i<alpha_scalar_moments; i++)
+            printf("%6lf, ", mom_vals[alpha_moment_mapping[i]]);
+        printf("]\n");
     }
     
     // Step . Free memory
