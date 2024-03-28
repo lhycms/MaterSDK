@@ -84,7 +84,7 @@ void MtpBasis<CoordType>::find_val_der(
     CoordType *mom_ders2coeffs = (CoordType*)malloc(sizeof(CoordType) * alpha_moments_count * ntypes * ntypes * nmus * chebyshev_size);
     memset(mom_vals, 0, sizeof(CoordType) * alpha_moments_count);
     memset(mom_ders, 0, sizeof(CoordType) * alpha_moments_count * umax_num_neigh_atoms * 3);
-    memset(mom_ders2coeffs, 0 , sizeof(CoordType) * alpha_moments_count * ntypes * ntypes * nmus * chebyshev_size);
+    memset(mom_ders2coeffs, 0, sizeof(CoordType) * alpha_moments_count * ntypes * ntypes * nmus * chebyshev_size);
 
     int max_alpha_index_basic = 0;
     for (int ii=0; ii<alpha_index_basic_count; ii++) {
@@ -113,7 +113,7 @@ void MtpBasis<CoordType>::find_val_der(
     {
         memset(mom_vals, 0, sizeof(CoordType) * alpha_moments_count);
         memset(mom_ders, 0, sizeof(CoordType) * alpha_moments_count * umax_num_neigh_atoms * 3);
-        memset(mom_ders2coeffs, 0 , sizeof(CoordType) * alpha_moments_count * num_coeffs);
+        memset(mom_ders2coeffs, 0, sizeof(CoordType) * alpha_moments_count * num_coeffs);
 
         type_central = types[ilist[ii]];
         if (type_central >= ntypes)
@@ -151,7 +151,7 @@ void MtpBasis<CoordType>::find_val_der(
                 CoordType mult0 = pow0 * pow1 * pow2;
 
                 for (int xi=0; xi<chebyshev_size; xi++) {
-                    int idx = (type_central*ntypes + type_outer)*nmus*chebyshev_size + mu*chebyshev_size + xi;
+                    int idx = type_central*ntypes*nmus*chebyshev_size + type_outer*nmus*chebyshev_size + mu*chebyshev_size + xi;
                     mom_vals[i] += coeffs[idx] * p_RadialBasis->vals()[xi] * powk * mult0;
                     mom_ders2coeffs[i*num_coeffs + idx] += p_RadialBasis->vals()[xi] * powk * mult0;
                     mom_ders[i*umax_num_neigh_atoms + jj][0] += NeighbVect[0] / distance_ij * 
@@ -182,7 +182,6 @@ void MtpBasis<CoordType>::find_val_der(
                                         * auto_coords_powers_[alpha_index_basic[i][3] - 1][2];
                     }
                 }
-//printf("%d, %10lf\n", i, mom_vals[i]);
             }
         }
 
@@ -193,22 +192,31 @@ void MtpBasis<CoordType>::find_val_der(
             CoordType val2 = alpha_index_times[i][2];
 
             mom_vals[alpha_index_times[i][3]] += val2 * val0 * val1;
-            for (int xi=0; xi<chebyshev_size; xi++) {
-                for (int q=0; q<num_mus4moms[alpha_index_times[i][0]]; q++) {
-                    int idx0 = (type_central*ntypes + type_outer)*nmus*chebyshev_size 
-                             + mus4moms_ptr[alpha_index_times[i][0]*max_num_mus4mom + q]*chebyshev_size 
-                             + xi;
-                    mom_ders2coeffs[alpha_index_times[i][3]*num_coeffs + idx0] += val2
-                        * mom_ders2coeffs[alpha_index_times[i][0]*num_coeffs + idx0]
-                        * val1;
-                }
-                for (int q=0; q<num_mus4moms[alpha_index_times[i][1]]; q++) {
-                    int idx1 = (type_central*ntypes + type_outer)*nmus*chebyshev_size 
-                             + mus4moms_ptr[alpha_index_times[i][1]*max_num_mus4mom + q]*chebyshev_size 
-                             + xi;
-                    mom_ders2coeffs[alpha_index_times[i][3]*num_coeffs + idx1] += val2
-                        * val0
-                        * mom_ders2coeffs[alpha_index_times[i][1]*num_coeffs + idx1];
+
+            for (int tmp_type_central=0; tmp_type_central<ntypes; tmp_type_central++) {
+                for (int tmp_type_outer=0; tmp_type_outer<ntypes; tmp_type_outer++) {
+                    for (int q=0; q<num_mus4moms[alpha_index_times[i][0]]; q++) {
+                        for (int xi=0; xi<chebyshev_size; xi++) {
+                            int idx0 = (tmp_type_central*ntypes + tmp_type_outer)*nmus*chebyshev_size 
+                                     + mus4moms_ptr[alpha_index_times[i][0]*max_num_mus4mom + q]*chebyshev_size
+                                     + xi;
+
+                            mom_ders2coeffs[alpha_index_times[i][3]*num_coeffs + idx0] += val2
+                                * mom_ders2coeffs[alpha_index_times[i][0]*num_coeffs + idx0]
+                                * val1;
+                        }
+                    }
+                    for (int q=0; q<num_mus4moms[alpha_index_times[i][1]]; q++) {
+                        for (int xi=0; xi<chebyshev_size; xi++) {
+                            int idx1 = (tmp_type_central*ntypes + type_outer)*ntypes*nmus*chebyshev_size
+                                     + mus4moms_ptr[alpha_index_times[i][0]*max_num_mus4mom + q]*chebyshev_size
+                                     +xi;
+                            mom_ders2coeffs[alpha_index_times[i][3]*num_coeffs + idx1] += val2
+                                * val0
+                                * mom_ders2coeffs[alpha_index_times[i][1]*num_coeffs + idx1];
+                        }
+                    }
+
                 }
             }
 
@@ -233,19 +241,15 @@ void MtpBasis<CoordType>::find_val_der(
                 for (int a=0; a<3; a++)
                     mtp_basis_der[ii*alpha_scalar_moments*umax_num_neigh_atoms + i*umax_num_neigh_atoms + jj][a] = mom_ders[alpha_moment_mapping[i]*umax_num_neigh_atoms + jj][a];
             for (int idx=0; idx<num_coeffs; idx++)
-                mtp_basis_der2coeffs[(ii*alpha_scalar_moments + i)*num_coeffs + idx] = mom_ders2coeffs[alpha_moment_mapping[i]*num_coeffs + idx];
+                mtp_basis_der2coeffs[ii*alpha_scalar_moments*num_coeffs + i*num_coeffs + idx] = mom_ders2coeffs[alpha_moment_mapping[i]*num_coeffs + idx];
         }
-
-        printf("\t*** [");
-        for (int i=0; i<alpha_scalar_moments; i++)
-            printf("%6lf, ", mom_vals[alpha_moment_mapping[i]]);
-        printf("]\n");
-    }
+    }   
+    
     
     // Step . Free memory
     free(mom_vals);
     free(mom_ders);
-    free(mom_ders2coeffs);
+    free(mom_ders2coeffs);  //
     free(auto_dist_powers_);
     free(auto_coords_powers_);
     delete p_RadialBasis;

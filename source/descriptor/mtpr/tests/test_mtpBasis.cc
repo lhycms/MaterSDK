@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <vector>
 #include <string>
+#include <cassert>
 #include "../include/mtpBasis.h"
 #include "../include/mtpParam.h"
 #include "../../../nblist/include/structure.h"
@@ -16,6 +17,9 @@ protected:
     double *mtp_basis_val;
     double (*mtp_basis_der)[3];
     double *mtp_basis_der2coeffs;
+    double *mtp_basis_val_;
+    double (*mtp_basis_der_)[3];
+    double *mtp_basis_der2coeffs_;
     int chebyshev_size;
     double *coeffs;
     int nmus;
@@ -71,8 +75,8 @@ protected:
             "/data/home/liuhanyu/hyliu/code/matersdk/source/descriptor/mtpr/MTP_templates/26.almtp",
             "/data/home/liuhanyu/hyliu/code/matersdk/source/descriptor/mtpr/MTP_templates/28.almtp"
         };
-        mtp_param._load(filenames[3]);
-mtp_param.show();
+        mtp_param._load(filenames[7]); // 3 or 7
+//mtp_param.show();
 
         inum = 12;
         ntypes = 2;
@@ -84,6 +88,9 @@ mtp_param.show();
         mtp_basis_val = (double*)malloc(sizeof(double) * inum * mtp_param.alpha_scalar_moments());
         mtp_basis_der = (double (*)[3])malloc(sizeof(double) * inum * mtp_param.alpha_scalar_moments() * umax_num_neigh_atoms * 3);
         mtp_basis_der2coeffs = (double*)malloc(sizeof(double) * inum * mtp_param.alpha_scalar_moments() * ntypes * ntypes * mtp_param.nmus() * chebyshev_size);
+        mtp_basis_val_ = (double*)malloc(sizeof(double) * inum * mtp_param.alpha_scalar_moments());
+        mtp_basis_der_ = (double (*)[3])malloc(sizeof(double) * inum * mtp_param.alpha_scalar_moments() * umax_num_neigh_atoms * 3);
+        mtp_basis_der2coeffs_ = (double*)malloc(sizeof(double) * inum * mtp_param.alpha_scalar_moments() * ntypes * ntypes * mtp_param.nmus() * chebyshev_size);
         coeffs = (double*)malloc(sizeof(double) * ntypes * ntypes * mtp_param.nmus() * chebyshev_size);
         for (int ii=0; ii<ntypes*ntypes*mtp_param.nmus()*chebyshev_size; ii++)
             coeffs[ii] = 1;
@@ -195,7 +202,7 @@ mtp_param.show();
 
 
 
-TEST_F(MtpBasisTest, find_val_der)
+TEST_F(MtpBasisTest, find_val_der4rcs)
 {    
     //for (int ii=0; ii<1000; ii++)
     matersdk::mtpr::MtpBasis<double>::find_val_der(
@@ -225,13 +232,130 @@ TEST_F(MtpBasisTest, find_val_der)
         umax_num_neigh_atoms,
         rmax,
         rmin);
-    double val0 = mtp_basis_val[8];
+    rcs[0*umax_num_neigh_atoms*3 + 0*3 + 1] += 0.0001;  // [0, 0, 0]: [中心原子，近邻原子，y方向]
+    matersdk::mtpr::MtpBasis<double>::find_val_der(
+        mtp_basis_val_,
+        mtp_basis_der_,
+        mtp_basis_der2coeffs_,
+        chebyshev_size,
+        coeffs,
+        mtp_param.alpha_moments_count(),
+        mtp_param.alpha_index_basic_count(),
+        mtp_param.alpha_index_basic(),
+        mtp_param.alpha_index_times_count(),
+        mtp_param.alpha_index_times(),
+        mtp_param.alpha_scalar_moments(),
+        mtp_param.alpha_moment_mapping(),
+        mtp_param.max_num_mus4mom(),
+        mtp_param.num_mus4moms(),
+        mtp_param.mus4moms_ptr(),
+        nmus,
+        inum,
+        ilist,
+        numneigh,
+        firstneigh,
+        (double (*)[3])rcs,
+        types,
+        ntypes,
+        umax_num_neigh_atoms,
+        rmax,
+        rmin);
 
-//printf("[");
-//for (int ii=0; ii<mtp_param.alpha_scalar_moments(); ii++) {
-//    printf("%6lf, ", mtp_basis_val[ii]);
-//}
-//printf("]\n");
+// Step 1. Check the derivatives of MTP basis wrt. relative coordinates
+printf("1. Check the derivatives of MTP basis wrt. relative coordinates:\n");
+printf("1.1. The derivatives of MTP basis wrt. relative coordinates calculated by custom code:\n\t[");
+for (int ii=0; ii<mtp_param.alpha_scalar_moments(); ii++)
+    printf("%10lf, ", 
+        mtp_basis_der[0*mtp_param.alpha_scalar_moments()*umax_num_neigh_atoms + ii*umax_num_neigh_atoms + 0][1]);
+printf("]\n");
+printf("1.2. The derivatives of MTP basis wrt. relative coordinates calculated by finite different method:\n\t[");
+for (int ii=0; ii<mtp_param.alpha_scalar_moments(); ii++) {
+    double der_fdm = (mtp_basis_val_[0*mtp_param.alpha_scalar_moments() + ii] - mtp_basis_val[0*mtp_param.alpha_scalar_moments() + ii]) / 0.0001;
+    printf("%10lf, ", der_fdm);
+}
+printf("]\n");
+}
+
+
+
+TEST_F(MtpBasisTest, find_val_der4coeffs)
+{
+    //for (int ii=0; ii<1000; ii++)
+    matersdk::mtpr::MtpBasis<double>::find_val_der(
+        mtp_basis_val,
+        mtp_basis_der,
+        mtp_basis_der2coeffs,
+        chebyshev_size,
+        coeffs,
+        mtp_param.alpha_moments_count(),
+        mtp_param.alpha_index_basic_count(),
+        mtp_param.alpha_index_basic(),
+        mtp_param.alpha_index_times_count(),
+        mtp_param.alpha_index_times(),
+        mtp_param.alpha_scalar_moments(),
+        mtp_param.alpha_moment_mapping(),
+        mtp_param.max_num_mus4mom(),
+        mtp_param.num_mus4moms(),
+        mtp_param.mus4moms_ptr(),
+        nmus,
+        inum,
+        ilist,
+        numneigh,
+        firstneigh,
+        (double (*)[3])rcs,
+        types,
+        ntypes,
+        umax_num_neigh_atoms,
+        rmax,
+        rmin);
+    assert(0 < mtp_param.nmus());   // now_mu < max_mu
+    coeffs[(0*ntypes + 0)*ntypes*mtp_param.nmus()*chebyshev_size + 0*chebyshev_size + 0] += 0.0001; // [0, 0, 2, 0] = [center_type, neigh_type, mu, chebyshev_idx]
+    matersdk::mtpr::MtpBasis<double>::find_val_der(
+        mtp_basis_val_,
+        mtp_basis_der_,
+        mtp_basis_der2coeffs_,
+        chebyshev_size,
+        coeffs,
+        mtp_param.alpha_moments_count(),
+        mtp_param.alpha_index_basic_count(),
+        mtp_param.alpha_index_basic(),
+        mtp_param.alpha_index_times_count(),
+        mtp_param.alpha_index_times(),
+        mtp_param.alpha_scalar_moments(),
+        mtp_param.alpha_moment_mapping(),
+        mtp_param.max_num_mus4mom(),
+        mtp_param.num_mus4moms(),
+        mtp_param.mus4moms_ptr(),
+        nmus,
+        inum,
+        ilist,
+        numneigh,
+        firstneigh,
+        (double (*)[3])rcs,
+        types,
+        ntypes,
+        umax_num_neigh_atoms,
+        rmax,
+        rmin);
+
+    
+    int num_coeffs = ntypes * ntypes * mtp_param.nmus() * chebyshev_size;
+// Step 1. Check the derivatives of MTP basis wrt. relative coordinates
+printf("1. Check the derivatives of MTP basis wrt. coeffs:\n");
+printf("1.1. The derivatives of MTP basis wrt. coeffs calculated by custom code:\n\t[");
+for (int ii=0; ii<mtp_param.alpha_scalar_moments(); ii++) {
+    printf("%10lf, ", mtp_basis_der2coeffs[0*mtp_param.alpha_scalar_moments()*num_coeffs + ii*num_coeffs + 0]); // [0, ii, 0] = [center_idx, mu, chebyshev_idx]
+}
+printf("]\n");
+printf("1.2. The derivatives of MTP basis wrt. coeffs calculated by finite difference method:\n\t[");
+for (int ii=0; ii<mtp_param.alpha_scalar_moments(); ii++) {
+    double der_fdm = (mtp_basis_val_[0*mtp_param.alpha_scalar_moments() + ii] - mtp_basis_val[0*mtp_param.alpha_scalar_moments() + ii]) / 0.0001;
+    printf("%10lf, ", der_fdm);
+}
+printf("]\n");
+
+    //ASSERT_DOUBLE_EQ(mtp_basis_der2coeffs[0*mtp_param.alpha_scalar_moments()*num_coeffs + 3 * num_coeffs + 0], 0);
+    //ASSERT_DOUBLE_EQ(mtp_basis_der2coeffs[0*mtp_param.alpha_scalar_moments()*num_coeffs + 19 * num_coeffs + 0], 0);
 }
 
 
